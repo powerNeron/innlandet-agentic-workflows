@@ -54,6 +54,8 @@ class SummarizerTests(unittest.TestCase):
             MockScenario.INVALID_PARAGRAPH,
             MockScenario.FABRICATED_QUOTE,
             MockScenario.CHANGED_NUMBER,
+            MockScenario.UNSUPPORTED_STATEMENT,
+            MockScenario.UNCERTAIN_CLAIM,
             MockScenario.CONFLICTING_CLAIMS,
             MockScenario.MALFORMED_OUTPUT,
         )
@@ -72,6 +74,8 @@ class SummarizerTests(unittest.TestCase):
             MockScenario.INVALID_PARAGRAPH: FindingCode.INVALID_PARAGRAPH_ID,
             MockScenario.FABRICATED_QUOTE: FindingCode.FABRICATED_EVIDENCE,
             MockScenario.CHANGED_NUMBER: FindingCode.UNSUPPORTED_NUMBER,
+            MockScenario.UNSUPPORTED_STATEMENT: FindingCode.POTENTIALLY_UNSUPPORTED,
+            MockScenario.UNCERTAIN_CLAIM: FindingCode.UNCERTAIN_CLAIM,
             MockScenario.CONFLICTING_CLAIMS: FindingCode.CONFLICTING_CLAIMS,
             MockScenario.MALFORMED_OUTPUT: FindingCode.MALFORMED_OUTPUT,
         }
@@ -91,12 +95,25 @@ class EvidenceVerificationTests(unittest.TestCase):
         self.source = load_fixture(FIXTURE)
 
     def test_valid_quote_is_traceable_but_not_asserted_true(self):
-        claim = Claim("c1", "Dette er en semantisk ubekreftet påstand.", "p1", "hardheten 3 °dH")
+        claim = Claim(
+            "c1",
+            "I denne oppdiktede målingen er hardheten 3 °dH.",
+            "p1",
+            "I denne oppdiktede målingen er hardheten 3 °dH.",
+        )
 
         report = verify_claims(self.source, (claim,))
 
         self.assertEqual(report.claims[0].evidence_status.value, "exact_match")
         self.assertFalse(report.has_findings)
+
+    def test_unrelated_statement_is_flagged_as_potentially_unsupported(self):
+        claim = Claim("c1", "Kommunen stenger skolen i morgen.", "p1", self.source.paragraphs[0].text)
+
+        report = verify_claims(self.source, (claim,))
+
+        self.assertIn(FindingCode.POTENTIALLY_UNSUPPORTED, {finding.code for finding in report.findings})
+        self.assertEqual(report.claims[0].evidence_status.value, "exact_match")
 
     def test_unknown_paragraph_and_fabricated_excerpt_are_flagged(self):
         claims = (
