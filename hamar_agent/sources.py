@@ -24,6 +24,12 @@ APPROVED_SOURCES: Mapping[str, SourceApproval] = MappingProxyType({
         "b7b501132edcc07221b4f5e73089d1569bd34d8e205b51f0a5616803df310ab1",
         "Reviewed fictional, non-personal fixture; not Hamar municipal facts.",
     ),
+    "synthetic-verification-demo": SourceApproval(
+        "synthetic-verification-demo",
+        Path(__file__).resolve().parents[1] / "fixtures" / "verification-synthetic.json",
+        "fc1f737b466fc639ad9d02825f9e976bc0cc9f88851decdc9413ae06bee42286",
+        "Reviewed invented measurements for offline verification tests; no municipal facts or personal data.",
+    ),
 })
 MAX_FIXTURE_BYTES = 64 * 1024
 
