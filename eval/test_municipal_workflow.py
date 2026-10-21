@@ -194,13 +194,14 @@ class MunicipalTests(unittest.TestCase):
             with self.assertRaises(ValueError):import_selection(selection,root/'a.json',root/'c.json',enable_live=True,fetcher=fetcher)
             fetcher._get.assert_not_called()
 
-    def test_mocked_live_import_respects_interval_and_never_saves_html(self):
+    def test_live_html_import_fails_closed_before_any_network_or_write(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);selection=root/'selection.json';selection.write_text(json.dumps([{'source_id':'fictional-test','url':URL,'title':'Fictional service test','category':'teknisk','reviewed_on':date.today().isoformat(),'expires_on':(date.today()+timedelta(days=1)).isoformat(),'paragraph_sha256':[sha(TEXT)]}]))
-            fetcher=Mock();fetcher._get.side_effect=[ROBOTS,('<main><p>'+TEXT+'</p><p>Fictional Employee</p></main>').encode()]
-            docs=import_selection(selection,root/'a.json',root/'c.json',enable_live=True,fetcher=fetcher)
-            self.assertEqual(len(docs),1);self.assertEqual(fetcher._get.call_args.args[-1],5)
-            self.assertNotIn('Fictional Employee',(root/'c.json').read_text());self.assertNotIn('<main>',(root/'c.json').read_text())
+            fetcher=Mock()
+            with self.assertRaisesRegex(ValueError,"Live HTML import disabled"):
+                import_selection(selection,root/'a.json',root/'c.json',enable_live=True,fetcher=fetcher)
+            fetcher._get.assert_not_called()
+            self.assertFalse((root/'a.json').exists());self.assertFalse((root/'c.json').exists())
 
     def test_missing_real_catalog_fails_instead_of_using_demo(self):
         with tempfile.TemporaryDirectory() as d:

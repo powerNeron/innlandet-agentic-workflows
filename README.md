@@ -1,6 +1,6 @@
 # Innlandet Agentic Workflows
 
-> Current local implementation: real reviewed municipal mode is now available. Run `python -X utf8 -m hamar_agent.web --real-sources --model llama3.2:3b --ollama-timeout 90` from this worktree and open http://127.0.0.1:8000. Eight exact sources / 39 reviewed paragraphs, no synthetic fallback. See [real-source instructions and actual test evidence](docs/real-source-workflow.md) and [PASS/FAIL/UNKNOWN assignment matrix](docs/assignment-requirements-matrix.md). Earlier setup sections below are historical. Source approvals expire on 2026-10-28. Feature-branch publication is authorized; merging remains blocked by the documented assignment requirements.
+> Real reviewed municipal mode can use an existing reviewed catalog. **Live HTML import is currently disabled** because filtering after fetching/parsing cannot guarantee the assignment's strict ban on processing personal data. Do not renew or create a catalog from live HTML until a source format guarantees personal information is never acquired. See [real-source instructions and actual test evidence](docs/real-source-workflow.md) and [PASS/FAIL/UNKNOWN assignment matrix](docs/assignment-requirements-matrix.md). Source approvals expire on 2026-10-28.
 
 
 KIUA-2003 group project at the University of Inland Norway, developed by two students.

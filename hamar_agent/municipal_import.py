@@ -1,21 +1,19 @@
 """Explicit administrative import of individually reviewed service excerpts.
 
-No discovery or recursion. Raw HTML is transient. Existing output is never
-replaced. A successful run creates both an expiring approval manifest and a
-catalog containing only reviewed paragraphs, not the original response.
+Live HTML import is currently disabled: even transiently fetching and parsing
+a page can process personal information before excerpt filtering. Existing
+reviewed catalogs remain readable; this importer fails closed until an input
+format can guarantee that personal information is never acquired.
 """
 import argparse
-from dataclasses import asdict
-from datetime import date, datetime, timezone
-import hashlib
+from datetime import date
 import json
 from pathlib import Path
 import re
 
 from .categories import CATEGORY_IDS
-from .html_extract import extract_service_excerpts, privacy_check
-from .portal_sources import ReviewedFetcher, PageApproval, MAX_BYTES, AGENT, validate_page_url, import_reviewed_bytes, save_catalog
-from .robots_policy import robots_interval
+from .html_extract import privacy_check
+from .portal_sources import validate_page_url
 
 
 def load_selection(path):
@@ -51,32 +49,10 @@ def import_selection(selection, approvals_path, output, *, enable_live=False, fe
     entries = load_selection(selection)  # Reject BEFORE DNS or any acquisition.
     if not enable_live:
         raise ValueError("Explicit --enable-live required")
-    if approvals_path.resolve() == output.resolve() or approvals_path.exists() or output.exists():
-        raise ValueError("Both destinations must be new and distinct")
-    if not approvals_path.parent.is_dir() or not output.parent.is_dir():
-        raise ValueError("Destination parent directories must already exist")
-    fetcher = fetcher or ReviewedFetcher()
-    robots = fetcher._get("https://www.hamar.kommune.no/robots.txt", "text/plain", 65536, 5)
-    approvals, documents = [], []
-    for entry in entries:
-        interval = robots_interval(robots, entry["url"], AGENT)
-        raw = fetcher._get(entry["url"], "text/html", MAX_BYTES, interval)
-        retrieved_at = datetime.now(timezone.utc).isoformat()
-        paragraphs = extract_service_excerpts(raw.decode("utf-8", errors="strict"), entry["paragraph_sha256"])
-        approval = PageApproval(source_id=entry["source_id"], url=entry["url"], title=entry["title"], category=entry["category"],
-            reviewed_on=entry["reviewed_on"], expires_on=entry["expires_on"],
-            raw_sha256=hashlib.sha256(raw).hexdigest(), text_sha256=hashlib.sha256("\n\n".join(paragraphs).encode()).hexdigest(),
-            robots_sha256=hashlib.sha256(robots).hexdigest(),
-            rationale="Individually reviewed non-personal service paragraphs; transient HTML allowed by explicit user decision. No linked pages approved.",
-            no_personal_data=True, review_scope="service_excerpts", paragraph_sha256=tuple(entry["paragraph_sha256"]))
-        documents.append(import_reviewed_bytes(approval, raw, retrieved_at=retrieved_at, robots=robots))
-        approvals.append(approval)
-        del raw  # Never write HTML or unselected text to disk.
-    with approvals_path.open("x", encoding="utf-8", newline="\n") as stream:
-        stream.write(json.dumps([asdict(a) for a in approvals], ensure_ascii=False, indent=2)+"\n")
-    # If this exclusive write fails, the manifest may remain; nothing is removed.
-    save_catalog(documents, output)
-    return documents
+    # HTML excerpt filtering happens only after the response body has already
+    # been acquired and parsed. That cannot satisfy the course's strict
+    # no-processing-of-personal-data requirement, so fail before any request.
+    raise ValueError("Live HTML import disabled: use a source format certified to contain no personal information")
 
 
 def main(argv=None):

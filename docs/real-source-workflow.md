@@ -53,7 +53,7 @@ Never run both servers on the same port. Stop the foreground server with Ctrl-C.
 
 ## Reproduce reviewed acquisition
 
-The initial import was actually run against all eight official URLs. No raw HTML was saved. For a new import, choose NEW paths and keep the selection within its review period:
+The initial import was run against all eight official URLs before the privacy fail-closed change; no raw HTML was saved, but transient parsing could still process personal information. **Live HTML import is now disabled** because paragraph filtering occurs after HTML acquisition and parsing. Do not run the old import command below; it is retained only as a historical record and now exits before any network request. Existing reviewed catalogs can be read until approval expiry, but do not renew them from HTML.
 
 ```powershell
 python -X utf8 -m hamar_agent.municipal_import --selection docs/reviewed-service-selection.json --approvals output/NEW-approvals.json --output output/NEW-catalog.json --enable-live
@@ -62,7 +62,7 @@ python -X utf8 -m hamar_agent.web --real-sources --catalog output/NEW-catalog.js
 
 Review scope is service_excerpts. Whole paragraph hashes are individually reviewed; unselected paragraphs, captions, names, contacts, scripts/forms and linked pages are not admitted. Missing/changed selected paragraphs fail closed. Retained text hashes and raw response hashes are recorded without retaining the HTML. Existing full_document approval semantics still work for the older offline fixtures/tests. The no_personal_data assertion in excerpt scope applies to retained excerpts, not the entire transient raw response. There is no general automatic named-entity/privacy guarantee: manual exact-text review is essential.
 
-The administrative importer fetches only registered exact official HTTPS URLs, validates robots before acquisition, uses the existing public-address-pinned normal TLS transport, refuses redirects/authentication/noindex/compression, applies ten-second socket timeouts and 512 KiB limits, and uses at least five seconds between requests. Existing stricter robots rates apply. It never crawls the sitemap or follows links. New approval/catalog destinations are created exclusively. If the second write fails, the first may remain; nothing is deleted or overwritten. Review expiry is copied from the selection, never silently renewed. Legacy fetch-reviewed additionally pins exact raw bytes and therefore rejects unrelated dynamic HTML changes until reviewed/imported again.
+The former administrative importer used exact official HTTPS URLs, robots checks, pinned TLS, redirect/authentication/noindex/compression rejection, ten-second timeouts, 512 KiB limits, and rate limits. These transport controls did not solve the earlier processing of full HTML, so live HTML import now fails before networking. Re-enable only after an acquisition format can guarantee personal information is not received or processed.
 
 ## Real Ollama contract and mandatory verification
 
