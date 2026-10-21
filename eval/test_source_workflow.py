@@ -94,9 +94,10 @@ class SourceWorkflowTests(unittest.TestCase):
         summarizer.summarize.return_value = claims
         result = run_workflow(SOURCE_ID, summarizer, provider="test-double")
         summarizer.summarize.assert_called_once_with(self.source)
-        self.assertEqual(result.claims, claims)
+        self.assertEqual(result.claims, (replace(claims[0], evidence_status=EvidenceStatus.MISSING),))
         self.assertEqual(result.provider, "test-double")
-        self.assertEqual(result.claims[0].evidence_status, EvidenceStatus.NOT_CHECKED)
+        self.assertEqual(result.claims[0].evidence_status, EvidenceStatus.MISSING)
+        self.assertEqual(result.verification.findings[0].code.value, "invalid_paragraph_id")
 
     def test_approval_failure_never_calls_summarizer(self):
         summarizer = Mock()

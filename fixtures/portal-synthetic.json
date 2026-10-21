@@ -1,0 +1,78 @@
+{
+  "synthetic": true,
+  "notice": "Fictional coursework collection. Not municipal information.",
+  "pages": [
+    {
+      "id": "demo-vann",
+      "title": "Syntetisk eksempel: vann og avløp",
+      "category": "teknisk",
+      "paragraphs": [
+        "Dette er et oppdiktet undervisningseksempel om vann og avløp, ikke informasjon fra Hamar kommune.",
+        "I den fiktive tjenesten blir en melding om vannlekkasje sendt til en oppdiktet driftskø. Ingen ekte kontaktadresse er oppgitt."
+      ]
+    },
+    {
+      "id": "demo-parkering",
+      "title": "Syntetisk eksempel: parkering",
+      "category": "teknisk",
+      "paragraphs": [
+        "Dette oppdiktede parkeringseksempelet gjelder ikke virkelige regler eller priser i Hamar.",
+        "I demotjenesten vises parkering og lading som egne temaer. Finn faktiske regler på kommunens offisielle nettsted."
+      ]
+    },
+    {
+      "id": "demo-barnehage",
+      "title": "Syntetisk eksempel: barnehage og skole",
+      "category": "oppvekst",
+      "paragraphs": [
+        "Dette er et oppdiktet eksempel om barnehage, skole og SFO uten reelle frister.",
+        "Eksempeltjenesten viser hvordan en barnehagesøknad kan beskrives. Ingen søknad sendes, og ingen barn eller foresatte registreres."
+      ]
+    },
+    {
+      "id": "demo-bygg",
+      "title": "Syntetisk eksempel: byggesak",
+      "category": "bolig",
+      "paragraphs": [
+        "Dette er et syntetisk undervisningseksempel om byggesak og bolig, ikke juridisk veiledning.",
+        "I den fiktive tjenesten sorteres informasjon om byggesak etter tiltak. Ingen eiendom eller enkeltperson er beskrevet."
+      ]
+    },
+    {
+      "id": "demo-miljo",
+      "title": "Syntetisk eksempel: miljø og næring",
+      "category": "miljo",
+      "paragraphs": [
+        "Dette er oppdiktet informasjon om miljø og grønn transport.",
+        "Den fiktive tjenesten presenterer klima og næringsliv som temaer, uten reelle tilskuddsordninger."
+      ]
+    },
+    {
+      "id": "demo-helse",
+      "title": "Syntetisk eksempel: helse og omsorg",
+      "category": "helse",
+      "paragraphs": [
+        "Dette syntetiske eksempelet beskriver navigasjon til helse og omsorg, ikke medisinske råd.",
+        "Demotjenesten innhenter ingen helseopplysninger og tar ikke imot søknader."
+      ]
+    },
+    {
+      "id": "demo-kultur",
+      "title": "Syntetisk eksempel: bibliotek og kultur",
+      "category": "kultur",
+      "paragraphs": [
+        "Dette er et oppdiktet eksempel om bibliotek, kultur og aktivitet.",
+        "I eksempelet finnes en fiktiv oversikt over bibliotektilbud. Ingen ekte åpningstider eller arrangementer oppgis."
+      ]
+    },
+    {
+      "id": "demo-politikk",
+      "title": "Syntetisk eksempel: planer og administrasjon",
+      "category": "politikk",
+      "paragraphs": [
+        "Dette er et syntetisk eksempel om kommunale planer og administrasjon.",
+        "Eksempelet inneholder ikke møtereferater, navn på folkevalgte eller personlige henvendelser."
+      ]
+    }
+  ]
+}

@@ -30,3 +30,17 @@ No application or dependencies have been installed yet. Runtime versions and dep
 Python 3.12 offline source approval and orchestration are documented in [docs/source-workflow.md](docs/source-workflow.md). Run `python -m unittest discover -s eval -p 'test_*.py' -v` and `python -X utf8 -m hamar_agent --fixture fixtures/water-synthetic.json` from the repository root. No packages or credentials are required. Only the explicitly approved synthetic fixture is accepted.
 
 The current agreement supersedes the earlier peer-review requirement: cross-review is optional while each student develops independently. powerNeron owns sources/orchestration/CLI/JSON; JeppeGs owns summarization/LLM/verification/evaluation. Coordinate shared interfaces, keep separate branches and use PRs for integration.
+
+
+## Current full-system branch
+
+The local CLI and web interface now run the existing verifier and preserve findings in workflow JSON. Start `python -X utf8 -m hamar_agent.web --port 8000` and open http://127.0.0.1:8000. The default is synthetic data with a mock provider, not a real LLM. No external source is enabled.
+
+See [full-system run instructions](docs/full-system-web.md), [proposed additive integration contract](docs/full-system-contract.md), and [ownership/decisions](docs/meetings/full-system-web-decisions.md). These supersede earlier setup notes about undecided runtime, fixture-only stdout and unconnected verification. Shared schemas and JeppeGs's modules remain unchanged. Earlier PR-specific reports record their historical state.
+
+
+## Search portal on feat/full-system-web
+
+The local homepage now includes Norwegian service categories, genuine keyword/full-text search, source provenance and verified answer excerpts. Start `python -X utf8 -m hamar_agent.web --port 8000` and open http://127.0.0.1:8000. Defaults are eight clearly synthetic documents and a mock provider; no municipal URL is approved and no search triggers retrieval. This is an independent student project with limited coverage.
+
+See [portal startup and limitations](docs/search-portal.md) and [individual source review/import process](docs/source-review-process.md). The original fixture CLI and developer workflow remain available. Source categories reference [Hamar's official menu](https://www.hamar.kommune.no/meny/); this reference does not authorize ingestion.
