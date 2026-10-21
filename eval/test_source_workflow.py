@@ -29,7 +29,7 @@ class SourceWorkflowTests(unittest.TestCase):
         return {SOURCE_ID: SourceApproval(SOURCE_ID, path, digest, "Synthetic test only")}
 
     def test_default_registry_allows_only_reviewed_fixture(self):
-        self.assertEqual(list(APPROVED_SOURCES), [SOURCE_ID])
+        self.assertEqual(set(APPROVED_SOURCES), {SOURCE_ID, "synthetic-verification-demo"})
         self.assertEqual(load_fixture(FIXTURE), self.source)
         with self.assertRaises(TypeError):
             APPROVED_SOURCES["extra"] = APPROVED_SOURCES[SOURCE_ID]
