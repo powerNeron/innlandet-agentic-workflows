@@ -1,0 +1,52 @@
+
+const fs=require('fs');
+(async()=>{
+ const [port,site,folder]=process.argv.slice(2);
+ const targets=await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+ const ws=new WebSocket(targets.find(t=>t.type==='page').webSocketDebuggerUrl);
+ await new Promise((ok,no)=>{ws.onopen=ok;ws.onerror=no});
+ let next=1;const pending=new Map();
+ ws.onmessage=e=>{const d=JSON.parse(e.data);if(pending.has(d.id)){const p=pending.get(d.id);pending.delete(d.id);d.error?p.reject(Error(JSON.stringify(d.error))):p.resolve(d.result)}};
+ const send=(method,params={})=>new Promise((resolve,reject)=>{const id=next++;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));setTimeout(()=>{if(pending.has(id)){pending.delete(id);reject(Error(method))}},5000)});
+ const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value};
+ const wait=async expression=>{for(let i=0;i<300;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100))}throw Error('Condition failed '+expression+' STATE '+JSON.stringify(await evaluate('({portal:document.getElementById("portal-status").textContent,count:document.getElementById("result-count").textContent,status:document.getElementById("status").textContent})')))};
+ await send('Page.enable');await send('Runtime.enable');
+ await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:folder});
+ await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+ await send('Page.navigate',{url:site});await wait('document.querySelectorAll(".category-card").length===8');
+ const image=await evaluate('(async()=>{const i=new Image();i.src="/hamar-background.png";await i.decode();return {width:i.naturalWidth,height:i.naturalHeight,active:document.body.classList.contains("has-scenic-image"),css:getComputedStyle(document.querySelector(".landscape")).backgroundImage}})()');
+ if(!image.active||image.width<1||!image.css.includes('hamar-background.png'))throw Error('Photo not active');
+ console.log('BACKGROUND_IMAGE',JSON.stringify(image));
+ const title=await evaluate('document.title');if(title!=='Informasjon Agent for Hamar')throw Error(title);
+ const footer=await evaluate('document.querySelector("footer").textContent');
+ if(footer!=='Laget av programmerere: Jesper Guttormsen og Linda Merete Svela. COMP 2 \u2013 Universitetet i Innlandet.')throw Error(footer);
+ fs.writeFileSync(folder+'/desktop.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ const choices=['skole','bolig','helse','vann','miljo','transport','kultur','politikk'];
+ for(const choice of choices){console.log("SEARCH",choice);
+  await evaluate(`document.querySelector('[data-service="${choice}"]').click();true`);
+  await wait('!document.getElementById("search-button").disabled && document.querySelectorAll(".result-card").length>0');
+  if(!await evaluate('/^[1-9][0-9]* treff/.test(document.getElementById("result-count").textContent)'))throw Error('Bad service '+choice);
+ }
+ await evaluate('document.querySelector(\'[data-service="vann"]\').click();true');
+ await wait('!document.getElementById("search-button").disabled');
+ await evaluate('document.getElementById("answer-button").click();true');
+ await wait('document.querySelectorAll("#answer-content article").length>0');
+ await evaluate('document.getElementById("portal-download").click();true');
+ for(let i=0;i<60&&!fs.existsSync(folder+'/hamar-kildebasert-svar.json');i++)await new Promise(r=>setTimeout(r,100));
+ const downloaded=JSON.parse(fs.readFileSync(folder+'/hamar-kildebasert-svar.json','utf8'));
+ if(downloaded.result.verification.findings.length)throw Error('Unexpected findings'); if(downloaded.result.source.synthetic || downloaded.result.provider!=='ollama:llama3.2:3b')throw Error('Not real municipal inference'); if(!downloaded.citations.length || downloaded.citations.some(c=>!c.url.startsWith('https://www.hamar.kommune.no/')))throw Error('Missing official citations'); console.log('REAL_PROVIDER',downloaded.result.provider,'CITATIONS',downloaded.citations.length); if(!await evaluate('document.querySelectorAll("#answer-content .source-link").length>0'))throw Error('Citations not displayed');
+ await evaluate('document.querySelector(".developer").open=true;document.getElementById("source").value="hamar-drikkevann";document.getElementById("run").click();true');
+ await wait('!document.getElementById("result").hidden && document.querySelectorAll("#claims article").length>0');
+ await evaluate('document.getElementById("download").click();true');
+ for(let i=0;i<60&&!fs.existsSync(folder+'/hamar-result.json');i++)await new Promise(r=>setTimeout(r,100));
+ if(JSON.parse(fs.readFileSync(folder+'/hamar-result.json','utf8')).source.id!=='hamar-drikkevann')throw Error('Source selection failed');
+ for(const [name,width,height] of [['tablet',820,1180],['mobile',390,844]]){
+  await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
+  await send('Page.navigate',{url:site});await wait('document.querySelectorAll(".category-card").length===8');
+  await evaluate('document.querySelector("[data-service=vann]").click();true'); await wait('!document.getElementById("search-button").disabled'); if(!await evaluate('/^[1-9]/.test(document.getElementById("result-count").textContent)'))throw Error('Responsive search failed'); if(!await evaluate('document.documentElement.scrollWidth<=window.innerWidth'))throw Error('Horizontal overflow '+name);
+  fs.writeFileSync(folder+'/'+name+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ }
+ await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+ await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+ console.log(JSON.stringify({title,service_searches:8,answer_claims:downloaded.result.claims.length,downloads:2,responsive:['desktop','tablet','mobile'],keyboard_focus:await evaluate('document.activeElement.tagName')}));ws.close();
+})().catch(e=>{console.error(e);process.exit(1)});

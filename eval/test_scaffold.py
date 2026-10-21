@@ -85,7 +85,9 @@ class ScaffoldTests(unittest.TestCase):
         with patch.object(MockSummarizer, "summarize", return_value=(fabricated,)):
             with contextlib.redirect_stdout(output):
                 main(["--fixture", str(FIXTURE)])
-        self.assertEqual(json.loads(output.getvalue())["claims"][0]["evidence_status"], "not_checked")
+        data = json.loads(output.getvalue())
+        self.assertEqual(data["claims"][0]["evidence_status"], "missing")
+        self.assertEqual(data["verification"]["findings"][0]["code"], "invalid_paragraph_id")
 
     def test_cli_invalid_json_has_clear_error(self):
         with tempfile.TemporaryDirectory() as directory:

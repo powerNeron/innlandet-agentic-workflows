@@ -12,6 +12,7 @@ from hamar_agent.schemas import Result
 from hamar_agent.sources import APPROVED_SOURCES, load_source
 from hamar_agent.storage import save_result
 from hamar_agent.summarize import MockSummarizer
+from hamar_agent.workflow import run_workflow
 
 FIXTURE = APPROVED_SOURCES["synthetic-water-demo"].path
 
@@ -20,6 +21,7 @@ class StorageTests(unittest.TestCase):
     def setUp(self):
         source = load_source("synthetic-water-demo")
         self.result = Result(source, MockSummarizer().summarize(source))
+        self.workflow_result = run_workflow(source.id, MockSummarizer(), provider="mock")
 
     def test_save_utf8_json_and_return_path(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -85,7 +87,7 @@ class StorageTests(unittest.TestCase):
         with patch("hamar_agent.__main__.save_result") as save, redirect_stdout(output):
             self.assertEqual(main(["--fixture", str(FIXTURE)]), 0)
         save.assert_not_called()
-        self.assertEqual(output.getvalue(), self.result.to_json())
+        self.assertEqual(output.getvalue(), self.workflow_result.to_json())
 
     def test_cli_save_matches_unchanged_stdout(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -94,7 +96,7 @@ class StorageTests(unittest.TestCase):
             with redirect_stdout(output), redirect_stderr(error):
                 self.assertEqual(main(["--fixture", str(FIXTURE), "--output", str(path)]), 0)
             self.assertEqual(path.read_text(encoding="utf-8"), output.getvalue())
-            self.assertEqual(json.loads(output.getvalue()), json.loads(self.result.to_json()))
+            self.assertEqual(json.loads(output.getvalue()), json.loads(self.workflow_result.to_json()))
             self.assertEqual(error.getvalue(), "")
 
     def test_cli_duplicate_fails_without_stdout_or_overwrite(self):
