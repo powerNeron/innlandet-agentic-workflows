@@ -1,4 +1,6 @@
-# Proposed additive workflow contract
+# Additive workflow contract
+
+Historical proposal below; the integrated contract and actual adapters are specified in the current integration section at the end. Statements about an unavailable Ollama adapter describe the earlier baseline only.
 
 ## Boundaries
 
@@ -31,3 +33,16 @@ WorkflowService accepts summarizer, provider label and optional corrector throug
 ## Real-source seam
 
 WorkflowService defaults to local approved fixtures. HTTP requires enable_http=True AND an explicit HttpApproval registry, with current review dates, exact URLs and existing transport limits. The web request schema accepts only source_id and cannot supply URLs, approvals or startup flags. No live-source enabling flag is exposed by the shipped CLI/server. Approved plain text becomes stable p1, p2... paragraphs; actual network transport remains the existing fetch_document implementation. Real sources are not labeled synthetic. A non-synthetic-capable provider is required. No real source is registered, and personal-data eligibility must be resolved before any live configuration.
+
+
+## Current integrated contract (2026-10-21)
+
+The actual interfaces from main a21d1cc are now connected without editing JeppeGs's files. runtime.create_service composes OllamaSummarizer(client) and OllamaCorrectionProvider(client). CorrectionProvider.revise(source, claims, findings) returns CorrectionResult(claims, findings, provider). The orchestration callback accepts this result as well as the original tuple[Claim, ...], preserving existing injected callbacks. No shared schema constructor changes.
+
+Correction JSON additionally includes provider and provider_findings. Provider findings are retained alongside independent final verification; initial claims/findings remain in correction. At most one revision is attempted. Completed means an adapter returned, not that all issues were fixed. Errors preserve the original findings and review warnings. A missing or invalid evidence reference never becomes a verified fact.
+
+CLI and web select mock (default) or ollama explicitly through the same service factory. Portal prepared synthetic sources use that service too. Explicit --fallback-to-mock permits labeled mock output only for synthetic inputs; without it an Ollama error fails the run. Correction errors preserve original real output instead of changing providers. JSON and the UI display the actual result provider.
+
+The application requests the existing four-string claim JSON contract through Ollama's structured format option using the provider's transport injection seam. Network bounds, loopback checks, response validation and errors remain delegated to the original transport. This composition currently imports the internal _local_post helper: its availability is a compatibility dependency covered by integration tests; a future public transport export should be agreed with JeppeGs. No evidence IDs or text are silently normalized.
+
+Both existing Ollama adapters deliberately accept synthetic sources only. Real reviewed-page search/indexing is separate, and actual real-source LLM answers remain blocked until JeppeGs explicitly supports that input contract. Both production live registries remain empty. No web route enables fetching or approves a URL.

@@ -66,12 +66,15 @@ class PortalService:
             return {"query": query, "answer_status": "provider_unavailable", "result": None, "citations": citations,
                     "message": "Kildene kan s\u00f8kes i, men den n\u00e5v\u00e6rende mock-leverand\u00f8ren er bare for syntetiske data. En godkjent modelladapter m\u00e5 kobles til f\u00f8r AI-svar kan lages.",
                     "coverage": self.overview()["coverage"]}
-        result = run_workflow(source.id, self.workflow.summarizer, provider=self.workflow.provider,
-                              loader=lambda _: source, corrector=self.workflow.corrector,
-                              allow_non_synthetic=not source.synthetic)
+        if source.synthetic:
+            result = self.workflow.run_prepared(source)
+        else:
+            result = run_workflow(source.id, self.workflow.summarizer, provider=self.workflow.provider,
+                                  loader=lambda _: source, corrector=self.workflow.corrector,
+                                  allow_non_synthetic=True)
         # The verifier is authoritative for excerpts/findings, never truth.
         data = json.loads(result.to_json())
-        status = "review_required" if result.verification.has_findings else ("demo" if source.synthetic else "evidence_checked")
+        status = "review_required" if result.verification.has_findings else ("demo" if result.provider.startswith("mock") else "evidence_checked")
         return {"query": query, "answer_status": status, "result": data, "citations": citations,
-                "message": "Kildebasert utdrag med mock, ikke et ekte AI-svar." if self.workflow.provider == "mock" else "Kildebasert svar; vurder funn og kildene før bruk.",
+                "message": "Kildebasert utdrag med mock, ikke et ekte AI-svar." if result.provider.startswith("mock") else "Kildebasert svar; vurder funn og kildene før bruk.",
                 "coverage": self.overview()["coverage"]}

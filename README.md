@@ -44,3 +44,18 @@ See [full-system run instructions](docs/full-system-web.md), [proposed additive 
 The local homepage now includes Norwegian service categories, genuine keyword/full-text search, source provenance and verified answer excerpts. Start `python -X utf8 -m hamar_agent.web --port 8000` and open http://127.0.0.1:8000. Defaults are eight clearly synthetic documents and a mock provider; no municipal URL is approved and no search triggers retrieval. This is an independent student project with limited coverage.
 
 See [portal startup and limitations](docs/search-portal.md) and [individual source review/import process](docs/source-review-process.md). The original fixture CLI and developer workflow remain available. Source categories reference [Hamar's official menu](https://www.hamar.kommune.no/meny/); this reference does not authorize ingestion.
+
+
+## Integrated local Ollama runtime (2026-10-21)
+
+The default remains honest offline mock mode. Jesper's actual Ollama summarizer and correction adapter are now composed with the same verified workflow used by CLI and portal; no provider files or shared schemas were changed. See [integration evidence and limitations](docs/meetings/ollama-integration.md) and the current section of [the additive contract](docs/full-system-contract.md).
+
+From the repository root:
+
+```powershell
+python -X utf8 -m hamar_agent.web --port 8000 --provider mock
+python -X utf8 -m hamar_agent.web --port 8000 --provider ollama --model llama3.2:3b --ollama-timeout 90
+python -X utf8 -m hamar_agent --source synthetic-verification-demo --provider ollama --model llama3.2:3b --ollama-timeout 90
+```
+
+Open http://127.0.0.1:8000. Run one server command at a time. Ollama must already be running with that model installed; these commands install or download nothing. Optional --fallback-to-mock is explicit and labels fallback output. Without it provider errors fail. Model output may retain invalid references or uncertainty after the single correction attempt; read all findings. This is evidence checking, not semantic fact-checking. Real municipal LLM answers are not yet supported by the synthetic-only provider.

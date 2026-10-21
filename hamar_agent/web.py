@@ -207,9 +207,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--catalog", type=Path, action="append", default=[], help="Offline reviewed catalog; repeat for multiple files")
     parser.add_argument("--approvals", type=Path, help="Individually reviewed page manifest; never enables live fetching")
     parser.add_argument("--empty-index", action="store_true", help="Start without synthetic demo documents")
+    parser.add_argument("--provider", choices=("mock", "ollama"), default="mock")
+    parser.add_argument("--model", help="Installed Ollama model")
+    parser.add_argument("--ollama-timeout", type=float, default=45.0)
+    parser.add_argument("--fallback-to-mock", action="store_true", help="Explicit, labeled fallback on Ollama failure")
     args = parser.parse_args(argv)
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
+    from .runtime import create_service
+    try:
+        service = create_service(args.provider, model=args.model, timeout=args.ollama_timeout,
+                                 fallback_to_mock=args.fallback_to_mock)
+    except ValueError:
+        parser.error("Invalid provider configuration")
     portal = None
     if args.catalog or args.empty_index:
         from .portal_sources import load_approvals, load_catalog
@@ -219,12 +229,12 @@ def main(argv: list[str] | None = None) -> int:
                 parser.error("--catalog requires an explicit --approvals manifest")
             approvals = load_approvals(args.approvals) if args.approvals else {}
             documents = [doc for path in args.catalog for doc in load_catalog(path, approvals).documents.values()]
-            portal = PortalService(index=SearchIndex(documents))
+            portal = PortalService(service, index=SearchIndex(documents))
         except (OSError, ValueError, TypeError, KeyError):
             parser.error("Catalog approval/integrity validation failed")
     try:
-        with create_server(port=args.port, portal=portal) as server:
-            print(f"Hamar KommuneAgent: http://127.0.0.1:{server.server_port} (offline mock)", flush=True)
+        with create_server(port=args.port, service=service, portal=portal) as server:
+            print(f"Hamar KommuneAgent: http://127.0.0.1:{server.server_port} (provider: {service.provider})", flush=True)
             server.serve_forever()
     except KeyboardInterrupt:
         return 0

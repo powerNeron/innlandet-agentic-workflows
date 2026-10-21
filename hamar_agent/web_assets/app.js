@@ -49,12 +49,14 @@ const portalWarnings = {
   "Synthetic demonstration; not municipal information.": "Syntetisk demo. Dette er ikke kommunal informasjon.",
   "Evidence matching is not semantic fact-checking or a guarantee of truth.": "Sitatsamsvar er ikke semantisk faktasjekk eller en garanti for sannhet.",
   "Review required: verification findings remain unresolved.": "Krever vurdering: kildekontrollen har uløste funn.",
+  "Ollama failed. Explicit mock fallback used; this result is not real LLM output.": "Ollama feilet. Avtalt mock-reserve ble brukt; dette er ikke et ekte LLM-svar.",
   "Correction failed; original findings retained for review.": "Korreksjonen feilet. Opprinnelige funn er bevart for vurdering."
 };
 const findingLabels = {
   invalid_paragraph_id: "Ugyldig avsnittshenvisning", fabricated_evidence: "Sitatet finnes ikke i kilden",
   unsupported_number: "En tallverdi mangler støtte i sitatet", conflicting_claims: "Motstridende tallpåstander",
   missing_citation: "Kildehenvisning mangler", malformed_output: "Ugyldig svarformat", malformed_claim: "Ugyldig påstandsformat",
+  potentially_unsupported: "Påstanden kan mangle støtte; krever vurdering", uncertain_claim: "Påstanden er uttrykkelig usikker",
   duplicate_claim_id: "Duplisert påstands-ID"
 };
 const evidenceLabels = { exact_match: "Sitat funnet i oppgitt avsnitt", missing: "Manglende eller ugyldig evidens", not_checked: "Ikke kontrollert" };
@@ -122,6 +124,7 @@ $("answer-button").addEventListener("click", async () => {
     item(container, "p", answer.message).className = "notice";
     if (answer.result) {
       const result = answer.result;
+      item(container, "p", "Leverandør i dette svaret: " + result.provider).className = "source-meta";
       const warnings = item(container, "ul", ""); result.warnings.forEach((w) => item(warnings, "li", portalWarnings[w] || w));
       result.verification.findings.forEach((finding) => item(warnings, "li", `${findingLabels[finding.code] || finding.code} (${finding.claim_ids.join(", ")}). Se full JSON for detaljer.`));
       if (!result.verification.findings.length) item(container, "p", "Ingen funn fra de begrensede kontrollene. Dette beviser ikke at svaret er sant.").className = "source-meta";
@@ -151,7 +154,10 @@ $("portal-download").addEventListener("click", async () => {
 async function loadPortal() {
   try {
     const data = await api("/api/portal");
-    $("mode").textContent = data.synthetic ? "Demomodus · syntetiske kilder" : "Avgrenset, godkjent kildeutvalg";
+    const mockMode = data.provider.startsWith("mock");
+    $("mode").textContent = data.synthetic ? (mockMode ? "Demomodus · syntetiske kilder" : "Lokal LLM · syntetiske kilder") : "Avgrenset, godkjent kildeutvalg";
+    $("answer-help").textContent = mockMode ? "Be om et kildebasert utdrag. Demoen bruker mock, ikke en ekte språkmodell." : "Leverandør: " + data.provider + ". Svar kontrolleres mot kildeutdrag, men er ikke garantert sanne.";
+    $("answer-button").textContent = mockMode ? "Lag kildebasert utdrag" : "Lag og kontroller lokalt AI-svar";
     $("coverage").textContent = `${data.documents} indekserte dokumenter · Ikke fullstendig kommunal dekning`;
     const services = [
       { id: "skole", title: "Skole", category: "oppvekst", query: "barnehage", icon: "school" },

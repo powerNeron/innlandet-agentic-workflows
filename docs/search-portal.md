@@ -59,3 +59,8 @@ powerNeron: portal/search, approvals and ingestion, extraction adapter, web/CLI 
 All 159 offline tests pass with socket creation and connections blocked globally. The 45 portal-specific tests cover full-body relevance and title weighting, Norwegian tokenization, categories, insufficient evidence, provenance, HTML boundaries/active content/login/noindex/privacy guards, explicit approvals and expiry, immutable defaults, public-IP pinning/TLS/redirect handling, robots policy/rate limits, size/type/hash checks, snapshot/catalog integrity, web requests and sanitized errors. Existing workflow/CLI/storage tests still pass.
 
 A separate actual loopback HTTP check and headless Chrome test demonstrated category loading, keyword search, verified mock excerpts and JSON download. External DNS was disabled for Chrome and the Python smoke permitted only 127.0.0.1. Homepage and results screenshots were visually inspected. No claim of real municipal coverage or real-model answer quality follows from these tests.
+
+
+## Integrated runtime update
+
+The earlier missing-adapter limitation is superseded by [the current integration report](meetings/ollama-integration.md). CLI and web now accept --provider ollama --model llama3.2:3b --ollama-timeout 90. Default remains mock; optional --fallback-to-mock is labeled and never implicit. The actual provider remains synthetic-only. All source approval boundaries and empty live registries remain in force.

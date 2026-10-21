@@ -7,10 +7,11 @@ from .sources import load_source
 from .summarize import Summarizer
 from .verify import VerificationFinding, VerificationReport, verify_claims
 from .revision import OneRevisionGate, RevisionRequest
+from .correction import CorrectionResult
 
 
 # Orchestration-owned seam, not an assumed method on JeppeGs's future adapter.
-CorrectionCallback = Callable[[Source, RevisionRequest], tuple[Claim, ...]]
+CorrectionCallback = Callable[[Source, RevisionRequest], tuple[Claim, ...] | CorrectionResult]
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,8 @@ class CorrectionOutcome:
     initial_claims: tuple[Claim, ...] = ()
     initial_findings: tuple[VerificationFinding, ...] = ()
     warnings: tuple[str, ...] = ()
+    provider: str | None = None
+    provider_findings: tuple[VerificationFinding, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -68,13 +71,22 @@ def run_workflow(
             request = OneRevisionGate().request(source, report.claims, report.findings)
             try:
                 revised = corrector(source, request)
+                correction_provider, provider_findings = None, ()
+                if isinstance(revised, CorrectionResult):
+                    correction_provider, provider_findings = revised.provider, revised.findings
+                    revised = revised.claims
                 _check_claims(revised)
                 final_report = verify_claims(source, revised)
+                # Preserve provider feedback and independently recompute evidence statuses.
+                final_report = VerificationReport(final_report.claims, tuple(dict.fromkeys(
+                    final_report.findings + tuple(provider_findings)
+                )))
             except (OSError, ValueError, TypeError, RuntimeError):
                 correction = CorrectionOutcome("failed", 1, report.claims, report.findings,
                                                ("Correction failed; original findings retained for review.",))
             else:
-                correction = CorrectionOutcome("completed", 1, report.claims, report.findings)
+                correction = CorrectionOutcome("completed", 1, report.claims, report.findings,
+                                               provider=correction_provider, provider_findings=tuple(provider_findings))
                 report = final_report
     warnings = ["Evidence matching is not semantic fact-checking or a guarantee of truth."]
     if source.synthetic:

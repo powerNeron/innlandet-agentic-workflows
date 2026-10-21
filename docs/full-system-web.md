@@ -69,3 +69,8 @@ New integration suites individually block socket creation/connections. The final
 ## Search portal extension
 
 The homepage is now the Norwegian searchable portal. Existing source-run controls remain under the developer details section. All prior workflow routes still work. See search-portal.md and source-review-process.md for the new offline corpus, query/answer routes, HTML adapter, approval process, SSRF/robots controls and exact startup commands. The default remains mock/synthetic with no live approvals.
+
+
+## Integrated runtime update
+
+The earlier missing-adapter limitation is superseded by [the current integration report](meetings/ollama-integration.md). CLI and web now accept --provider ollama --model llama3.2:3b --ollama-timeout 90. Default remains mock; optional --fallback-to-mock is labeled and never implicit. The actual provider remains synthetic-only. All source approval boundaries and empty live registries remain in force.
