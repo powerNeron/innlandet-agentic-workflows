@@ -1,5 +1,8 @@
 # Innlandet Agentic Workflows
 
+> Current local implementation: real reviewed municipal mode is now available. Run `python -X utf8 -m hamar_agent.web --real-sources --model llama3.2:3b --ollama-timeout 90` from this worktree and open http://127.0.0.1:8000. Eight exact sources / 39 reviewed paragraphs, no synthetic fallback. See [real-source instructions and actual test evidence](docs/real-source-workflow.md) and [PASS/FAIL/UNKNOWN assignment matrix](docs/assignment-requirements-matrix.md). Earlier setup sections below are historical. Source approvals expire on 2026-10-28. Feature-branch publication is authorized; merging remains blocked by the documented assignment requirements.
+
+
 KIUA-2003 group project at the University of Inland Norway, developed by two students.
 
 ## Hamar KommuneAgent
@@ -59,3 +62,14 @@ python -X utf8 -m hamar_agent --source synthetic-verification-demo --provider ol
 ```
 
 Open http://127.0.0.1:8000. Run one server command at a time. Ollama must already be running with that model installed; these commands install or download nothing. Optional --fallback-to-mock is explicit and labels fallback output. Without it provider errors fail. Model output may retain invalid references or uncertainty after the single correction attempt; read all findings. This is evidence checking, not semantic fact-checking. Real municipal LLM answers are not yet supported by the synthetic-only provider.
+
+
+## Current local development commands
+
+```powershell
+python -X utf8 -m harness.offline_tests
+python -X utf8 -m hamar_agent.web --real-sources --model llama3.2:3b --ollama-timeout 90 --port 8000
+python -X utf8 -m hamar_agent --real-sources --source hamar-drikkevann --model llama3.2:3b --ollama-timeout 90 --output output/NEW-result.json
+```
+
+Real mode uses the reviewed local catalog, actual Ollama, Jesper's verifier plus strict complete-paragraph matching, at most one correction and mandatory re-verification, provenance and exclusive JSON output. Default web startup is real mode; missing data fails closed. Synthetic data is for explicit offline/test/demo use (`--demo --provider mock` for the web). No unreviewed source is fetched on a search. The real model currently selects an exact source excerpt; this is not unrestricted generative summarization or semantic fact-checking. README/code/docs were assisted by OpenAI Codex under student direction and require student review and responsibility before submission.

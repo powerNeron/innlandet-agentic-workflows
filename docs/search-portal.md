@@ -64,3 +64,8 @@ A separate actual loopback HTTP check and headless Chrome test demonstrated cate
 ## Integrated runtime update
 
 The earlier missing-adapter limitation is superseded by [the current integration report](meetings/ollama-integration.md). CLI and web now accept --provider ollama --model llama3.2:3b --ollama-timeout 90. Default remains mock; optional --fallback-to-mock is labeled and never implicit. The actual provider remains synthetic-only. All source approval boundaries and empty live registries remain in force.
+
+
+## Current real-source update
+
+The user subsequently approved transient official HTML acquisition with retention limited to individually reviewed non-personal service excerpts. Earlier missing-adapter/full-document-only statements above describe the historical baseline. Eight sources and 39 paragraphs now run through the real-source adapter, mandatory strict verification and bounded correction. See [current implementation and commands](real-source-workflow.md) and [actual assignment matrix](assignment-requirements-matrix.md). Normal web startup is now real mode; use --demo explicitly for offline synthetic testing. No existing provider files/shared schemas were changed. This user policy does not override stricter course-assignment requirements.

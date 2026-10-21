@@ -46,3 +46,8 @@ CLI and web select mock (default) or ollama explicitly through the same service 
 The application requests the existing four-string claim JSON contract through Ollama's structured format option using the provider's transport injection seam. Network bounds, loopback checks, response validation and errors remain delegated to the original transport. This composition currently imports the internal _local_post helper: its availability is a compatibility dependency covered by integration tests; a future public transport export should be agreed with JeppeGs. No evidence IDs or text are silently normalized.
 
 Both existing Ollama adapters deliberately accept synthetic sources only. Real reviewed-page search/indexing is separate, and actual real-source LLM answers remain blocked until JeppeGs explicitly supports that input contract. Both production live registries remain empty. No web route enables fetching or approves a URL.
+
+
+## Current real-source update
+
+The user subsequently approved transient official HTML acquisition with retention limited to individually reviewed non-personal service excerpts. Earlier missing-adapter/full-document-only statements above describe the historical baseline. Eight sources and 39 paragraphs now run through the real-source adapter, mandatory strict verification and bounded correction. See [current implementation and commands](real-source-workflow.md) and [actual assignment matrix](assignment-requirements-matrix.md). Normal web startup is now real mode; use --demo explicitly for offline synthetic testing. No existing provider files/shared schemas were changed. This user policy does not override stricter course-assignment requirements.

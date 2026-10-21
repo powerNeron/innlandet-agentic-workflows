@@ -14,10 +14,10 @@ from threading import Lock
 import time
 from types import MappingProxyType
 from urllib.parse import urlsplit
-from urllib.robotparser import RobotFileParser
+from .robots_policy import robots_interval
 
 from .categories import CATEGORY_IDS
-from .html_extract import extract_html
+from .html_extract import extract_html, extract_service_excerpts
 from .retrieval import _validate_url
 from .schemas import Paragraph, Source
 
@@ -49,16 +49,24 @@ class PageApproval:
     no_personal_data: bool
     content_type: str = "text/html"
     content_tag: str = "main"
+    review_scope: str = "full_document"
+    paragraph_sha256: tuple[str, ...] = ()
 
     def __post_init__(self):
         for name in ("source_id", "url", "title", "category", "reviewed_on", "expires_on", "raw_sha256", "text_sha256", "robots_sha256", "rationale", "content_type", "content_tag"):
             if not isinstance(getattr(self, name), str):
                 raise ValueError("Approval text fields must be strings")
+        if self.review_scope not in ("full_document", "service_excerpts"):
+            raise ValueError("Invalid review scope")
+        if self.review_scope == "service_excerpts":
+            if self.content_type != "text/html" or not isinstance(self.paragraph_sha256, (list, tuple)) or not 1 <= len(self.paragraph_sha256) <= 80 or any(not isinstance(h, str) or not re.fullmatch(r"[0-9a-f]{64}", h) for h in self.paragraph_sha256) or len(set(self.paragraph_sha256)) != len(self.paragraph_sha256):
+                raise ValueError("Reviewed service paragraph hashes required")
+            object.__setattr__(self, "paragraph_sha256", tuple(self.paragraph_sha256))
         validate_page_url(self.url)
         if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,79}", self.source_id):
             raise ValueError("Invalid source ID")
         if not self.title.strip() or not self.rationale.strip() or self.no_personal_data is not True:
-            raise ValueError("Explicit non-personal full-document review and rationale required")
+            raise ValueError("Explicit non-personal review within the declared scope and rationale required")
         if self.category not in CATEGORY_IDS or self.content_type not in ("text/html", "text/plain") or self.content_tag not in ("main", "article"):
             raise ValueError("Unreviewed extraction policy")
         if date.fromisoformat(self.reviewed_on) > date.fromisoformat(self.expires_on):
@@ -96,19 +104,7 @@ def load_approvals(path: Path):
 def validate_robots(approval: PageApproval, raw: bytes):
     if len(raw) > 64 * 1024 or hashlib.sha256(raw).hexdigest() != approval.robots_sha256:
         raise ValueError("Robots policy changed; review required")
-    policy = RobotFileParser()
-    policy.parse(raw.decode("utf-8", errors="strict").splitlines())
-    if not policy.can_fetch(AGENT, approval.url):
-        raise ValueError("robots.txt disallows this source")
-    interval = max(2, policy.crawl_delay(AGENT) or 0)
-    rate = policy.request_rate(AGENT)
-    if rate:
-        if rate.requests <= 0:
-            raise ValueError("Invalid robots rate policy")
-        interval = max(interval, rate.seconds / rate.requests)
-    if interval > 60:
-        raise ValueError("Robots rate policy requires a separate scheduling decision")
-    return interval
+    return robots_interval(raw, approval.url, AGENT)
 
 
 def import_reviewed_bytes(approval: PageApproval, raw: bytes, *, retrieved_at: str, robots: bytes):
@@ -117,7 +113,9 @@ def import_reviewed_bytes(approval: PageApproval, raw: bytes, *, retrieved_at: s
     if not approval.current() or len(raw) > MAX_BYTES or hashlib.sha256(raw).hexdigest() != approval.raw_sha256:
         raise ValueError("Expired approval, oversized body or changed content; review required")
     text = raw.decode("utf-8", errors="strict")
-    if approval.content_type == "text/html":
+    if approval.review_scope == "service_excerpts":
+        paragraphs = extract_service_excerpts(text, approval.paragraph_sha256, content_tag=approval.content_tag)
+    elif approval.content_type == "text/html":
         paragraphs = extract_html(text, content_tag=approval.content_tag)
     else:
         # Use the same conservative contact-pattern check as the HTML adapter.
@@ -226,7 +224,7 @@ class ReviewedFetcher:
         if approval.source_id != source_id or not approval.current():
             raise ValueError("Source approval is not current")
         try:
-            robots = self._get("https://" + HOST + "/robots.txt", "text/plain", 64 * 1024, 2)
+            robots = self._get("https://" + HOST + "/robots.txt", "text/plain", 64 * 1024, 5 if approval.review_scope == "service_excerpts" else 2)
             interval = validate_robots(approval, robots)
             raw = self._get(approval.url, approval.content_type, MAX_BYTES, interval)
             return import_reviewed_bytes(approval, raw, retrieved_at=datetime.now(timezone.utc).isoformat(), robots=robots)

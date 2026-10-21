@@ -31,7 +31,7 @@ def demo_index() -> SearchIndex:
 class PortalService:
     def __init__(self, workflow_service: WorkflowService | None = None, *, index: SearchIndex | None = None):
         self.workflow = workflow_service if workflow_service is not None else WorkflowService()
-        self.index = index if index is not None else demo_index()
+        self.index = index if index is not None else (self.workflow.index if getattr(self.workflow, "real_sources", False) else demo_index())
 
     def overview(self):
         return {"categories": [{**asdict(c), "count": sum(d.category == c.id and self.index.eligible(d) for d in self.index.documents.values())} for c in CATEGORIES],
@@ -42,15 +42,16 @@ class PortalService:
 
     def search(self, query: str, *, category: str | None = None):
         hits = self.index.search(query, category=category)
-        return {"query": query, "category": category, "results": [h.to_dict() for h in hits],
+        return {"query": "" if getattr(self.workflow, "real_sources", False) else query, "category": category, "results": [h.to_dict() for h in hits],
                 "coverage": self.overview()["coverage"], "provider": self.workflow.provider}
 
     def answer(self, query: str, *, category: str | None = None):
+        safe_query = "" if getattr(self.workflow, "real_sources", False) else query
         terms = validate_query(query)
         hits = self.index.search(query, category=category, limit=3) if terms else ()
         context_terms = {term for hit in hits for p in hit.document.source.paragraphs if p.id in hit.paragraph_ids for term in tokens(p.text)}
         if not hits or not set(terms).issubset(context_terms):
-            return {"query": query, "answer_status": "insufficient_evidence", "result": None, "citations": [],
+            return {"query": safe_query, "answer_status": "insufficient_evidence", "result": None, "citations": [],
                     "message": "Vi har ikke tilstrekkelig indeksert kildegrunnlag for dette søket. Prøv et annet søkeord eller kommunens offisielle nettsted.",
                     "coverage": self.overview()["coverage"]}
         paragraphs, citations = [], []
@@ -63,10 +64,12 @@ class PortalService:
         source = Source("portal-search-context", "Kildeutdrag for søk: " + query, tuple(paragraphs),
                         all(h.document.source.synthetic for h in hits))
         if not source.synthetic and self.workflow.provider == "mock":
-            return {"query": query, "answer_status": "provider_unavailable", "result": None, "citations": citations,
+            return {"query": safe_query, "answer_status": "provider_unavailable", "result": None, "citations": citations,
                     "message": "Kildene kan s\u00f8kes i, men den n\u00e5v\u00e6rende mock-leverand\u00f8ren er bare for syntetiske data. En godkjent modelladapter m\u00e5 kobles til f\u00f8r AI-svar kan lages.",
                     "coverage": self.overview()["coverage"]}
-        if source.synthetic:
+        if not source.synthetic and getattr(self.workflow, "real_sources", False):
+            result = self.workflow.run_context(source)
+        elif source.synthetic:
             result = self.workflow.run_prepared(source)
         else:
             result = run_workflow(source.id, self.workflow.summarizer, provider=self.workflow.provider,
@@ -75,6 +78,6 @@ class PortalService:
         # The verifier is authoritative for excerpts/findings, never truth.
         data = json.loads(result.to_json())
         status = "review_required" if result.verification.has_findings else ("demo" if result.provider.startswith("mock") else "evidence_checked")
-        return {"query": query, "answer_status": status, "result": data, "citations": citations,
+        return {"query": safe_query, "answer_status": status, "result": data, "citations": citations,
                 "message": "Kildebasert utdrag med mock, ikke et ekte AI-svar." if result.provider.startswith("mock") else "Kildebasert svar; vurder funn og kildene før bruk.",
                 "coverage": self.overview()["coverage"]}

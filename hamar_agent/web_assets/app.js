@@ -14,7 +14,7 @@ async function load() {
     const data = await api("/api/sources");
     data.sources.forEach((s) => { const option = item($("source"), "option", s.label); option.value = s.id; });
     $("source").disabled = !data.sources.length; $("run").disabled = !data.sources.length;
-    $("status").textContent = data.sources.length ? "Klar. Kun godkjente syntetiske kilder er tilgjengelige." : "Ingen godkjente kilder.";
+    $("status").textContent = data.sources.length ? (data.sources.some((source) => source.kind === "reviewed municipal excerpts") ? "Klar. Kun godkjente kommunale tjenesteutdrag er tilgjengelige." : "Klar. Kun godkjente syntetiske kilder er tilgjengelige.") : "Ingen godkjente kilder.";
   } catch (error) { $("status").textContent = error.message; }
 }
 $("run").addEventListener("click", async () => {
@@ -29,6 +29,7 @@ $("run").addEventListener("click", async () => {
     result.verification.findings.forEach((f) => item($("findings"), "li", `${f.code}: ${f.message} (${f.claim_ids.join(", ")})`));
     result.claims.forEach((c) => { const card = item($("claims"), "article", ""); item(card, "h4", c.id + ": " + c.text); item(card, "p", "Evidensstatus: " + c.evidence_status); item(card, "blockquote", c.evidence_quote); item(card, "p", "Avsnitt: " + c.paragraph_id); });
     result.source.paragraphs.forEach((p) => item($("paragraphs"), "p", p.id + ": " + p.text));
+    (result.source_provenance || []).forEach((citation) => { sourceLink($("paragraphs"), citation); provenance($("paragraphs"), citation); });
     $("json").textContent = JSON.stringify(result, null, 2); $("result").hidden = false; $("status").textContent = "Ferdig. Se varsler og evidens.";
   } catch (error) { $("status").textContent = error.message; }
   finally { $("run").disabled = false; }
@@ -46,6 +47,9 @@ load();
 
 // Portal search is a separate presentation over the same verified workflow.
 const portalWarnings = {
+  "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.": "Kun ordrette, gjennomg\u00e5tte kildeutdrag. Ikke semantisk faktasjekk eller garanti for riktighet.",
+  "Limited source coverage. Consult the official page for context and current conditions.": "Begrenset kildedekning. Les den offisielle siden for sammenheng og gjeldende vilk\u00e5r.",
+  "Rejected candidate text omitted from history for privacy.": "Avvist modelltekst er utelatt fra historikken av personvernhensyn.",
   "Synthetic demonstration; not municipal information.": "Syntetisk demo. Dette er ikke kommunal informasjon.",
   "Evidence matching is not semantic fact-checking or a guarantee of truth.": "Sitatsamsvar er ikke semantisk faktasjekk eller en garanti for sannhet.",
   "Review required: verification findings remain unresolved.": "Krever vurdering: kildekontrollen har uløste funn.",
@@ -93,7 +97,7 @@ function renderSearch(data) {
     item(card, "p", hit.synthetic ? "SYNTETISK EKSEMPEL" : "GJENNOMGÅTT KILDE").className = "eyebrow";
     item(card, "h3", hit.title); item(card, "p", hit.excerpt); sourceLink(card, hit); provenance(card, hit);
   });
-  $("answer-button").disabled = !data.results.length || !data.query.trim();
+  $("answer-button").disabled = !data.results.length || !(lastSearch && lastSearch.query.trim());
 }
 async function searchPortal() {
   const generation = ++searchGeneration;
@@ -160,7 +164,7 @@ async function loadPortal() {
     $("answer-button").textContent = mockMode ? "Lag kildebasert utdrag" : "Lag og kontroller lokalt AI-svar";
     $("coverage").textContent = `${data.documents} indekserte dokumenter · Ikke fullstendig kommunal dekning`;
     const services = [
-      { id: "skole", title: "Skole", category: "oppvekst", query: "barnehage", icon: "school" },
+      { id: "skole", title: "Skole", category: "oppvekst", query: data.synthetic ? "barnehage" : "skole", icon: "school" },
       { id: "bolig", title: "Bolig", category: "bolig", query: "byggesak", icon: "home" },
       { id: "helse", title: "Helse", category: "helse", query: "helse", icon: "health" },
       { id: "vann", title: "Vann", category: "teknisk", query: "vann", icon: "water" },

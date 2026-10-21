@@ -1,0 +1,13 @@
+# Final integration gate: merge blocked, feature publication authorized
+
+Authority: docs/official-assignment-user-supplied.md, copied from the user's explicitly confirmed assignment text. Current matrix: docs/assignment-requirements-matrix.md (current table only; historical section is superseded).
+
+Verified GitHub main: a21d1ccd2ab9461744cd0db2ceec4d6f018b6219. Feature HEAD: 81645cb1d8782c7764f7264e54dbf1153cc292d4, feat/full-system-web. origin/main is already an ancestor. No new upstream commits were missing after fetch. JeppeGs's contribution cf8608a and merge a21d1cc are included. His provider, correction, summarization, verifier, revision, shared schemas, tests and documentation compare unchanged with origin/main. The unrelated e833983 is excluded. No conflict resolution or merge was needed in this audit.
+
+All previous local modifications/untracked files are preserved. A verified project-local complete archive and SHA manifest are under output/final-integration-20261021-153016/. No personal directories were inspected after the user's restriction; all subsequent file access was confined to this worktree and normal project-tool execution.
+
+Evidence: 227 offline tests passed, zero failures/errors, with real sockets/DNS blocked. Fresh live import: 8 sources, 39 exact reviewed paragraphs, no raw HTML saved. Actual llama3.2:3b smoke on the fresh catalog: 13/13 passed. Saved logs/catalog/results: output/final-integration-20261021-153016/. Earlier completed browser evidence: output/browser-real-verified/; real correction fault-injection evidence: output/real-correction-smoke.json. Tests were not restarted after the user's priority instruction.
+
+Mandatory blockers: the literal assignment forbids collecting/processing identifying personal information, while full HTML is transiently received before excerpt filtering; a non-personal delivery boundary or course-authority clarification is needed. A complete 3-4 page English report using the supplied NeurIPS template, required appendices and a backwards-planned milestone schedule cannot be verified in this worktree. Do not substitute implementation notes for a submitted report or invent dates/approval.
+
+The user subsequently explicitly authorized committing/pushing the feature branch and creating a PR despite unresolved assignment requirements. Only merge remains blocked. Publish via non-force feature push and a clearly marked draft PR, preserving main and all protections. No main merge or settings change is authorized while mandatory requirements remain unresolved. Before publication GitHub reported no open PR for this branch; main was the SHA above.

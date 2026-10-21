@@ -31,3 +31,9 @@ Automatically process, summarize and verify approved public municipal informatio
 ## Open decisions
 
 Choose approved sources, implementation language, model, dependencies, evaluation thresholds and execution interface before implementation. No live ingestion is authorized by this specification.
+
+## Current implemented source boundary (user-approved update)
+
+The user approved transient HTTPS acquisition of individually reviewed official Hamar pages for controlled extraction. Retained/indexed/model/exported content is limited to exact manually reviewed non-personal service paragraphs. Raw HTML, unselected names/photo credits/contacts and personal records are not retained or sent to the model. Approval scope is explicit; the older whole-document restriction above is historical for the application. The stricter wording of the actual regional course assignment remains a compliance issue requiring instructor resolution, documented in docs/assignment-requirements-matrix.md.
+
+The current real answer is one model-selected whole source paragraph, with mandatory existing verification plus exact complete-text support, at most one correction and mandatory re-verification. It is an extractive answer, not free-form semantic summarization or factual truth certification. Every result requires an eligible approved source and provenance; failed verification or unresolved findings produce no published answer. Eight reviewed sources currently cover a small subset of services, not the municipality's complete information.

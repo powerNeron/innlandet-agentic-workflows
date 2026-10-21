@@ -207,31 +207,38 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--catalog", type=Path, action="append", default=[], help="Offline reviewed catalog; repeat for multiple files")
     parser.add_argument("--approvals", type=Path, help="Individually reviewed page manifest; never enables live fetching")
     parser.add_argument("--empty-index", action="store_true", help="Start without synthetic demo documents")
-    parser.add_argument("--provider", choices=("mock", "ollama"), default="mock")
+    parser.add_argument("--provider", choices=("mock", "ollama"), default=None)
+    parser.add_argument("--demo", action="store_true", help="Explicit offline synthetic demo only")
+    parser.add_argument("--real-sources", action="store_true", help="Explicit real mode (also the default)")
     parser.add_argument("--model", help="Installed Ollama model")
     parser.add_argument("--ollama-timeout", type=float, default=45.0)
     parser.add_argument("--fallback-to-mock", action="store_true", help="Explicit, labeled fallback on Ollama failure")
     args = parser.parse_args(argv)
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
-    from .runtime import create_service
-    try:
-        service = create_service(args.provider, model=args.model, timeout=args.ollama_timeout,
-                                 fallback_to_mock=args.fallback_to_mock)
-    except ValueError:
-        parser.error("Invalid provider configuration")
+    if args.real_sources and (args.demo or args.empty_index):
+        parser.error("Real-source mode cannot use a synthetic demo or empty test index")
+    real_mode = args.real_sources or not (args.demo or args.empty_index)
     portal = None
-    if args.catalog or args.empty_index:
-        from .portal_sources import load_approvals, load_catalog
-        from .search import SearchIndex
-        try:
-            if args.catalog and args.approvals is None:
-                parser.error("--catalog requires an explicit --approvals manifest")
-            approvals = load_approvals(args.approvals) if args.approvals else {}
-            documents = [doc for path in args.catalog for doc in load_catalog(path, approvals).documents.values()]
-            portal = PortalService(service, index=SearchIndex(documents))
-        except (OSError, ValueError, TypeError, KeyError):
-            parser.error("Catalog approval/integrity validation failed")
+    try:
+        if real_mode:
+            if args.fallback_to_mock or args.provider == "mock":
+                raise ValueError("Real-source mode refuses mock fallback")
+            from .real_sources import create_municipal_service
+            service = create_municipal_service(args.catalog or [Path("output/municipal-catalog.json")],
+                args.approvals or Path("docs/approved-service-pages.json"), model=args.model, timeout=args.ollama_timeout)
+            portal = PortalService(service, index=service.index)
+        else:
+            if args.catalog or args.approvals:
+                raise ValueError("Use real-source mode for reviewed catalogs")
+            from .runtime import create_service
+            service = create_service(args.provider or "mock", model=args.model, timeout=args.ollama_timeout,
+                                     fallback_to_mock=args.fallback_to_mock)
+            if args.empty_index:
+                from .search import SearchIndex
+                portal = PortalService(service, index=SearchIndex())
+    except (OSError, ValueError, TypeError, KeyError):
+        parser.error("Provider/catalog validation failed; no synthetic fallback. Use --demo only for offline testing.")
     try:
         with create_server(port=args.port, service=service, portal=portal) as server:
             print(f"Hamar KommuneAgent: http://127.0.0.1:{server.server_port} (provider: {service.provider})", flush=True)
