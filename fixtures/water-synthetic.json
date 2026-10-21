@@ -1,0 +1,9 @@
+{
+  "id": "synthetic-water-demo",
+  "title": "SYNTHETIC EXAMPLE — fictional water service, not Hamar facts",
+  "synthetic": true,
+  "paragraphs": [
+    {"id": "p1", "text": "I dette oppdiktede eksempelet leveres vann fra Eksempelsjøen."},
+    {"id": "p2", "text": "Den fiktive hardheten er 3 °dH; tallet beskriver ikke vannet i Hamar."}
+  ]
+}
