@@ -63,6 +63,8 @@ class MockScenario(StrEnum):
     INVALID_PARAGRAPH = "invalid_paragraph"
     FABRICATED_QUOTE = "fabricated_quote"
     CHANGED_NUMBER = "changed_number"
+    UNSUPPORTED_STATEMENT = "unsupported_statement"
+    UNCERTAIN_CLAIM = "uncertain_claim"
     CONFLICTING_CLAIMS = "conflicting_claims"
     MALFORMED_OUTPUT = "malformed_output"
 
@@ -106,6 +108,18 @@ class MockSummarizer:
             payload = {
                 "claims": [
                     self._claim("c1", "Den syntetiske målingen er 999.", paragraphs[0].id, paragraphs[0].text)
+                ]
+            }
+        elif self.scenario is MockScenario.UNSUPPORTED_STATEMENT:
+            payload = {
+                "claims": [
+                    self._claim("c1", "Kommunen stenger skolen i morgen.", paragraphs[0].id, paragraphs[0].text)
+                ]
+            }
+        elif self.scenario is MockScenario.UNCERTAIN_CLAIM:
+            payload = {
+                "claims": [
+                    self._claim("c1", f"Usikkert: {paragraphs[0].text}", paragraphs[0].id, paragraphs[0].text)
                 ]
             }
         elif self.scenario is MockScenario.CONFLICTING_CLAIMS:

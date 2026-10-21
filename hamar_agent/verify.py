@@ -14,6 +14,8 @@ class FindingCode(StrEnum):
     INVALID_PARAGRAPH_ID = "invalid_paragraph_id"
     FABRICATED_EVIDENCE = "fabricated_evidence"
     UNSUPPORTED_NUMBER = "unsupported_number"
+    POTENTIALLY_UNSUPPORTED = "potentially_unsupported"
+    UNCERTAIN_CLAIM = "uncertain_claim"
     DUPLICATE_CLAIM_ID = "duplicate_claim_id"
     CONFLICTING_CLAIMS = "conflicting_claims"
 
@@ -38,6 +40,13 @@ class VerificationReport:
 
 
 _NUMBER = re.compile(r"(?<!\w)\d+(?:[.,]\d+)?(?!\w)")
+_WORD = re.compile(r"[a-zæøå0-9]+", re.IGNORECASE)
+_STOPWORDS = frozenset({
+    "alle", "and", "at", "av", "bare", "ble", "den", "denne", "der", "det", "du",
+    "en", "er", "et", "for", "fra", "hadde", "har", "i", "ikke", "ingen", "kan",
+    "med", "men", "mot", "noe", "og", "om", "opp", "på", "så", "til", "under", "var",
+    "vi", "vil", "the", "a", "an", "is", "are", "was", "were", "of", "to", "in", "on",
+})
 
 
 def _numbers(text: str) -> tuple[str, ...]:
@@ -49,6 +58,14 @@ def _claim_signature(text: str) -> tuple[str, tuple[str, ...]]:
     stem = _NUMBER.sub("<number>", text.casefold())
     stem = " ".join(re.findall(r"[\w<>]+", stem))
     return stem, numbers
+
+
+def _content_terms(text: str) -> set[str]:
+    return {
+        token.casefold()
+        for token in _WORD.findall(text)
+        if token.casefold() not in _STOPWORDS and not token.isdecimal()
+    }
 
 
 def verify_response(source: Source, payload: object) -> VerificationReport:
@@ -128,6 +145,19 @@ def verify_claims(source: Source, claims: tuple[Claim, ...]) -> VerificationRepo
                     f"claim contains numeric value(s) absent from its evidence: {', '.join(unsupported_numbers)}",
                     (claim.id,),
                 ))
+            unsupported_terms = _content_terms(claim.text) - _content_terms(claim.evidence_quote)
+            if unsupported_terms:
+                findings.append(VerificationFinding(
+                    FindingCode.POTENTIALLY_UNSUPPORTED,
+                    "claim contains content terms absent from its quote; semantic review is required",
+                    (claim.id,),
+                ))
+        if claim.text.casefold().startswith(("usikkert:", "uavklart:", "muligens:")):
+            findings.append(VerificationFinding(
+                FindingCode.UNCERTAIN_CLAIM,
+                "claim is explicitly marked uncertain and requires human review",
+                (claim.id,),
+            ))
         prepared.append(replace(claim, evidence_status=status))
 
     signatures: dict[str, dict[tuple[str, ...], list[str]]] = {}
