@@ -7,7 +7,7 @@ from pathlib import Path
 from .application import WorkflowService
 from .categories import CATEGORIES, MENU_REFERENCE, OFFICIAL_HOME
 from .schemas import Paragraph, Source
-from .search import SearchIndex, index_document, tokens, validate_query
+from .search import REAL_SERVICE_QUERY_TERMS, SearchIndex, index_document, tokens, validate_query
 from .workflow import run_workflow
 
 DEMO_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "portal-synthetic.json"
@@ -38,16 +38,28 @@ class PortalService:
                 "official_home": OFFICIAL_HOME, "category_reference": MENU_REFERENCE,
                 "documents": sum(self.index.eligible(d) for d in self.index.documents.values()),
                 "synthetic": all(d.source.synthetic for d in self.index.documents.values()),
+                "allowed_query_terms": sorted(REAL_SERVICE_QUERY_TERMS),
                 "provider": self.workflow.provider, "coverage": "Kun individuelt gjennomgåtte, indekserte kilder. Ikke fullstendig kommunal dekning."}
 
     def search(self, query: str, *, category: str | None = None):
-        hits = self.index.search(query, category=category)
+        try:
+            validate_query(query, real_sources=True)
+            hits = self.index.search(query, category=category)
+        except ValueError:
+            # Never echo or persist rejected free-form portal queries.
+            return {"query": "", "category": category, "results": [],
+                    "coverage": self.overview()["coverage"], "provider": self.workflow.provider}
         return {"query": "" if getattr(self.workflow, "real_sources", False) else query, "category": category, "results": [h.to_dict() for h in hits],
                 "coverage": self.overview()["coverage"], "provider": self.workflow.provider}
 
     def answer(self, query: str, *, category: str | None = None):
         safe_query = "" if getattr(self.workflow, "real_sources", False) else query
-        terms = validate_query(query)
+        try:
+            terms = validate_query(query, real_sources=True)
+        except ValueError:
+            return {"query": "", "answer_status": "input_rejected", "result": None, "citations": [],
+                    "message": "Bruk bare generelle temaer om kommunale tjenester. Ikke skriv personopplysninger.",
+                    "coverage": self.overview()["coverage"]}
         hits = self.index.search(query, category=category, limit=3) if terms else ()
         context_terms = {term for hit in hits for p in hit.document.source.paragraphs if p.id in hit.paragraph_ids for term in tokens(p.text)}
         if not hits or not set(terms).issubset(context_terms):

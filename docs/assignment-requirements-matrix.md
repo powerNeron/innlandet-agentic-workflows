@@ -26,15 +26,26 @@ PASS means demonstrated in the allowed project worktree. FAIL means a supplied m
 | Technical minimum 2: more than one stage | PASS | Approval, retrieval, extraction, indexing/search, model selection, verification, optional bounded correction, re-verification, export |
 | Technical minimum 3: tools/files/external data | PASS | Actual official HTTPS import, local catalog and Ollama HTTP API |
 | Technical minimum 4: automatic part | PASS | Single CLI/server request orchestrates model, verification, optional correction and export without manually driving each step |
+| Systematic testing, stress testing and validation before demonstration | UNKNOWN | The complete offline suite passes 229 tests and prior browser/real-model runs are recorded in `docs/real-source-workflow.md`; no distinct stress-test result or current local real-source rerun is available in this worktree. Student demonstration evidence is also not supplied. |
 | Report uses supplied LaTeX template | UNKNOWN | No .tex/.pdf report or supplied report template found inside the allowed worktree |
 | NeurIPS preprint package option and checklist removal | UNKNOWN | No rendered/source report to inspect |
 | Report main text is 3-4 pages | UNKNOWN | No report PDF in worktree; no personal folders searched |
 | Report is in English | UNKNOWN | English implementation notes exist, but not a verified submission report |
 | Appendix included | UNKNOWN | No assembled report appendix to inspect |
 | Representative coding-agent prompt excerpts, maximum two pages | UNKNOWN | docs/prompt-log.md contains sanitized summaries; assembled representative excerpts and page limit unverified |
-| Meeting reports show iterative reasoning, decisions and revisions | PASS | Five existing docs/meetings files; no fictional meetings added. Supplied text specifies no mandatory count of eight |
+| Meeting reports show iterative reasoning, design decisions and revisions | UNKNOWN | Five setup/decision records exist, but the repository does not establish that they are reports of actual team meetings or who attended. Student confirmation or genuine meeting reports are needed; no meetings are invented. |
 
 **Publication/merge gate: BLOCKED.** Any mandatory FAIL or UNKNOWN blocks publication and merge under the user's current conditional authorization. No two-agent dialogue engine, eight-meeting minimum, exam tag, final-white-paper format, or final-exam deadline is used as a requirement: none was included in the authoritative text supplied here.
+
+## Follow-up privacy review
+
+Portal queries in both real and synthetic UI modes are now constrained to a fixed allowlist of general service-topic words. The browser rejects other text locally, clears the input, and sends no search request; the server independently rejects free-form terms and never echoes rejected text. This closes the UI/API query path for names, addresses, and arbitrary free text that are not approved service terms.
+
+The assignment privacy requirement remains **FAIL** because the administrative municipal importer still acquires and parses whole HTML responses transiently before retaining only approved paragraphs. A code-level excerpt filter cannot prove the unseen response contains no personal data before acquisition. Resolving this requires student/instructor approval of a source delivery boundary that is non-personal before retrieval, or an approved source format/API whose complete response has been reviewed. This audit does not silently relabel the existing importer as compliant.
+
+The report, schedule, template, page count and assembled appendix statuses below remain unchanged until those artifacts and student inputs are available. No dates, meetings, contributions, or experiments were added in this follow-up.
+
+The current real-query guard is independently covered by offline tests. The optional local Ollama synthetic smoke was attempted after this code change but failed with the existing local inference runtime error; the documented local municipal catalog is not present in this project worktree, so the real-source smoke could not be rerun here. These limitations are not represented as successful current real-model tests.
 
 The source privacy failure cannot be fixed by silently relabeling HTML or asserting that filtering means no collection. A source/export that is non-personal before acquisition, or explicit documented clarification from the course authority, is needed. Missing report artifacts/schedule must be supplied or completed and reviewed; this audit does not invent a submission or human sign-off.
 

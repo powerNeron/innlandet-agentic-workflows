@@ -11,18 +11,30 @@ from .categories import CATEGORY_IDS
 from .schemas import Source
 
 STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med"}
+# Live search accepts only broad, reviewed service topics. This prevents names,
+# addresses and other free-form text from reaching the municipal search index.
+REAL_SERVICE_QUERY_TERMS = frozenset({
+    "barnehage", "bibliotek", "bolig", "byggesak", "drikkevann", "familie",
+    "folkehelse", "gratis", "helse", "kommuneplan", "kultur", "luftkvalitet",
+    "miljo", "miljø", "oppvekst", "parkering", "plan", "planer", "politikk",
+    "service", "skole", "skolefritidsordning", "sfo", "sosial", "teknisk", "trinn", "vann",
+    "vanntrykk", "water", "veg", "vei", "avlop", "avløp",
+})
 
 
 def tokens(text: str) -> list[str]:
     return re.findall(r"[^\W_]+", unicodedata.normalize("NFC", text).casefold())
 
 
-def validate_query(query: str) -> list[str]:
+def validate_query(query: str, *, real_sources: bool = False) -> list[str]:
     if not isinstance(query, str) or len(query) > 160 or any(ord(c) < 32 for c in query):
         raise ValueError("Søket kan ha maksimalt 160 tegn og ingen kontrolltegn.")
     if re.search(r"@|https?://|\d[\d ()+-]{5,}\d", query, re.I):
         raise ValueError("Ikke skriv personopplysninger, kontaktdata eller nettadresser i søket.")
-    return list(dict.fromkeys(t for t in tokens(query) if t not in STOPWORDS))[:16]
+    terms = list(dict.fromkeys(t for t in tokens(query) if t not in STOPWORDS))[:16]
+    if real_sources and any(term not in REAL_SERVICE_QUERY_TERMS for term in terms):
+        raise ValueError("Use only general municipal service topics; do not enter personal information.")
+    return terms
 
 
 @dataclass(frozen=True)
@@ -84,6 +96,7 @@ class SearchIndex:
         if len(documents) > 200:
             raise ValueError("Index limit is 200 individually reviewed documents")
         self.documents = {d.source.id: d for d in documents}
+        self.real_sources = any(not d.source.synthetic for d in documents)
         if len(self.documents) != len(documents):
             raise ValueError("Duplicate indexed source IDs")
         self.postings = defaultdict(dict)
@@ -105,7 +118,7 @@ class SearchIndex:
         return doc.source.synthetic or date.fromisoformat(doc.approval_expires) >= date.today()
 
     def search(self, query: str, *, category: str | None = None, limit: int = 10) -> tuple[SearchHit, ...]:
-        terms = validate_query(query)
+        terms = validate_query(query, real_sources=self.real_sources)
         if category is not None and category not in CATEGORY_IDS:
             raise ValueError("Ukjent tjenestekategori.")
         if not 1 <= limit <= 20:

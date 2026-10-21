@@ -157,6 +157,18 @@ class MunicipalTests(unittest.TestCase):
         self.assertEqual(json.loads(download.body),answer)
         self.assertNotIn('synthetic-verification-demo',app.dispatch('GET','/api/sources',headers).body.decode())
 
+    def test_real_portal_rejects_free_form_personal_queries_before_model(self):
+        transport=Mock()
+        s=service(transport);app=WebApplication(s)
+        headers={'Host':'127.0.0.1:8000','Origin':'http://127.0.0.1:8000','Content-Type':'application/json','X-Hamar-Token':app.token}
+        for route in ('/api/search','/api/answer'):
+            response=app.dispatch('POST',route,headers,json.dumps({'query':'Fictional Person'}).encode())
+            with self.subTest(route=route):
+                self.assertEqual(response.status,400)
+                self.assertNotIn(b'Fictional Person',response.body)
+        transport.assert_not_called()
+        self.assertFalse(app.results)
+
     def test_real_cli_output_is_exclusive_and_stdout_json_matches(self):
         with tempfile.TemporaryDirectory() as d:
             output=Path(d)/'result.json'

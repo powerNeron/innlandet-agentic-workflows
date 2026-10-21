@@ -67,6 +67,14 @@ const evidenceLabels = { exact_match: "Sitat funnet i oppgitt avsnitt", missing:
 
 let selectedCategory = null;
 let selectedService = null;
+let portalReady = false;
+let allowedRealQueryTerms = new Set();
+const queryStopwords = new Set(["og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med"]);
+function isAllowedRealQuery(query) {
+  const terms = (query.normalize("NFC").toLocaleLowerCase("nb-NO").match(/[\p{L}\p{N}]+/gu) || [])
+    .filter((term) => !queryStopwords.has(term));
+  return terms.length <= 16 && terms.every((term) => allowedRealQueryTerms.has(term));
+}
 let portalRunId = null;
 let searchGeneration = 0;
 let lastSearch = null;
@@ -103,6 +111,19 @@ async function searchPortal() {
   const generation = ++searchGeneration;
   const query = $("query").value.trim();
   const category = selectedCategory;
+  if (!portalReady) {
+    $("query").value = "";
+    $("portal-status").textContent = "Søket er ikke klart ennå. Ingen tekst ble sendt.";
+    return;
+  }
+  if (!isAllowedRealQuery(query)) {
+    $("query").value = "";
+    lastSearch = { query: "", category }; portalRunId = null;
+    $("portal-download").hidden = true; $("answer-content").replaceChildren();
+    $("search-area").hidden = true; $("answer-button").disabled = true; $("search-button").disabled = false;
+    $("portal-status").textContent = "Bruk bare generelle kommunale tjenestetemaer. Søket ble avvist lokalt; ingen tekst ble sendt.";
+    return;
+  }
   lastSearch = { query, category }; portalRunId = null;
   $("portal-download").hidden = true; $("answer-content").replaceChildren(); $("answer-button").disabled = true;
   $("portal-status").textContent = "Søker i lokal indeks …"; $("search-button").disabled = true;
@@ -158,6 +179,8 @@ $("portal-download").addEventListener("click", async () => {
 async function loadPortal() {
   try {
     const data = await api("/api/portal");
+    allowedRealQueryTerms = new Set(data.allowed_query_terms || []);
+    portalReady = true; $("search-button").disabled = false;
     const mockMode = data.provider.startsWith("mock");
     $("mode").textContent = data.synthetic ? (mockMode ? "Demomodus · syntetiske kilder" : "Lokal LLM · syntetiske kilder") : "Avgrenset, godkjent kildeutvalg";
     $("answer-help").textContent = mockMode ? "Be om et kildebasert utdrag. Demoen bruker mock, ikke en ekte språkmodell." : "Leverandør: " + data.provider + ". Svar kontrolleres mot kildeutdrag, men er ikke garantert sanne.";

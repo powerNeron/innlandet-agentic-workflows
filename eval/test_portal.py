@@ -79,6 +79,12 @@ class PortalTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             demo_index().search("vann", category="unapproved")
 
+    def test_real_source_queries_are_limited_to_general_service_topics(self):
+        self.assertEqual(validate_query("vanntrykk", real_sources=True), ["vanntrykk"])
+        for query in ("Fictional Person", "Storgata 12", "diagnose eksempel"):
+            with self.subTest(query=query), self.assertRaises(ValueError):
+                validate_query(query, real_sources=True)
+
     def test_text_integrity_is_required(self):
         with self.assertRaises(ValueError):
             replace(document("a", "A", "Text"), text_sha256="0"*64)
@@ -97,7 +103,7 @@ class PortalTests(unittest.TestCase):
     def test_no_hit_never_calls_provider_or_fetch(self):
         workflow = WorkflowService(summarizer=Mock())
         with patch("hamar_agent.portal_sources.socket.getaddrinfo", side_effect=AssertionError("must not resolve")):
-            answer = PortalService(workflow).answer("unmatchedword")
+            answer = PortalService(workflow).answer("vanntrykk")
         workflow.summarizer.summarize.assert_not_called()
         self.assertEqual(answer["answer_status"], "insufficient_evidence")
         self.assertIsNone(answer["result"])
@@ -132,7 +138,7 @@ class PortalTests(unittest.TestCase):
     def test_portal_requests_cannot_supply_urls_or_approvals(self):
         app = WebApplication()
         headers = {"Host":"127.0.0.1:8000", "Origin":"http://127.0.0.1:8000", "Content-Type":"application/json", "X-Hamar-Token":app.token}
-        for body in (b'{"query":"vann","url":"https://example.invalid"}', b'{"query":42}', b'{"query":"vann","category":[]}', b'[]', b'{"query":"a@example.invalid"}'):
+        for body in (b'{"query":"vann","url":"https://example.invalid"}', b'{"query":42}', b'{"query":"vann","category":[]}', b'[]', b'{"query":"a@example.invalid"}', b'{"query":"Fictional Person"}'):
             self.assertEqual(app.dispatch("POST", "/api/search", headers, body).status, 400)
         headers["X-Hamar-Token"] = "wrong"
         self.assertEqual(app.dispatch("POST", "/api/answer", headers, b'{"query":"vann"}').status, 403)
@@ -154,9 +160,9 @@ class PortalTests(unittest.TestCase):
 
     def test_title_only_match_is_not_answer_evidence(self):
         workflow = WorkflowService(summarizer=Mock())
-        portal = PortalService(workflow, index=SearchIndex([document("a","Unicorn","A different topic.")]))
-        self.assertTrue(portal.search("unicorn")["results"])
-        self.assertEqual(portal.answer("unicorn")["answer_status"],"insufficient_evidence")
+        portal = PortalService(workflow, index=SearchIndex([document("a","Helse","A different topic.")]))
+        self.assertTrue(portal.search("helse")["results"])
+        self.assertEqual(portal.answer("helse")["answer_status"],"insufficient_evidence")
         workflow.summarizer.summarize.assert_not_called()
 
     def test_homepage_has_official_link_privacy_guidance_and_no_external_scripts(self):

@@ -115,7 +115,7 @@ class WebApplication:
             if not isinstance(request, dict) or set(request) - {"query", "category"} or "query" not in request:
                 raise ValueError("Invalid search request")
             query, category = request["query"], request.get("category")
-            validate_query(query)
+            validate_query(query, real_sources=True)
             if category is not None and (not isinstance(category, str) or category not in CATEGORY_IDS):
                 raise ValueError("Invalid category")
         except (ValueError, UnicodeError, TypeError):
