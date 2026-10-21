@@ -1,0 +1,9 @@
+{
+  "id": "synthetic-verification-demo",
+  "title": "SYNTHETIC EXAMPLE — invented measurements, not Hamar facts",
+  "synthetic": true,
+  "paragraphs": [
+    {"id": "p1", "text": "I denne oppdiktede målingen er hardheten 3 °dH."},
+    {"id": "p2", "text": "Et annet oppdiktet målepunkt har hardhet 4 °dH."}
+  ]
+}
