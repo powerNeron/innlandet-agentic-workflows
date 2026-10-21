@@ -25,3 +25,8 @@ Use short-lived branches and pull requests into `main`. Review changes with the 
 - docs/meetings/: meeting notes and decisions
 
 No application or dependencies have been installed yet. Runtime versions and dependency choices will be agreed upon before implementation. Copy .env.example to .env only when configuration is needed; never commit credentials.
+## Offline implementation and current collaboration agreement
+
+Python 3.12 offline source approval and orchestration are documented in [docs/source-workflow.md](docs/source-workflow.md). Run `python -m unittest discover -s eval -p 'test_*.py' -v` and `python -X utf8 -m hamar_agent --fixture fixtures/water-synthetic.json` from the repository root. No packages or credentials are required. Only the explicitly approved synthetic fixture is accepted.
+
+The current agreement supersedes the earlier peer-review requirement: cross-review is optional while each student develops independently. powerNeron owns sources/orchestration/CLI/JSON; JeppeGs owns summarization/LLM/verification/evaluation. Coordinate shared interfaces, keep separate branches and use PRs for integration.
