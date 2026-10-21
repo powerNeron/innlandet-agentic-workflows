@@ -18,3 +18,6 @@ Innlandet Agentic Workflows / Hamar KommuneAgent, KIUA-2003, University of Inlan
 Read README.md and SPEC.md first. Keep changes scoped to a task with acceptance criteria. Verify changes using checks appropriate to the implementation, and report errors honestly. Do not claim verification if a check was not run. Record meaningful decisions and sanitized prompt summaries in docs/. Never record secrets or personal data in documentation, fixtures or logs.
 
 No runtime stack or test command has been selected yet. Agree on these before adding dependencies. Use branches and peer-reviewed pull requests for shared work.
+## Current development agreement: independent components
+
+The user's updated workflow makes cross-review optional for now. powerNeron owns source approval, fetching, orchestration, CLI and JSON output. JeppeGs owns summarization, LLM integration, evidence verification and evaluation. Coordinate shared schema/interface edits. Use separate feature branches and PRs; ask before remote writes or merging. Python 3.12 with standard-library-only offline tests is now established. See docs/source-workflow.md for scope, interfaces and test commands.
