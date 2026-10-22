@@ -116,6 +116,12 @@ class PortalTests(unittest.TestCase):
         natural_question = "Hvordan fungerer gratis SFO for elever i Hamar?"
         self.assertEqual(validate_query(natural_question, real_sources=True), ["gratis", "sfo"])
         self.assertEqual([h.document.source.id for h in index.search(natural_question)], ["hamar-sfo-test"])
+        who_question = "Hvem får gratis SFO-tid i Hamar?"
+        self.assertEqual(validate_query(who_question, real_sources=True), ["gratis", "sfo"])
+        self.assertEqual([h.document.source.id for h in index.search(who_question)], ["hamar-sfo-test"])
+        offer_question = "Hva med SFO-tilbud for de yngste elevene?"
+        self.assertEqual(validate_query(offer_question, real_sources=True), ["sfo"])
+        self.assertEqual([h.document.source.id for h in index.search(offer_question)], ["hamar-sfo-test"])
         self.assertEqual(validate_query("Hva gjelder for vann?", real_sources=True), ["vann"])
         self.assertFalse(index.search("skole vann"))
         drinking_water_question = "Hvor finner jeg informasjon om drikkevann?"
