@@ -11,7 +11,7 @@ from .categories import CATEGORY_IDS
 from .schemas import Source
 
 STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
-             "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne"}
+             "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne", "finner", "informasjon"}
 # Live search accepts only broad, reviewed service topics. This prevents names,
 # addresses and other free-form text from reaching the municipal search index.
 REAL_SERVICE_QUERY_TERMS = frozenset({
