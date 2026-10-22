@@ -60,7 +60,7 @@ def main(argv=None):
     parser.add_argument("--selection", required=True, type=Path)
     parser.add_argument("--approvals", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--enable-live", action="store_true")
+    parser.add_argument("--enable-live", action="store_true", help="Legacy flag; live HTML import remains disabled")
     args = parser.parse_args(argv)
     try:
         docs = import_selection(args.selection, args.approvals, args.output, enable_live=args.enable_live)

@@ -3,6 +3,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+from time import perf_counter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -19,14 +20,17 @@ def main(argv=None) -> int:
     if args.model:
         config = OllamaConfig(model=args.model)
     source = load_source(args.source_id)
+    started = perf_counter()
     try:
         report = OllamaSummarizer(OllamaClient(config)).summarize_with_report(source)
     except OllamaError as exc:
         parser.exit(2, f"Local Ollama smoke test failed: {exc}\n")
+    latency_seconds = perf_counter() - started
     paragraph_ids = {p.id for p in source.paragraphs}
     metrics = {
         "source_id": source.id,
         "model": config.model,
+        "latency_seconds": round(latency_seconds, 3),
         "claim_count": len(report.claims),
         "citation_rate": round(sum(bool(c.paragraph_id and c.evidence_quote) for c in report.claims) / max(1, len(report.claims)), 3),
         "valid_paragraph_rate": round(sum(c.paragraph_id in paragraph_ids for c in report.claims) / max(1, len(report.claims)), 3),

@@ -154,6 +154,16 @@ class EvidenceVerificationTests(unittest.TestCase):
         self.assertTrue(all(claim.evidence_status.value == "exact_match" for claim in report.claims))
         self.assertTrue(any(finding.code is FindingCode.CONFLICTING_CLAIMS for finding in report.findings))
 
+    def test_stress_batch_of_adversarial_claims_stays_unverified(self):
+        claims = tuple(Claim(f"c{i}", f"Fabricated statement {i} has value {i}.",
+                             "missing-paragraph", "Invented excerpt") for i in range(1000))
+        report = verify_claims(self.source, claims)
+        self.assertEqual(len(report.claims), 1000)
+        self.assertEqual(len(report.findings), 1001)
+        self.assertTrue(all(claim.evidence_status.value == "missing" for claim in report.claims))
+        self.assertEqual(sum(finding.code is FindingCode.INVALID_PARAGRAPH_ID for finding in report.findings), 1000)
+        self.assertEqual(report.findings[-1].code, FindingCode.CONFLICTING_CLAIMS)
+
 
 class RevisionGateTests(unittest.TestCase):
     def test_gate_allows_exactly_one_revision_request(self):

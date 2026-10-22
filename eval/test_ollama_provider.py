@@ -2,9 +2,11 @@
 import json
 from pathlib import Path
 import unittest
+from urllib.error import HTTPError
+from unittest.mock import MagicMock, Mock, patch
 
 from hamar_agent.correction import OllamaCorrectionProvider
-from hamar_agent.ollama_provider import OllamaClient, OllamaConfig, OllamaError, OllamaSummarizer
+from hamar_agent.ollama_provider import OllamaClient, OllamaConfig, OllamaError, OllamaSummarizer, _local_post
 from hamar_agent.sources import load_fixture
 from hamar_agent.summarize import MockSummarizer, MockScenario
 from hamar_agent.verify import FindingCode, verify_claims
@@ -64,6 +66,30 @@ class OllamaProviderTests(unittest.TestCase):
         with self.assertRaisesRegex(OllamaError, "unavailable") as caught:
             client.generate("system", "user")
         self.assertNotIn("secret-looking", str(caught.exception))
+
+    def test_timeout_and_missing_model_are_reported_without_fallback(self):
+        client = OllamaClient(transport=Mock(side_effect=TimeoutError("synthetic timeout")))
+        with self.assertRaisesRegex(OllamaError, "timed out"):
+            client.generate("system", "synthetic prompt")
+
+        opener = Mock()
+        opener.open.side_effect = HTTPError("http://127.0.0.1:11434/api/chat", 404, "missing", {}, None)
+        with patch("hamar_agent.ollama_provider.build_opener", return_value=opener):
+            with self.assertRaisesRegex(OllamaError, "model is unavailable"):
+                _local_post("http://127.0.0.1:11434/api/chat", {}, b"{}", 1, 1024)
+        opener.open.assert_called_once()
+
+    def test_response_resource_closes_after_read_failure(self):
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.side_effect = OSError("synthetic read failure")
+        opener = Mock()
+        opener.open.return_value = response
+        with patch("hamar_agent.ollama_provider.build_opener", return_value=opener):
+            with self.assertRaisesRegex(OllamaError, "unavailable"):
+                _local_post("http://127.0.0.1:11434/api/chat", {}, b"{}", 1, 1024)
+        response.__exit__.assert_called_once()
 
     def test_malformed_model_json_is_reported(self):
         transport = lambda *args: b'{"message":{"content":"not json"}}'

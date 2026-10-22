@@ -18,6 +18,7 @@ from hamar_agent.sources import load_source
 from hamar_agent.storage import save_result
 from hamar_agent.summarize import MockScenario, MockSummarizer
 from hamar_agent.workflow import WorkflowResult, run_workflow
+from hamar_agent.verify import verify_claims
 
 SOURCE_ID = "synthetic-verification-demo"
 
@@ -105,6 +106,21 @@ class FullWorkflowTests(unittest.TestCase):
                 self.assertTrue(result.verification.has_findings)
                 self.assertNotIn("secret provider detail", result.to_json())
                 corrector.assert_called_once()
+
+    def test_initial_verifier_failure_produces_no_workflow_result(self):
+        with patch("hamar_agent.workflow.verify_claims", side_effect=RuntimeError("synthetic verifier failure")):
+            with self.assertRaisesRegex(RuntimeError, "synthetic verifier failure"):
+                self.run_scenario()
+
+    def test_reverification_failure_retains_initial_findings_and_fails_closed(self):
+        bad_claims = MockSummarizer(MockScenario.CHANGED_NUMBER).summarize(self.source)
+        initial = verify_claims(self.source, bad_claims)
+        corrector = Mock(return_value=MockSummarizer().summarize(self.source))
+        with patch("hamar_agent.workflow.verify_claims", side_effect=[initial, RuntimeError("synthetic recheck failure")]):
+            result = self.run_scenario(MockScenario.CHANGED_NUMBER, corrector=corrector)
+        self.assertEqual(result.correction.status, "failed")
+        self.assertEqual(result.correction.attempts, 1)
+        self.assertEqual(result.verification, initial)
 
     def test_clean_response_never_calls_corrector(self):
         corrector = Mock(side_effect=AssertionError("not needed"))

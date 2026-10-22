@@ -34,23 +34,22 @@ python -m hamar_agent.portal_sources import-snapshot --approvals LOCAL_APPROVALS
 
 The output parent must already exist; the destination must be new. The importer validates current approval, robots permission/hash, raw/extracted hashes, size, UTF-8, extraction and provenance. It stores only reviewed extracted text plus metadata, not raw HTML or response headers. Load the catalog in the local server with --catalog and --approvals. Existing CLI schemas, legacy fixtures and text/plain retrieval are unchanged.
 
-## Optional explicitly enabled reviewed fetch (not used during development)
+## Live HTML retrieval is disabled
 
-Only after the boundary and individual manifest entry have been separately approved:
+Live HTML retrieval and HTML-based approval import currently fail closed, including
+`portal_sources fetch-reviewed --enable-live` and the administrative importer.
+Filtering after the response arrives cannot prove that personal information was
+never acquired or processed. These paths must fail before DNS or connection
+setup. Do not attempt live municipal requests. The existing reviewed local
+catalog and normal portal/search workflow remain available while their approvals
+are current. Snapshot import remains an explicitly offline operation.
 
-```powershell
-python -m hamar_agent.portal_sources fetch-reviewed --enable-live --approvals LOCAL_APPROVALS.json --source-id APPROVED_ID --output output/NEW_catalog.json
-```
-
-Without --enable-live or without that exact current approval, this fails before DNS. It never discovers URLs or follows redirects. This command is not an approval request and must not be run with real sources until authorized.
-
-The new HTML-capable fetcher is separate from the existing text/plain-only retriever. It fetches reviewed robots.txt first (64 KiB cap), checks its pinned hash and rules, then fetches only the approved page. Requests use a dedicated agent, at least two seconds between requests, and obey stricter robots crawl-delay/request-rate. Excessive robot delays require a separate scheduling decision. No retries, cookies, authentication, proxies or linked subresources.
-
-Only approved canonical host URLs are allowed. All DNS answers must be public/global; private, loopback, link-local and mixed answers are refused. The HTTPS connection pins a validated numeric address while retaining original-host TLS certificate validation, preventing a second hostname lookup during connection. Each socket has a ten-second timeout; bodies have an independent 512 KiB cap. Only HTTP 200 and expected text/html or text/plain with strict UTF-8 decoding are accepted. Redirects, login status, compression, ambiguous headers, noindex, size and hash changes fail closed; resources close on error.
-
-Limits: socket timeout is not a total deadline; rate limiting is per process, not distributed. DNS/trust configuration is environmental. Exact-byte pinning deliberately rejects dynamic page changes. No response-hash check can prevent already receiving unexpected personal bytes. The registry stays empty until these limitations are resolved for each proposed source.
+The historical transport protections below described the earlier implementation
+and did not establish the assignment's no-personal-data boundary. They must not
+be interpreted as authorization to retrieve pages. Re-enable live ingestion only
+if an approved input format guarantees personal data is not received.
 
 
 ## Current real-source update
 
-The user subsequently approved transient official HTML acquisition with retention limited to individually reviewed non-personal service excerpts. Earlier missing-adapter/full-document-only statements above describe the historical baseline. Eight sources and 39 paragraphs now run through the real-source adapter, mandatory strict verification and bounded correction. See [current implementation and commands](real-source-workflow.md) and [actual assignment matrix](assignment-requirements-matrix.md). Normal web startup is now real mode; use --demo explicitly for offline synthetic testing. No existing provider files/shared schemas were changed. This user policy does not override stricter course-assignment requirements.
+The previous application decision to allow transient HTML acquisition was superseded by the strict assignment privacy requirement. Eight reviewed source records and 39 retained paragraph hashes are still in the repository, but their approvals expire on 2026-10-28 and are not renewed. Use the existing local catalog only while current. See [current implementation and limitations](real-source-workflow.md) and [assignment matrix](assignment-requirements-matrix.md). Use `--demo` for synthetic offline testing.

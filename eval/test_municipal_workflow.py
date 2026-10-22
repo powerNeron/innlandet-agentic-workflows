@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from hamar_agent.html_extract import service_candidates, extract_service_excerpts, privacy_check
-from hamar_agent.municipal_import import import_selection, load_selection
+from hamar_agent.municipal_import import import_selection, load_selection, main as import_main
 from hamar_agent.portal_sources import PageApproval, import_reviewed_bytes, save_catalog, load_catalog
 from hamar_agent.ollama_provider import OllamaClient, OllamaConfig, OllamaError
 from hamar_agent.real_sources import MunicipalWorkflowService, RealSourceError, strict_verify, reviewed_transport, create_municipal_service
@@ -214,6 +214,19 @@ class MunicipalTests(unittest.TestCase):
                 import_selection(selection,root/'a.json',root/'c.json',enable_live=True,fetcher=fetcher)
             fetcher._get.assert_not_called()
             self.assertFalse((root/'a.json').exists());self.assertFalse((root/'c.json').exists())
+
+    def test_live_import_cli_flag_fails_before_network_or_output(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);selection=root/'selection.json'
+            selection.write_text(json.dumps([{'source_id':'fictional-test','url':URL,'title':'Fictional service test','category':'teknisk','reviewed_on':date.today().isoformat(),'expires_on':(date.today()+timedelta(days=1)).isoformat(),'paragraph_sha256':[sha(TEXT)]}]))
+            with patch('socket.getaddrinfo', side_effect=AssertionError('DNS forbidden')), \
+                    patch('socket.create_connection', side_effect=AssertionError('network forbidden')), \
+                    redirect_stdout(io.StringIO()),redirect_stderr(io.StringIO()),self.assertRaises(SystemExit) as raised:
+                import_main(['--selection',str(selection),'--approvals',str(root/'approvals.json'),
+                             '--output',str(root/'catalog.json'),'--enable-live'])
+            self.assertEqual(raised.exception.code,2)
+            self.assertFalse((root/'approvals.json').exists())
+            self.assertFalse((root/'catalog.json').exists())
 
     def test_missing_real_catalog_fails_instead_of_using_demo(self):
         with tempfile.TemporaryDirectory() as d:
