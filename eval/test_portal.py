@@ -92,6 +92,14 @@ class PortalTests(unittest.TestCase):
             with self.subTest(query=query), self.assertRaises(ValueError):
                 validate_query(query, real_sources=True)
 
+    def test_reviewed_municipal_search_matches_common_norwegian_inflections(self):
+        index = SearchIndex([
+            document("hamar-plan-test", "Politikk og planer", "Kommuneplanens samfunnsdel ble vedtatt.", "politikk"),
+            document("hamar-health-test", "Folkehelse", "Folkehelsearbeidet skjer i alle samfunnssektorer.", "helse"),
+        ])
+        self.assertEqual([h.document.source.id for h in index.search("kommuneplan")], ["hamar-plan-test"])
+        self.assertEqual([h.document.source.id for h in index.search("folkehelse")], ["hamar-health-test"])
+
     def test_real_search_accepts_norwegian_question_phrasing_and_ascii_spelling(self):
         index = SearchIndex([
             reviewed_document("hamar-miljo-test", "Luftkvalitet og miljø", "Informasjon om luftkvalitet og miljø i Hamar.", "miljo"),
