@@ -26,7 +26,15 @@ REAL_SERVICE_QUERY_TERMS = frozenset({
 def tokens(text: str) -> list[str]:
     # Match common Norwegian spellings even when users omit diacritics.
     folded = unicodedata.normalize("NFC", text).casefold().translate(str.maketrans({"æ": "ae", "ø": "o", "å": "a"}))
-    return re.findall(r"[^\W_]+", folded)
+    words = re.findall(r"[^\W_]+", folded)
+    # Normalize frequent inflections/compounds present in reviewed plans and
+    # public-health excerpts so base-form queries match their paragraphs.
+    return [
+        "kommuneplan" if word in {"kommuneplanen", "kommuneplanens"}
+        else "folkehelse" if word.startswith("folkehelsearbeid")
+        else word
+        for word in words
+    ]
 
 
 def validate_query(query: str, *, real_sources: bool = False) -> list[str]:
