@@ -172,8 +172,8 @@ class ReviewedSourceTests(unittest.TestCase):
         doc = replace(doc,approval_expires=str(date.today()-timedelta(days=1)))
         self.assertFalse(SearchIndex([doc]).search("water"))
 
-    def test_source_admin_default_list_and_snapshot_import_are_offline(self):
-        from contextlib import redirect_stdout
+    def test_source_admin_default_list_and_snapshot_import_fails_closed(self):
+        from contextlib import redirect_stderr, redirect_stdout
         from dataclasses import asdict
         with redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["list"]),0)
@@ -186,8 +186,10 @@ class ReviewedSourceTests(unittest.TestCase):
             args=["import-snapshot","--approvals",str(root/"approvals.json"),"--source-id",self.approval.source_id,
                   "--snapshot",str(root/"snapshot.html"),"--robots-snapshot",str(root/"robots.txt"),
                   "--retrieved-at",datetime.now(timezone.utc).isoformat(),"--output",str(root/"catalog.json")]
-            self.assertEqual(main(args),0)
-            self.assertTrue(load_catalog(root/"catalog.json",{self.approval.source_id:self.approval}).search("water"))
+            with redirect_stderr(io.StringIO()),self.assertRaises(SystemExit) as raised:
+                main(args)
+            self.assertEqual(raised.exception.code,2)
+            self.assertFalse((root/"catalog.json").exists())
 
     def test_missing_snapshot_timestamp_is_rejected(self):
         from contextlib import redirect_stderr

@@ -53,16 +53,16 @@ Never run both servers on the same port. Stop the foreground server with Ctrl-C.
 
 ## Reproduce reviewed acquisition
 
-The initial import was run against all eight official URLs before the privacy fail-closed change; no raw HTML was saved, but transient parsing could still process personal information. **Live HTML import is now disabled** because paragraph filtering occurs after HTML acquisition and parsing. Do not run the old import command below; it is retained only as a historical record and now exits before any network request. Existing reviewed catalogs can be read until approval expiry, but do not renew them from HTML.
+The initial import was run against all eight official URLs before the privacy fail-closed change; no raw HTML was saved, but transient parsing could still process personal information. **All raw HTML acquisition and import are now disabled**, because excerpt filtering cannot guarantee that personal information is never processed. `fetch-reviewed --enable-live` fails before network setup; `import-snapshot` fails before opening the snapshot; the administrative importer fails before any request. Do not run the legacy command below. Existing reviewed catalogs can be read until approval expiry, but do not renew them from HTML.
 
 ```powershell
 python -X utf8 -m hamar_agent.municipal_import --selection docs/reviewed-service-selection.json --approvals output/NEW-approvals.json --output output/NEW-catalog.json --enable-live
 python -X utf8 -m hamar_agent.web --real-sources --catalog output/NEW-catalog.json --approvals output/NEW-approvals.json --model llama3.2:3b --ollama-timeout 90
 ```
 
-Review scope is service_excerpts. Whole paragraph hashes are individually reviewed; unselected paragraphs, captions, names, contacts, scripts/forms and linked pages are not admitted. Missing/changed selected paragraphs fail closed. Retained text hashes and raw response hashes are recorded without retaining the HTML. Existing full_document approval semantics still work for the older offline fixtures/tests. The no_personal_data assertion in excerpt scope applies to retained excerpts, not the entire transient raw response. There is no general automatic named-entity/privacy guarantee: manual exact-text review is essential.
+Historical review scope was service_excerpts. Whole paragraph hashes were individually selected; unselected paragraphs, captions, scripts/forms and linked pages were not retained. The older importer still parsed the full raw response transiently, so this historical processing is not treated as proof of full assignment privacy compliance. Current real execution reads only the exact-hash approved local catalog and rechecks limited contact patterns; there is no general automatic named-entity/privacy guarantee.
 
-The former administrative importer used exact official HTTPS URLs, robots checks, pinned TLS, redirect/authentication/noindex/compression rejection, ten-second timeouts, 512 KiB limits, and rate limits. These transport controls did not solve the earlier processing of full HTML, so live HTML import now fails before networking. Re-enable only after an acquisition format can guarantee personal information is not received or processed.
+The former administrative importer used exact official HTTPS URLs, robots checks, pinned TLS, redirect/authentication/noindex/compression rejection, ten-second timeouts, 512 KiB limits, and rate limits. These transport controls did not solve the earlier processing of full HTML, so both live retrieval and raw snapshot import now fail closed. Re-enable only after an acquisition format can guarantee personal information is not received or processed.
 
 ## Real Ollama contract and mandatory verification
 
