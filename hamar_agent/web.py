@@ -117,6 +117,14 @@ class WebApplication:
             if not image.startswith(b"\x89PNG\r\n\x1a\n"):
                 return _json(404, {"error": "Scenic image is not a PNG."})
             return Response(200, image, "image/png")
+        if method == "GET" and path == "/favicon.ico":
+            icon_path = ASSETS / "favicon.ico"
+            if not icon_path.is_file() or icon_path.stat().st_size > 64 * 1024:
+                return _json(404, {"error": "Project icon is not available."})
+            icon = icon_path.read_bytes()
+            if not icon.startswith(b"\x00\x00\x01\x00"):
+                return _json(404, {"error": "Project icon is not a valid ICO."})
+            return Response(200, icon, "image/vnd.microsoft.icon")
         if method == "GET" and path in ("/app.js", "/style.css"):
             kind = "text/javascript" if path.endswith(".js") else "text/css"
             return Response(200, (ASSETS / path[1:]).read_bytes(), kind + "; charset=utf-8")
