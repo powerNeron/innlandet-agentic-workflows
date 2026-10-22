@@ -105,6 +105,7 @@ class PortalTests(unittest.TestCase):
             reviewed_document("hamar-miljo-test", "Luftkvalitet og miljø", "Informasjon om luftkvalitet og miljø i Hamar.", "miljo"),
             reviewed_document("hamar-sfo-test", "Gratis SFO", "Informasjon om gratis SFO for elever.", "oppvekst"),
             reviewed_document("hamar-vann-test", "Drikkevann", "Informasjon om drikkevann i kommunen.", "teknisk"),
+            document("hamar-bygg-test", "Bolig og byggesak", "Du kan bygge en garasje uten å søke.", "bolig"),
         ])
         norwegian_miljo = "milj" + chr(248)
         self.assertEqual([h.document.source.id for h in index.search(norwegian_miljo)], ["hamar-miljo-test"])
@@ -112,11 +113,20 @@ class PortalTests(unittest.TestCase):
         question = "Hvordan s" + chr(248) + "ker jeg gratis SFO?"
         self.assertEqual(validate_query(question, real_sources=True), ["gratis", "sfo"])
         self.assertEqual([h.document.source.id for h in index.search(question)], ["hamar-sfo-test"])
+        natural_question = "Hvordan fungerer gratis SFO for elever i Hamar?"
+        self.assertEqual(validate_query(natural_question, real_sources=True), ["gratis", "sfo"])
+        self.assertEqual([h.document.source.id for h in index.search(natural_question)], ["hamar-sfo-test"])
         self.assertEqual(validate_query("Hva gjelder for vann?", real_sources=True), ["vann"])
         self.assertFalse(index.search("skole vann"))
         drinking_water_question = "Hvor finner jeg informasjon om drikkevann?"
         self.assertEqual(validate_query(drinking_water_question, real_sources=True), ["drikkevann"])
         self.assertEqual([h.document.source.id for h in index.search(drinking_water_question)], ["hamar-vann-test"])
+        building_question = "Hva gjelder for byggesak?"
+        self.assertEqual(validate_query(building_question, real_sources=True), ["bygge"])
+        self.assertEqual([h.document.source.id for h in index.search(building_question)], ["hamar-bygg-test"])
+        building_answer = PortalService(WorkflowService(), index=index).answer(building_question)
+        self.assertEqual(building_answer["answer_status"], "demo")
+        self.assertEqual(building_answer["result"]["claims"][0]["evidence_quote"], "Du kan bygge en garasje uten å søke.")
         with self.assertRaises(ValueError):
             index.search("adresse til privat person")
 
