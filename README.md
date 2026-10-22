@@ -1,6 +1,6 @@
 # Innlandet Agentic Workflows
 
-> Real reviewed municipal mode can use an existing reviewed catalog. **Live HTML import is currently disabled** because filtering after fetching/parsing cannot guarantee the assignment's strict ban on processing personal data. Do not renew or create a catalog from live HTML until a source format guarantees personal information is never acquired. See [real-source instructions and actual test evidence](docs/real-source-workflow.md) and [PASS/FAIL/UNKNOWN assignment matrix](docs/assignment-requirements-matrix.md). Source approvals expire on 2026-10-28.
+> Real reviewed municipal mode can use the existing reviewed local catalog. **All raw HTML acquisition and import are disabled**, including offline snapshot parsing, because personal information cannot be ruled out before parsing. Do not renew or create a catalog from HTML until the input format guarantees that personal information is never received or processed. See [real-source instructions and actual test evidence](docs/real-source-workflow.md) and [PASS/FAIL/UNKNOWN assignment matrix](docs/assignment-requirements-matrix.md). Current source approvals expire on 2026-10-28.
 
 
 KIUA-2003 group project at the University of Inland Norway, developed by two students.

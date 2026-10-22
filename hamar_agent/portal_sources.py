@@ -179,12 +179,16 @@ def main(argv=None):
     parser.add_argument("command", choices=("list", "validate", "import-snapshot", "fetch-reviewed"))
     parser.add_argument("--approvals", type=Path)
     parser.add_argument("--source-id")
-    parser.add_argument("--snapshot", type=Path)
-    parser.add_argument("--robots-snapshot", type=Path, help="Reviewed robots.txt used for the original acquisition")
+    parser.add_argument("--snapshot", type=Path, help="Legacy option; raw HTML snapshot import is disabled")
+    parser.add_argument("--robots-snapshot", type=Path, help="Legacy option; raw HTML snapshot import is disabled")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--retrieved-at", help="Original snapshot retrieval time, ISO-8601 with timezone")
     parser.add_argument("--enable-live", action="store_true", help="Legacy flag; live HTML retrieval remains disabled")
     args = parser.parse_args(argv)
+    if args.command == "import-snapshot":
+        # A local HTML file can contain personal information too. Parsing it
+        # before excerpt filtering would still process that information.
+        parser.exit(2, "Raw HTML snapshot import disabled; use the existing reviewed catalog or synthetic fixtures.\n")
     try:
         approvals = load_approvals(args.approvals) if args.approvals else APPROVED_PAGES
         if args.command in ("list", "validate"):

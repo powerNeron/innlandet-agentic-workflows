@@ -2,7 +2,7 @@
 
 ## Default state
 
-No real URL is approved. docs/approved-pages.example.json is an empty manifest, not permission to fetch Hamar pages. No page, redirect target or URL found by search is automatically admitted. The menu and homepage links are external references only.
+The code's implicit `APPROVED_PAGES` registry is empty. The checked-in `docs/approved-service-pages.json` separately records eight expiring URL-and-paragraph approvals for the existing local catalog; it does not enable fetching. `docs/approved-pages.example.json` is an empty example. No page, redirect target or URL found by search is automatically admitted. The menu and homepage links are references only.
 
 Inspect defaults without network:
 
@@ -24,25 +24,20 @@ Both report an empty source list and live_enabled=false.
 
 PageApproval in portal_sources.py defines the exact manifest fields. The default file is [] so no plausible example entry can accidentally enable live fetching. validate rejects invalid, duplicate, expired and future approvals. Administrative commands are terminal-only; the web UI has no approval controls.
 
-## Import an already reviewed snapshot (no network)
+## Raw HTML acquisition and import are disabled
 
-Use a manifest and files containing only eligible non-personal material, with a real recorded original retrieval time:
-
-```powershell
-python -m hamar_agent.portal_sources import-snapshot --approvals LOCAL_APPROVALS.json --source-id APPROVED_ID --snapshot REVIEWED_PAGE.html --robots-snapshot REVIEWED_ROBOTS.txt --retrieved-at ORIGINAL_ISO_TIMESTAMP --output output/NEW_catalog.json
-```
-
-The output parent must already exist; the destination must be new. The importer validates current approval, robots permission/hash, raw/extracted hashes, size, UTF-8, extraction and provenance. It stores only reviewed extracted text plus metadata, not raw HTML or response headers. Load the catalog in the local server with --catalog and --approvals. Existing CLI schemas, legacy fixtures and text/plain retrieval are unchanged.
+The application refuses both `fetch-reviewed --enable-live` and `import-snapshot`, before DNS, network requests, or reading a snapshot file. A local HTML file can also contain personal information, so parsing it before excerpt filtering is not an acceptable privacy boundary. The real workflow reads only the existing approved local catalog; synthetic fixtures remain available for offline tests and demos. There is no supported production command for turning raw HTML into a catalog.
 
 ## Live HTML retrieval is disabled
 
-Live HTML retrieval and HTML-based approval import currently fail closed, including
-`portal_sources fetch-reviewed --enable-live` and the administrative importer.
-Filtering after the response arrives cannot prove that personal information was
-never acquired or processed. These paths must fail before DNS or connection
-setup. Do not attempt live municipal requests. The existing reviewed local
-catalog and normal portal/search workflow remain available while their approvals
-are current. Snapshot import remains an explicitly offline operation.
+Live HTML retrieval and HTML-based import fail closed, including
+`portal_sources fetch-reviewed --enable-live`, `portal_sources import-snapshot`,
+and the administrative importer. Filtering after acquisition cannot prove that
+personal information was never received or processed. Do not attempt live
+municipal requests or raw-snapshot imports. The existing reviewed local catalog
+and normal portal/search workflow remain available while their approvals are
+current. The in-memory extraction/import helper is exercised only with synthetic
+test data; it is not a supported production ingestion path.
 
 The historical transport protections below described the earlier implementation
 and did not establish the assignment's no-personal-data boundary. They must not
