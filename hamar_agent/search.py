@@ -10,7 +10,8 @@ import unicodedata
 from .categories import CATEGORY_IDS
 from .schemas import Source
 
-STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med"}
+STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
+             "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne"}
 # Live search accepts only broad, reviewed service topics. This prevents names,
 # addresses and other free-form text from reaching the municipal search index.
 REAL_SERVICE_QUERY_TERMS = frozenset({
@@ -23,7 +24,9 @@ REAL_SERVICE_QUERY_TERMS = frozenset({
 
 
 def tokens(text: str) -> list[str]:
-    return re.findall(r"[^\W_]+", unicodedata.normalize("NFC", text).casefold())
+    # Match common Norwegian spellings even when users omit diacritics.
+    folded = unicodedata.normalize("NFC", text).casefold().translate(str.maketrans({"æ": "ae", "ø": "o", "å": "a"}))
+    return re.findall(r"[^\W_]+", folded)
 
 
 def validate_query(query: str, *, real_sources: bool = False) -> list[str]:
