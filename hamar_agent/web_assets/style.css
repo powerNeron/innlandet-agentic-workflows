@@ -80,9 +80,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .ai-intro{max-width:760px;color:#4c6078;font-size:14px;line-height:1.65}
 .ai-form{max-width:900px;margin:18px 0 24px}
 .ai-form>label{display:block;font-weight:650;color:var(--navy);margin:0 0 8px}
+.ai-form>select{width:min(100%,520px);min-height:44px;margin:0 0 4px;padding:9px 12px;border:1px solid #8298b5;border-radius:10px;background:#fff;color:var(--navy);font:inherit}
+.ai-form>select:disabled{color:#62738a;background:#f2f4f7}
+.conversation-controls{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.conversation-controls #answer-help{flex:1}
+.conversation-controls #reset-conversation{flex:0 0 auto;min-height:40px}
 .ai-form .search-box{border-color:#8298b5;box-shadow:0 8px 23px #24405f18}
 .ai-form .search-box button{background:#29466e}
 .ai-form .hint{margin-bottom:0}
 #ai-result{margin-top:20px}
 #ai-result[aria-busy="true"]{box-shadow:0 0 0 3px #cad9e9,0 12px 30px #20365413}
-@media(max-width:650px){.ai-area{padding:22px 16px;border-radius:24px}.ai-form .search-box{align-items:stretch;border-radius:22px}.ai-form .search-box button{padding:12px 14px;white-space:normal;max-width:124px;line-height:1.25}}
+@media(max-width:650px){.ai-area{padding:22px 16px;border-radius:24px}.ai-form .search-box{align-items:stretch;border-radius:22px}.ai-form .search-box button{padding:12px 14px;white-space:normal;max-width:124px;line-height:1.25}.conversation-controls{flex-direction:column}.conversation-controls #reset-conversation{width:100%}}

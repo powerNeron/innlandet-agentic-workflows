@@ -5,6 +5,7 @@ uses his OllamaClient, claim parser, verifier and CorrectionResult contracts.
 """
 from dataclasses import dataclass, replace
 import json
+import time
 
 from .application import WorkflowService
 from .correction import CorrectionResult
@@ -50,6 +51,7 @@ def reviewed_transport(base_transport=_local_post):
 class MunicipalResult(WorkflowResult):
     source_provenance: tuple[dict, ...] = ()
     evidence_policy: str = "whole_reviewed_paragraph_verbatim"
+    provider_latency_ms: int | None = None
 
 
 def _findings(findings):
@@ -85,8 +87,10 @@ def strict_verify(source, claims):
 
 
 class ReviewedOllamaAdapter:
-    def __init__(self, client):
+    """Provider-neutral whole-paragraph adapter; name retained for compatibility."""
+    def __init__(self, client, provider="ollama"):
         self.client = client
+        self.provider = provider
 
     def _generate(self, source, feedback=None):
         # Source text is already retained/excerpt-approved; never send raw HTML.
@@ -113,17 +117,17 @@ class ReviewedOllamaAdapter:
     def revise(self, source, claims, findings):
         # Existing protocol, with no internal retry and no synthetic relabeling.
         revised = self._generate(source, findings)
-        return CorrectionResult(revised, (), "ollama:" + self.client.config.model)
+        return CorrectionResult(revised, (), self.provider + ":" + self.client.config.model)
 
 
 class MunicipalWorkflowService(WorkflowService):
     """Catalog-only real mode. No fixture fallback and no query-time fetching."""
     real_sources = True
 
-    def __init__(self, index, client):
+    def __init__(self, index, client, *, provider="ollama"):
         self.index = index
-        self.adapter = ReviewedOllamaAdapter(client)
-        super().__init__(summarizer=self.adapter, provider="ollama:" + client.config.model)
+        self.adapter = ReviewedOllamaAdapter(client, provider)
+        super().__init__(summarizer=self.adapter, provider=provider + ":" + client.config.model)
         self.corrector = lambda source, request: self.adapter.revise(source, request.prior_claims, request.findings)
         if any(d.source.synthetic for d in index.documents.values()):
             raise ValueError("Real-source mode refuses synthetic documents")
@@ -131,6 +135,11 @@ class MunicipalWorkflowService(WorkflowService):
     def sources(self):
         return [{"id": d.source.id, "label": d.source.title, "kind": "reviewed municipal excerpts"}
                 for d in self.index.documents.values() if self.index.eligible(d)]
+
+    def close(self):
+        close = getattr(self.adapter.client, "close", None)
+        if callable(close):
+            close()
 
     def load(self, source_id):
         doc = self.index.documents.get(source_id)
@@ -162,6 +171,7 @@ class MunicipalWorkflowService(WorkflowService):
         return tuple(provenance.values())
 
     def run_context(self, source):
+        started = time.perf_counter()
         provenance = self._context_provenance(source)
         # Query text never enters the model title; only reviewed paragraphs do.
         if source.id not in self.index.documents:
@@ -191,7 +201,8 @@ class MunicipalWorkflowService(WorkflowService):
         return MunicipalResult(source=source, claims=report.claims, provider=self.provider,
             warnings=("Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
                       "Limited source coverage. Consult the official page for context and current conditions."),
-            verification=report, correction=correction, source_provenance=provenance)
+            verification=report, correction=correction, source_provenance=provenance,
+            provider_latency_ms=round((time.perf_counter() - started) * 1000))
 
     def run(self, source_id):
         return self.run_context(self.load(source_id))
@@ -203,11 +214,25 @@ class MunicipalWorkflowService(WorkflowService):
         return self.run_context(source)
 
 
-def create_municipal_service(catalogs, approvals_path, *, model=None, timeout=90.0, client=None):
+def create_municipal_service(catalogs, approvals_path, *, model=None, timeout=90.0, client=None,
+                             provider="ollama"):
     approvals = load_approvals(approvals_path)
     documents = [doc for path in catalogs for doc in load_catalog(path, approvals).documents.values()]
     if not documents:
         raise ValueError("Real-source mode requires a nonempty reviewed catalog")
     if client is None:
-        client = OllamaClient(OllamaConfig(model=model or OllamaConfig.from_env().model, timeout_seconds=timeout), transport=reviewed_transport())
-    return MunicipalWorkflowService(SearchIndex(documents), client)
+        if provider == "ollama":
+            selected = model or OllamaConfig.from_env().model
+            config = OllamaConfig(model=selected, timeout_seconds=timeout)
+            from .provider_registry import require_installed_ollama_model
+            require_installed_ollama_model(selected)
+            client = OllamaClient(config, transport=reviewed_transport())
+        elif provider == "openai":
+            from .openai_provider import OpenAIClient, OpenAIConfig
+            config = OpenAIConfig.from_env()
+            if model is not None and model != config.model:
+                raise ValueError("OpenAI model must match the server-configured model")
+            client = OpenAIClient(config)
+        else:
+            raise ValueError("Choose ollama or openai for reviewed municipal sources")
+    return MunicipalWorkflowService(SearchIndex(documents), client, provider=provider)

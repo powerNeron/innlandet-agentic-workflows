@@ -14,7 +14,7 @@ def main(argv: list[str] | None = None, *, service: WorkflowService | None = Non
     inputs.add_argument("--fixture", type=Path)
     inputs.add_argument("--source", help="Approved source ID; use --real-sources for municipal catalogs")
     parser.add_argument("--output", type=Path, help="Save JSON to a new file; parent must exist")
-    parser.add_argument("--provider", choices=("mock", "ollama"), default=None)
+    parser.add_argument("--provider", choices=("mock", "ollama", "openai"), default=None)
     parser.add_argument("--model", help="Installed Ollama model; never downloaded automatically")
     parser.add_argument("--ollama-timeout", type=float, default=45.0)
     parser.add_argument("--fallback-to-mock", action="store_true", help="Explicit, labeled fallback on Ollama failure")
@@ -25,11 +25,12 @@ def main(argv: list[str] | None = None, *, service: WorkflowService | None = Non
     provider = args.provider or ("ollama" if args.real_sources else "mock")
     try:
         if args.real_sources:
-            if args.fixture is not None or args.fallback_to_mock or provider != "ollama":
-                raise ValueError("Real-source mode requires Ollama and refuses fixtures and mock fallback")
+            if args.fixture is not None or args.fallback_to_mock or provider not in {"ollama", "openai"}:
+                raise ValueError("Real-source mode requires an authorized model provider and refuses fixtures and mock fallback")
             if service is None:
                 from .real_sources import create_municipal_service
-                service = create_municipal_service(args.catalog or [Path("output/municipal-catalog.json")], args.approvals, model=args.model, timeout=args.ollama_timeout)
+                service = create_municipal_service(args.catalog or [Path("output/municipal-catalog.json")], args.approvals,
+                                                   model=args.model, timeout=args.ollama_timeout, provider=provider)
         elif args.catalog:
             raise ValueError("Catalog CLI input requires --real-sources")
         if service is None:

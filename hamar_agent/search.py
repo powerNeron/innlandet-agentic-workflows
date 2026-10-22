@@ -13,6 +13,7 @@ from .schemas import Source
 STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
              "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne", "finner", "informasjon",
              "fungerer", "elever", "hamar"}
+FOLLOWUP_MODIFIERS = frozenset({"pris", "priser", "prisen", "vilkar", "frister", "krav", "mer", "videre", "ogsa"})
 # Live search accepts only broad, reviewed service topics. This prevents names,
 # addresses and other free-form text from reaching the municipal search index.
 REAL_SERVICE_QUERY_TERMS = frozenset({
@@ -39,12 +40,14 @@ def tokens(text: str) -> list[str]:
     ]
 
 
-def validate_query(query: str, *, real_sources: bool = False) -> list[str]:
+def validate_query(query: str, *, real_sources: bool = False, allow_followup: bool = False) -> list[str]:
     if not isinstance(query, str) or len(query) > 160 or any(ord(c) < 32 for c in query):
         raise ValueError("Søket kan ha maksimalt 160 tegn og ingen kontrolltegn.")
     if re.search(r"@|https?://|\d[\d ()+-]{5,}\d", query, re.I):
         raise ValueError("Ikke skriv personopplysninger, kontaktdata eller nettadresser i søket.")
     terms = list(dict.fromkeys(t for t in tokens(query) if t not in STOPWORDS))[:16]
+    if allow_followup:
+        terms = [term for term in terms if term not in FOLLOWUP_MODIFIERS]
     if real_sources and any(term not in REAL_SERVICE_QUERY_TERMS for term in terms):
         raise ValueError("Use only general municipal service topics; do not enter personal information.")
     return terms

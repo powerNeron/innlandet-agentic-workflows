@@ -6,6 +6,7 @@ import threading
 import time
 
 from hamar_agent.real_sources import create_municipal_service
+from hamar_agent.provider_registry import ProviderRegistry
 from hamar_agent.web import create_server
 
 
@@ -19,7 +20,13 @@ def main(argv=None):
     args.output.mkdir(exist_ok=False)
     folder=args.output.resolve()
     service=create_municipal_service([Path("output/municipal-catalog.json")],Path("docs/approved-service-pages.json"),model="llama3.2:3b",timeout=90)
-    server=create_server(port=0,service=service)
+    def service_factory(provider, model):
+        if provider != "ollama":
+            raise ValueError("Browser smoke allows only the local Ollama provider")
+        return create_municipal_service([Path("output/municipal-catalog.json")],
+            Path("docs/approved-service-pages.json"),model=model,timeout=90,provider=provider)
+    server=create_server(port=0,service=service,service_factory=service_factory,
+                         provider_registry=ProviderRegistry())
     threading.Thread(target=server.serve_forever,daemon=True).start()
     chrome=None
     try:

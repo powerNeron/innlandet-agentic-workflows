@@ -72,7 +72,7 @@ let selectedCategory = null;
 let selectedService = null;
 let portalReady = false;
 let allowedRealQueryTerms = new Set();
-const queryStopwords = new Set(["og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med", "soker", "søker", "soke", "søke", "gjelder", "koster", "trenger", "finn", "finne", "fungerer", "elever", "hamar"]);
+const queryStopwords = new Set(["og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med", "soker", "søker", "soke", "søke", "gjelder", "koster", "trenger", "finn", "finne", "fungerer", "elever", "hamar", "pris", "priser", "prisen", "vilkar", "frister", "krav", "mer", "videre", "ogsa"]);
 function isAllowedRealQuery(query) {
   const folded = query.normalize("NFC").toLocaleLowerCase("nb-NO").replaceAll("æ", "ae").replaceAll("ø", "o").replaceAll("å", "a");
   const terms = (folded.match(/[\p{L}\p{N}]+/gu) || [])
@@ -85,6 +85,10 @@ let aiRunId = null;
 let lastAnsweredQuery = null;
 let aiBusy = false;
 let lastSearch = null;
+let providerChoices = [];
+let answerAbort = null;
+let chosenProvider = null;
+let chosenModel = null;
 function sourceLink(parent, citation) {
   if (!citation.url) { item(parent, "p", "Syntetisk demo. Ingen kommunal kildeside.").className = "source-meta"; return; }
   try {
@@ -171,6 +175,8 @@ function addTechnicalDetails(container, answer) {
 }
 function renderAnswer(answer) {
   const container = $("answer-content"); container.replaceChildren();
+  if (answer.is_follow_up) item(container, "p", "Oppfølgingsspørsmål: Kildene er søkt på nytt; tidligere svar brukes ikke som evidens.").className = "verification-note";
+  if (Number.isFinite(answer.provider_latency_ms)) item(container, "p", `Arbeidsflyttid inkl. kontroll: ${answer.provider_latency_ms} ms`).className = "source-meta";
   const result = answer.result;
   const findings = result?.verification?.findings || [];
   const claims = result?.claims || [];
@@ -215,9 +221,60 @@ function renderAnswer(answer) {
   });
   addTechnicalDetails(container, answer);
 }
+function populateProviders(data, preferredProvider) {
+  providerChoices = Array.isArray(data.choices) ? data.choices : [];
+  const select = $("provider-model"); select.replaceChildren();
+  providerChoices.forEach((choice) => {
+    const option = item(select, "option", choice.available ? choice.label : `${choice.label} — ${choice.reason}`);
+    option.value = `${choice.provider}|${choice.model}`; option.disabled = !choice.available;
+  });
+  const preferred = providerChoices.find((choice) => choice.available &&
+    (`${choice.provider}:${choice.model}` === preferredProvider || (preferredProvider === "mock" && choice.provider === "mock")));
+  const selected = preferred || providerChoices.find((choice) => choice.available && choice.provider === "ollama") ||
+    providerChoices.find((choice) => choice.available && choice.provider === "mock");
+  if (selected) {
+    select.value = `${selected.provider}|${selected.model}`;
+    chosenProvider = selected.provider; chosenModel = selected.model;
+    select.disabled = false;
+    $("provider-processing").textContent = selected.processing === "external" ? "Ekstern behandling er aktivert for godkjente kildeutdrag." : selected.provider === "mock" ? selected.reason : "Lokal behandling på denne maskinen.";
+    $("answer-help").textContent = `Valgt: ${selected.label}. Alle svar går gjennom samme kildeverifisering.`;
+  } else {
+    chosenProvider = chosenModel = null; select.disabled = true;
+    $("provider-processing").textContent = providerChoices.map((choice) => choice.reason).filter(Boolean).join(" ") || "Ingen modell er tilgjengelig.";
+  }
+  $("ai-button").disabled = !portalReady || !selected || !$("ai-query").value.trim();
+}
+$("provider-model").addEventListener("change", async () => {
+  ++answerGeneration; if (answerAbort) answerAbort.abort(); answerAbort = null; aiBusy = false;
+  $("ai-query").disabled = false; $("ai-result").setAttribute("aria-busy", "false");
+  aiRunId = null; lastAnsweredQuery = null; $("portal-download").hidden = true; $("answer-content").replaceChildren();
+  const [provider, ...modelParts] = $("provider-model").value.split("|");
+  const model = modelParts.join("|");
+  const choice = providerChoices.find((item) => item.available && item.provider === provider && item.model === model);
+  chosenProvider = choice?.provider || null; chosenModel = choice?.model || null;
+  $("provider-processing").textContent = !choice ? "Valgt modell er ikke tilgjengelig." : choice.processing === "external" ? "Ekstern behandling: bare godkjente kildeavsnitt sendes." : choice.provider === "mock" ? choice.reason : "Lokal behandling på denne maskinen.";
+  $("answer-help").textContent = choice ? `Valgt: ${choice.label}. Alle svar går gjennom samme kildeverifisering.` : "Ingen tilgjengelig modell valgt.";
+  $("answer-state").textContent = "Modell endret · klar for nytt spørsmål"; $("answer-state").className = "answer-state";
+  $("ai-button").disabled = true;
+  try {
+    await api("/api/conversation/reset", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: "{}" });
+    $("answer-state").textContent = "Modell valgt · samtalen nullstilt";
+    $("ai-button").disabled = !portalReady || !choice || !$("ai-query").value.trim();
+  } catch (error) {
+    chosenProvider = chosenModel = null;
+    $("provider-model").disabled = true;
+    $("provider-processing").textContent = "Kunne ikke nullstille den forrige samtalen; velg modellen på nytt etter omlasting.";
+    $("portal-status").textContent = visibleRequestError(error, "Samtalen ble ikke nullstilt.");
+  }
+});
 async function askAi() {
   const generation = ++answerGeneration;
   const query = $("ai-query").value.trim();
+  if (!chosenProvider || !chosenModel) {
+    $("answer-state").textContent = "Ingen modell tilgjengelig"; $("answer-state").className = "answer-state warning";
+    $("provider-processing").textContent = "Ingen tilgjengelig leverandør er valgt. Kontroller serveroppsettet.";
+    return;
+  }
   aiRunId = null; $("portal-download").hidden = true; $("answer-content").replaceChildren();
   if (!portalReady) {
     $("ai-query").value = "";
@@ -232,12 +289,13 @@ async function askAi() {
     $("portal-status").textContent = "Spørsmålet ble avvist lokalt; ingen tekst ble sendt.";
     return;
   }
-  aiBusy = true; $("ai-query").disabled = true; $("ai-button").disabled = true; $("ai-result").setAttribute("aria-busy", "true");
+  aiBusy = true; answerAbort = new AbortController(); $("ai-query").disabled = true; $("ai-button").disabled = true; $("ai-result").setAttribute("aria-busy", "true");
+  const processing = providerChoices.find((choice) => choice.provider === chosenProvider && choice.model === chosenModel)?.processing;
   $("answer-state").textContent = "Søker, lager og kontrollerer svar …"; $("answer-state").className = "answer-state loading";
-  item($("answer-content"), "p", "Den lokale språkmodellen arbeider med gjennomgåtte kildeutdrag …").className = "loading-message";
+  item($("answer-content"), "p", processing === "external" ? "Ekstern leverandør behandler bare godkjente kildeutdrag …" : "Lokal leverandør arbeider med gjennomgåtte kildeutdrag …").className = "loading-message";
   $("portal-status").textContent = "AI-agenten søker og kontrollerer kildehenvisningene …";
   try {
-    const data = await api("/api/answer", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify({ query }) });
+    const data = await api("/api/answer", { method: "POST", signal: answerAbort.signal, headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify({ query, provider: chosenProvider, model: chosenModel }) });
     if (generation !== answerGeneration) return;
     aiRunId = data.run_id;
     lastAnsweredQuery = query;
@@ -260,6 +318,20 @@ $("ai-query").addEventListener("input", () => {
     $("answer-state").textContent = "Klar for et nytt spørsmål"; $("answer-state").className = "answer-state";
   }
 });
+$("ai-query").addEventListener("input", () => {
+  $("ai-button").disabled = !portalReady || !chosenProvider || !$("ai-query").value.trim();
+});
+$("reset-conversation").addEventListener("click", async () => {
+  ++answerGeneration; if (answerAbort) answerAbort.abort(); answerAbort = null; aiBusy = false;
+  $("ai-query").disabled = false; $("answer-content").replaceChildren(); $("portal-download").hidden = true;
+  aiRunId = null; lastAnsweredQuery = null; $("ai-result").setAttribute("aria-busy", "false");
+  try {
+    await api("/api/conversation/reset", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: "{}" });
+    $("answer-state").textContent = "Samtalen er nullstilt"; $("answer-state").className = "answer-state";
+    $("portal-status").textContent = "Samtalekonteksten er slettet.";
+  } catch (error) { $("portal-status").textContent = visibleRequestError(error, "Kunne ikke nullstille samtalen."); }
+  $("ai-button").disabled = !portalReady || !chosenProvider || !$("ai-query").value.trim();
+});
 $("portal-download").addEventListener("click", async () => {
   if (!aiRunId) return;
   try {
@@ -274,6 +346,9 @@ async function loadPortal() {
     const data = await api("/api/portal");
     allowedRealQueryTerms = new Set(data.allowed_query_terms || []);
     portalReady = true; $("search-button").disabled = false; $("ai-button").disabled = !$("ai-query").value.trim();
+    let providerData = { choices: [] };
+    try { providerData = await api("/api/providers"); } catch (_) { /* Ordinary search remains usable if model discovery fails. */ }
+    populateProviders(providerData, data.provider);
     const mockMode = data.provider.startsWith("mock");
     $("mode").textContent = data.synthetic ? (mockMode ? "Demomodus · syntetiske kilder" : "Lokal LLM · syntetiske kilder") : "Avgrenset, godkjent kildeutvalg";
     $("answer-help").textContent = mockMode ? "Demoen bruker mock, ikke en ekte språkmodell. Resultatene er syntetiske." : "Leverandør: " + data.provider + ". Ordrette kildeutdrag kontrolleres; samsvar er ikke semantisk faktasjekk.";
