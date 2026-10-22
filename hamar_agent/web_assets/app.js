@@ -72,12 +72,25 @@ let selectedCategory = null;
 let selectedService = null;
 let portalReady = false;
 let allowedRealQueryTerms = new Set();
-const queryStopwords = new Set(["og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med", "soker", "søker", "soke", "søke", "gjelder", "koster", "trenger", "finn", "finne", "fungerer", "elever", "hamar", "pris", "priser", "prisen", "vilkar", "frister", "krav", "mer", "videre", "ogsa"]);
-function isAllowedRealQuery(query) {
+let queryStopwords = new Set();
+let queryFollowupModifiers = new Set();
+let queryAliases = new Map();
+let officialMenuUrl = "https://www.hamar.kommune.no/meny/";
+function revealInView(element) {
+  element.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+function isAllowedRealQuery(query, allowFollowup = false) {
   const folded = query.normalize("NFC").toLocaleLowerCase("nb-NO").replaceAll("æ", "ae").replaceAll("ø", "o").replaceAll("å", "a");
   const terms = (folded.match(/[\p{L}\p{N}]+/gu) || [])
-    .filter((term) => !queryStopwords.has(term));
+    .filter((term) => !queryStopwords.has(term) && !(allowFollowup && queryFollowupModifiers.has(term)))
+    .map((term) => queryAliases.get(term) || term);
   return terms.length <= 16 && terms.every((term) => allowedRealQueryTerms.has(term));
+}
+function queryInputProblem(query) {
+  if (query.length > 160 || /[\u0000-\u001f]/u.test(query)) return "Skriv et spørsmål på maksimalt 160 tegn uten kontrolltegn.";
+  const contact = /@|https?:\/\/|\d[\d ()+-]{5,}\d|\b(?:jeg\s+heter|navnet\s+mitt\s+er|mitt\s+navn\s+er|fødselsnummer|personnummer|telefonnummer|e-?postadresse|min\s+adresse|jeg\s+bor\s+i)\b/i;
+  const address = /\b(?:[\p{L}.'-]*?(?:gata|vei|veien)|[\p{L}.'-]+\s+(?:gate|street|road)|gate|gata|vei|veien|street|road)\s+\d{1,4}[a-z]?\b/iu;
+  return contact.test(query) || address.test(query) ? "Spørsmålet ble avvist av hensyn til personvernet. Ikke skriv personopplysninger, kontaktdata eller adresser." : "";
 }
 let searchGeneration = 0;
 let answerGeneration = 0;
@@ -87,6 +100,7 @@ let aiBusy = false;
 let lastSearch = null;
 let providerChoices = [];
 let answerAbort = null;
+let conversationActive = false;
 let chosenProvider = null;
 let chosenModel = null;
 function sourceLink(parent, citation) {
@@ -98,6 +112,15 @@ function sourceLink(parent, citation) {
     link.href = url.href; link.target = "_blank"; link.rel = "noopener noreferrer"; link.className = "source-link";
   } catch (_) { /* Invalid citations are not turned into clickable links. */ }
 }
+function officialMenuLink(parent, url = officialMenuUrl) {
+  try {
+    const official = new URL(url);
+    if (official.href !== "https://www.hamar.kommune.no/meny/" || official.username || official.password) return;
+    const wrapper = item(parent, "p", ""); wrapper.className = "official-menu-fallback";
+    const link = item(wrapper, "a", "Se Hamar kommunes offisielle tjenestemeny");
+    link.href = official.href; link.target = "_blank"; link.rel = "noopener noreferrer";
+  } catch (_) { /* Only the fixed official menu URL can be presented. */ }
+}
 function provenance(parent, source) {
   const time = source.retrieved_at ? "Hentet: " + new Date(source.retrieved_at).toLocaleString("nb-NO") : "Ikke hentet fra nettet (syntetisk)";
   item(parent, "p", time + " · Indeksert: " + new Date(source.indexed_at).toLocaleString("nb-NO")).className = "source-meta";
@@ -108,14 +131,22 @@ function renderSearch(data) {
   $("result-count").textContent = `${data.results.length} treff i det avgrensede kildeutvalget${data.category ? " · valgt kategori" : ""}.`;
   if (!data.results.length) {
     const card = item($("search-results"), "article", ""); card.className = "result-card";
-    item(card, "h3", "Vi fant ikke et tilstrekkelig kildegrunnlag.");
-    item(card, "p", "Prøv andre temaord eller se kommunens offisielle nettsted. Ingen treff betyr ikke at kommunen mangler tjenesten.");
+    item(card, "h3", data.query_status === "unsupported_topic" ? "Temaet ble ikke gjenkjent" : "Vi fant ikke et tilstrekkelig kildegrunnlag.");
+    item(card, "p", data.message || "Pr\u00f8v andre temaord. Ingen treff betyr ikke at kommunen mangler tjenesten.");
+    officialMenuLink(card, data.official_menu_url || officialMenuUrl);
   }
   data.results.forEach((hit) => {
     const card = item($("search-results"), "article", ""); card.className = "result-card";
     item(card, "p", hit.synthetic ? "SYNTETISK EKSEMPEL" : "GJENNOMGÅTT KILDE").className = "eyebrow";
     item(card, "h3", hit.title); item(card, "p", hit.excerpt); sourceLink(card, hit); provenance(card, hit);
   });
+}
+function renderSearchMessage(title, message) {
+  $("search-area").hidden = false;
+  $("search-results").replaceChildren();
+  $("result-count").textContent = title;
+  const card = item($("search-results"), "article", ""); card.className = "result-card";
+  item(card, "h3", title); item(card, "p", message);
 }
 async function searchPortal() {
   const generation = ++searchGeneration;
@@ -124,14 +155,18 @@ async function searchPortal() {
   if (!portalReady) {
     $("query").value = "";
     $("portal-status").textContent = "Søket er ikke klart ennå. Ingen tekst ble sendt.";
+    renderSearchMessage("Søket er ikke klart", "Vent litt og prøv igjen. Spørsmålet ble ikke sendt.");
+    revealInView($("search-area"));
     return;
   }
-  if (!isAllowedRealQuery(query)) {
+  const inputProblem = queryInputProblem(query);
+  if (inputProblem) {
     $("query").value = "";
     lastSearch = { query: "", category };
-    $("search-results").replaceChildren(); $("result-count").textContent = "";
-    $("search-area").hidden = true; $("search-button").disabled = false;
-    $("portal-status").textContent = "Bruk bare generelle kommunale tjenestetemaer. Søket ble avvist lokalt; ingen tekst ble sendt.";
+    renderSearchMessage("S\u00f8ket ble avvist", inputProblem);
+    $("search-button").disabled = false;
+    $("portal-status").textContent = inputProblem;
+    revealInView($("search-area"));
     return;
   }
   lastSearch = { query, category };
@@ -142,11 +177,18 @@ async function searchPortal() {
     const data = await api("/api/search", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify(lastSearch) });
     if (generation !== searchGeneration) return;
     renderSearch(data); $("portal-status").textContent = "Søket er ferdig. Ingen nye nettsider ble hentet.";
+    revealInView($("search-area"));
     document.querySelectorAll(".category-card").forEach((c) => (c.classList.toggle("active", c.dataset.service === selectedService), c.setAttribute("aria-pressed", String(c.dataset.service === selectedService))));
-  } catch (error) { if (generation === searchGeneration) { $("portal-status").textContent = visibleRequestError(error, "Kan ikke kontakte den lokale tjenesten. Kontroller at Hamar-agenten fortsatt kjører."); } }
+  } catch (error) { if (generation === searchGeneration) {
+    const message = visibleRequestError(error, "Kan ikke kontakte den lokale tjenesten. Kontroller at Hamar-agenten fortsatt kjører.");
+    $("portal-status").textContent = message; renderSearchMessage("Søket kunne ikke fullføres", message); revealInView($("search-area"));
+  } }
   finally { if (generation === searchGeneration) { $("search-button").disabled = false; $("search-button").querySelector(".button-label").textContent = "Søk"; } }
 }
 $("search-form").addEventListener("submit", (event) => { event.preventDefault(); searchPortal(); });
+$("query").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.isComposing) { event.preventDefault(); $("search-form").requestSubmit(); }
+});
 $("clear-category").addEventListener("click", () => { selectedCategory = null; selectedService = null; searchPortal(); });
 function addTechnicalDetails(container, answer) {
   const details = item(container, "details", ""); details.className = "technical-details";
@@ -185,6 +227,8 @@ function renderAnswer(answer) {
     stateText = "Sitatkontroll utført"; stateClass = "answer-state checked";
   } else if (answer.answer_status === "insufficient_evidence") {
     stateText = "Utilstrekkelig kildegrunnlag"; stateClass = "answer-state warning";
+  } else if (answer.answer_status === "clarification_required") {
+    stateText = "Kan du presisere sp\u00f8rsm\u00e5let?"; stateClass = "answer-state warning";
   } else if (answer.answer_status === "provider_unavailable") {
     stateText = "Lokal modell utilgjengelig"; stateClass = "answer-state warning";
   } else if (answer.answer_status === "input_rejected") {
@@ -194,6 +238,19 @@ function renderAnswer(answer) {
   item(container, "p", answer.message).className = "answer-message";
   if (!result || !claims.length) {
     item(container, "p", answer.answer_status === "insufficient_evidence" ? "Ingen AI-påstand vises fordi de gjennomgåtte kildene ikke gir nok grunnlag." : "Det finnes ikke et kildekontrollert svar å vise for dette søket.").className = "empty-answer";
+    if (answer.citations.length) {
+      const sources = item(container, "section", ""); sources.className = "answer-citations";
+      item(sources, "h3", "Gjennomgått kilde for videre lesning");
+      const linkedUrls = new Set();
+      answer.citations.forEach((citation) => {
+        if (citation.url && linkedUrls.has(citation.url)) return;
+        if (citation.url) linkedUrls.add(citation.url);
+        sourceLink(sources, citation);
+      });
+    }
+    if (answer.answer_status === "insufficient_evidence" || answer.answer_status === "clarification_required") {
+      officialMenuLink(container, answer.official_menu_url || officialMenuUrl);
+    }
     addTechnicalDetails(container, answer);
     return;
   }
@@ -258,6 +315,7 @@ $("provider-model").addEventListener("change", async () => {
   $("ai-button").disabled = true;
   try {
     await api("/api/conversation/reset", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: "{}" });
+    conversationActive = false;
     $("answer-state").textContent = "Modell valgt · samtalen nullstilt";
     $("ai-button").disabled = !portalReady || !choice || !$("ai-query").value.trim();
   } catch (error) {
@@ -282,11 +340,14 @@ async function askAi() {
     $("portal-status").textContent = "AI-agenten er ikke klar ennå. Ingen tekst ble sendt.";
     return;
   }
-  if (!isAllowedRealQuery(query)) {
+  const inputProblem = queryInputProblem(query);
+  if (inputProblem) {
     $("ai-query").value = "";
-    $("answer-state").textContent = "Spørsmålet ble avvist"; $("answer-state").className = "answer-state warning";
-    item($("answer-content"), "p", "Bruk bare generelle kommunale tjenestetemaer, uten personopplysninger.").className = "empty-answer";
-    $("portal-status").textContent = "Spørsmålet ble avvist lokalt; ingen tekst ble sendt.";
+    $("answer-state").textContent = inputProblem.includes("personvernet") ? "Personvernfilter" : "Ugyldig sp\u00f8rsm\u00e5l";
+    $("answer-state").className = "answer-state warning";
+    item($("answer-content"), "p", inputProblem).className = "empty-answer";
+    $("portal-status").textContent = inputProblem;
+    revealInView($("ai-result"));
     return;
   }
   aiBusy = true; answerAbort = new AbortController(); $("ai-query").disabled = true; $("ai-button").disabled = true; $("ai-result").setAttribute("aria-busy", "true");
@@ -294,22 +355,29 @@ async function askAi() {
   $("answer-state").textContent = "Søker, lager og kontrollerer svar …"; $("answer-state").className = "answer-state loading";
   item($("answer-content"), "p", processing === "external" ? "Ekstern leverandør behandler bare godkjente kildeutdrag …" : "Lokal leverandør arbeider med gjennomgåtte kildeutdrag …").className = "loading-message";
   $("portal-status").textContent = "AI-agenten søker og kontrollerer kildehenvisningene …";
+  revealInView($("ai-result"));
   try {
     const data = await api("/api/answer", { method: "POST", signal: answerAbort.signal, headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify({ query, provider: chosenProvider, model: chosenModel }) });
     if (generation !== answerGeneration) return;
     aiRunId = data.run_id;
     lastAnsweredQuery = query;
+    conversationActive = true;
     renderAnswer(data.answer);
     $("portal-download").hidden = !data.answer.result; $("portal-status").textContent = "AI-svaret er ferdig. Vurder kildeutdrag og kontrollstatus før bruk.";
+    revealInView($("ai-result"));
   } catch (error) {
     if (generation === answerGeneration) {
       $("portal-status").textContent = visibleRequestError(error, "Kunne ikke lage et kontrollert svar. Kontroller at lokal modell og kildekatalog er tilgjengelige.");
       $("answer-state").textContent = "Svarfeil"; $("answer-state").className = "answer-state warning";
       $("answer-content").replaceChildren(); item($("answer-content"), "p", "Ingen nytt svar ble lagret.").className = "empty-answer";
+      revealInView($("ai-result"));
     }
   } finally { if (generation === answerGeneration) { aiBusy = false; $("ai-query").disabled = false; $("ai-button").disabled = !$("ai-query").value.trim(); $("ai-result").setAttribute("aria-busy", "false"); } }
 }
 $("ai-form").addEventListener("submit", (event) => { event.preventDefault(); askAi(); });
+$("ai-query").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.isComposing) { event.preventDefault(); $("ai-form").requestSubmit(); }
+});
 $("ai-query").addEventListener("input", () => {
   if (aiBusy) return;
   $("ai-button").disabled = !portalReady || !$("ai-query").value.trim();
@@ -327,6 +395,7 @@ $("reset-conversation").addEventListener("click", async () => {
   aiRunId = null; lastAnsweredQuery = null; $("ai-result").setAttribute("aria-busy", "false");
   try {
     await api("/api/conversation/reset", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: "{}" });
+    conversationActive = false;
     $("answer-state").textContent = "Samtalen er nullstilt"; $("answer-state").className = "answer-state";
     $("portal-status").textContent = "Samtalekonteksten er slettet.";
   } catch (error) { $("portal-status").textContent = visibleRequestError(error, "Kunne ikke nullstille samtalen."); }
@@ -344,7 +413,17 @@ $("portal-download").addEventListener("click", async () => {
 async function loadPortal() {
   try {
     const data = await api("/api/portal");
-    allowedRealQueryTerms = new Set(data.allowed_query_terms || []);
+    if (data.query_contract_version !== 1 || !Array.isArray(data.allowed_query_terms)
+        || !Array.isArray(data.query_stopwords) || !Array.isArray(data.query_followup_modifiers)
+        || !data.query_aliases || typeof data.query_aliases !== "object") {
+      throw new Error("Serverversjonen for s\u00f8k er utdatert. Start Hamar-agenten p\u00e5 nytt.");
+    }
+    officialMenuUrl = data.category_reference === "https://www.hamar.kommune.no/meny/"
+      ? data.category_reference : "https://www.hamar.kommune.no/meny/";
+    allowedRealQueryTerms = new Set(data.allowed_query_terms);
+    queryStopwords = new Set(data.query_stopwords || []);
+    queryFollowupModifiers = new Set(data.query_followup_modifiers || []);
+    queryAliases = new Map(Object.entries(data.query_aliases || {}));
     portalReady = true; $("search-button").disabled = false; $("ai-button").disabled = !$("ai-query").value.trim();
     let providerData = { choices: [] };
     try { providerData = await api("/api/providers"); } catch (_) { /* Ordinary search remains usable if model discovery fails. */ }
@@ -392,6 +471,13 @@ async function loadPortal() {
         $("query").value = service.query; searchPortal();
       });
     });
-  } catch (error) { $("portal-status").textContent = error.message; }
+  } catch (error) {
+    portalReady = false;
+    $("search-button").disabled = true; $("ai-button").disabled = true; $("provider-model").disabled = true;
+    $("portal-status").textContent = error.message;
+    renderSearchMessage("Serveren m\u00e5 startes p\u00e5 nytt", error.message);
+    $("answer-state").textContent = "Tjenesten er ikke klar"; $("answer-state").className = "answer-state warning";
+    item($("answer-content"), "p", error.message).className = "empty-answer";
+  }
 }
 loadPortal();

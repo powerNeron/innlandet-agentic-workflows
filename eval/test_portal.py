@@ -11,7 +11,9 @@ from hamar_agent.categories import CATEGORY_IDS
 from hamar_agent.html_extract import ExtractionError, extract_html
 from hamar_agent.portal import PortalService, demo_index
 from hamar_agent.schemas import Paragraph, Source
-from hamar_agent.search import SearchIndex, index_document, validate_query
+from hamar_agent.search import (FOLLOWUP_MODIFIERS, QUERY_ALIASES, STOPWORDS, InvalidQueryError,
+                                QueryPrivacyError, SearchIndex, UnsupportedTopicError,
+                                index_document, validate_query)
 from hamar_agent.summarize import MockScenario, MockSummarizer
 from hamar_agent.web import WebApplication
 
@@ -73,7 +75,9 @@ class PortalTests(unittest.TestCase):
     def test_empty_query_browses_but_does_not_generate_answer(self):
         portal = PortalService()
         self.assertTrue(portal.search("", category="kultur")["results"])
-        self.assertEqual(portal.answer("")["answer_status"], "insufficient_evidence")
+        answer = portal.answer("")
+        self.assertEqual(answer["answer_status"], "clarification_required")
+        self.assertEqual(answer["official_menu_url"], "https://www.hamar.kommune.no/meny/")
 
     def test_query_and_index_limits(self):
         for query in (None, "a"*161, "hello\nworld", "a@example.invalid", "12345678", "https://example.invalid"):
@@ -136,6 +140,99 @@ class PortalTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             index.search("adresse til privat person")
 
+    def test_real_filter_accepts_supported_norwegian_wording_without_widening_topics(self):
+        queries = {
+            "Hvem f" + chr(229) + "r gratis SFO-tid i Hamar?": ["gratis", "sfo"],
+            "Hva gjelder for gratis SFO?": ["gratis", "sfo"],
+            "Hvordan s" + chr(248) + "ker jeg om SFO?": ["sfo"],
+            "Hva kan jeg bygge uten " + chr(229) + " s" + chr(248) + "ke?": ["bygge"],
+            "Bygge uten s" + chr(248) + "knad": ["bygge"],
+            "Hvordan s" + chr(248) + "ker jeg om byggetillatelse?": ["bygge"],
+            "Hva koster parkering i Hamar?": ["parkering"],
+            "M" + chr(229) + " jeg s" + chr(248) + "ke om " + chr(229) + " bygge garasje?": ["bygge"],
+            "Hvor kan jeg parkere?": ["parkering"],
+            "Hvor kommer drikkevannet fra?": ["drikkevann"],
+            "Hvordan fungerer vannforsyningen?": ["vann"],
+            "Hva kan jeg l" + chr(229) + "ne p" + chr(229) + " biblioteket?": ["bibliotek"],
+        }
+        for query, expected in queries.items():
+            with self.subTest(query=query):
+                self.assertEqual(validate_query(query, real_sources=True), expected)
+        self.assertEqual(QUERY_ALIASES["byggetillatelse"], "bygge")
+        self.assertEqual(QUERY_ALIASES["garasje"], "bygge")
+        self.assertEqual(QUERY_ALIASES["parkere"], "parkering")
+        self.assertEqual(QUERY_ALIASES["drikkevannet"], "drikkevann")
+        self.assertEqual(QUERY_ALIASES["vannforsyningen"], "vann")
+        self.assertEqual(QUERY_ALIASES["lane"], "bibliotek")
+        for query in ("Kari Eksempel", "Storgata 12", "diagnose eksempel", "kari@example.invalid"):
+            with self.subTest(private_query=query), self.assertRaises(ValueError):
+                validate_query(query, real_sources=True)
+        with self.assertRaises(QueryPrivacyError):
+            validate_query("Kari Eksempel bor i Storgata 12", real_sources=True)
+        with self.assertRaises(UnsupportedTopicError):
+            validate_query("Hva gjelder teleportering?", real_sources=True)
+        overview = PortalService().overview()
+        self.assertEqual(overview["query_stopwords"], sorted(STOPWORDS))
+        self.assertEqual(overview["query_followup_modifiers"], sorted(FOLLOWUP_MODIFIERS))
+        self.assertEqual(overview["query_aliases"], QUERY_ALIASES)
+
+    def test_application_and_exact_parking_price_requests_fail_closed_with_source_links(self):
+        index = SearchIndex([
+            reviewed_document("hamar-sfo-test", "Skole og SFO", "Alle barn på 1. til 3. trinn får gratis SFO.", "oppvekst"),
+            reviewed_document("hamar-building-test", "Bygge uten å søke", "Du kan bygge en garasje, men det er ikke sikkert du må søke.", "bolig"),
+            reviewed_document("hamar-parking-test", "Parkering og betaling", "Parkering er gratis den første timen, deretter parkerer du mot avgift.", "teknisk"),
+        ])
+        provider = Mock()
+        workflow = WorkflowService(summarizer=provider, provider="ollama:llama3.2:3b")
+        portal = PortalService(workflow, index=index)
+        questions = (
+            "Hvordan søker jeg om SFO?",
+            "Hvordan søker jeg om byggetillatelse?",
+            "Hva koster parkering i Hamar?",
+        )
+        for query in questions:
+            with self.subTest(query=query):
+                answer = portal.answer(query)
+                self.assertEqual(answer["answer_status"], "insufficient_evidence")
+                self.assertIsNone(answer["result"])
+                self.assertTrue(answer["citations"])
+        self.assertEqual(len([c for c in portal.answer("Hva koster parkering i Hamar?")["citations"] if c["source_id"] == "hamar-parking-test"]), 1)
+        provider.summarize.assert_not_called()
+
+    def test_safe_unknown_topic_asks_for_clarification_without_model_or_private_label(self):
+        provider = Mock()
+        portal = PortalService(WorkflowService(summarizer=provider, provider="ollama:llama3.2:3b"))
+        answer = portal.answer("Hva gjelder teleportering?")
+        self.assertEqual(answer["answer_status"], "clarification_required")
+        self.assertEqual(answer["official_menu_url"], "https://www.hamar.kommune.no/meny/")
+        self.assertNotIn("teleportering", json.dumps(answer))
+        provider.summarize.assert_not_called()
+        search = portal.search("teleportering")
+        self.assertEqual(search["query_status"], "unsupported_topic")
+        self.assertEqual(search["official_menu_url"], "https://www.hamar.kommune.no/meny/")
+
+    def test_library_loan_question_refuses_without_supported_excerpt(self):
+        provider = Mock()
+        workflow = WorkflowService(summarizer=provider, provider="ollama:llama3.2:3b")
+        index = SearchIndex([reviewed_document(
+            "hamar-library-test", "Hamar bibliotek",
+            "Hamar bibliotek har selvbetjente åpningstider fra kl. 06 til 22.", "kultur")])
+        answer = PortalService(workflow, index=index).answer("Hva kan jeg låne på biblioteket?")
+        self.assertEqual(answer["answer_status"], "insufficient_evidence")
+        self.assertIsNone(answer["result"])
+        self.assertEqual(answer["official_menu_url"], "https://www.hamar.kommune.no/meny/")
+        self.assertTrue(answer["citations"])
+        provider.summarize.assert_not_called()
+
+    def test_privacy_rejection_is_distinct_from_insufficient_topic_coverage(self):
+        provider = Mock()
+        workflow = WorkflowService(summarizer=provider, provider="ollama:llama3.2:3b")
+        answer = PortalService(workflow).answer("Kari Eksempel bor i Storgata 12")
+        self.assertEqual(answer["answer_status"], "input_rejected")
+        self.assertEqual(answer["query"], "")
+        self.assertEqual(answer["citations"], [])
+        provider.summarize.assert_not_called()
+
     def test_text_integrity_is_required(self):
         with self.assertRaises(ValueError):
             replace(document("a", "A", "Text"), text_sha256="0"*64)
@@ -189,10 +286,21 @@ class PortalTests(unittest.TestCase):
     def test_portal_requests_cannot_supply_urls_or_approvals(self):
         app = WebApplication()
         headers = {"Host":"127.0.0.1:8000", "Origin":"http://127.0.0.1:8000", "Content-Type":"application/json", "X-Hamar-Token":app.token}
-        for body in (b'{"query":"vann","url":"https://example.invalid"}', b'{"query":42}', b'{"query":"vann","category":[]}', b'[]', b'{"query":"a@example.invalid"}', b'{"query":"Fictional Person"}'):
+        for body in (b'{"query":"vann","url":"https://example.invalid"}', b'{"query":42}', b'{"query":"vann","category":[]}', b'[]', b'{"query":"a@example.invalid"}'):
             self.assertEqual(app.dispatch("POST", "/api/search", headers, body).status, 400)
         headers["X-Hamar-Token"] = "wrong"
         self.assertEqual(app.dispatch("POST", "/api/answer", headers, b'{"query":"vann"}').status, 403)
+
+    def test_safe_unknown_topic_route_returns_clarification_and_official_menu(self):
+        app = WebApplication()
+        headers = {"Host":"127.0.0.1:8000", "Origin":"http://127.0.0.1:8000",
+                   "Content-Type":"application/json", "X-Hamar-Token":app.token}
+        response = app.dispatch("POST", "/api/answer", headers, '{"query":"Hva gjelder teleportering?"}'.encode())
+        self.assertEqual(response.status, 200)
+        data = json.loads(response.body)["answer"]
+        self.assertEqual(data["answer_status"], "clarification_required")
+        self.assertEqual(data["official_menu_url"], "https://www.hamar.kommune.no/meny/")
+        self.assertNotIn("teleportering", json.dumps(data))
 
     def test_portal_provider_failure_is_sanitized(self):
         workflow = WorkflowService(summarizer=Mock())

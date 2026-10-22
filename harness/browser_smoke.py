@@ -37,7 +37,7 @@ def main(argv=None):
             time.sleep(.1)
         port=active.read_text().splitlines()[0]
         driver=Path(__file__).with_name("browser_smoke.cjs").resolve()
-        result=subprocess.run(["node",str(driver),port,"http://127.0.0.1:"+str(server.server_port),str(folder)],capture_output=True,text=True,encoding="utf-8",timeout=55)
+        result=subprocess.run(["node",str(driver),port,"http://127.0.0.1:"+str(server.server_port),str(folder)],capture_output=True,text=True,encoding="utf-8",timeout=180)
         with (folder/"browser-check.txt").open("x",encoding="utf-8") as stream:stream.write(result.stdout+result.stderr)
         print(result.stdout);print(result.stderr)
         return result.returncode

@@ -224,7 +224,11 @@ class WebTests(unittest.TestCase):
         reset = self.app.dispatch("POST", "/api/conversation/reset", self.headers, b"{}")
         self.assertEqual(reset.status, 200)
         no_context = self.app.dispatch("POST", "/api/answer", self.headers, b'{"query":"hva med priser?"}')
-        self.assertEqual(no_context.status, 400)
+        self.assertEqual(no_context.status, 200)
+        no_context_answer = json.loads(no_context.body)["answer"]
+        self.assertEqual(no_context_answer["answer_status"], "clarification_required")
+        self.assertFalse(no_context_answer["is_follow_up"])
+        self.assertEqual(no_context_answer["official_menu_url"], "https://www.hamar.kommune.no/meny/")
 
     def test_followup_cannot_use_another_page_session_context(self):
         first_page = self.app.dispatch("GET", "/", self.headers).body
@@ -234,7 +238,12 @@ class WebTests(unittest.TestCase):
         first_headers = self.headers | {"X-Hamar-Token": tokens[0]}
         second_headers = self.headers | {"X-Hamar-Token": tokens[1]}
         self.assertEqual(self.app.dispatch("POST", "/api/answer", first_headers, b'{"query":"vann"}').status, 200)
-        self.assertEqual(self.app.dispatch("POST", "/api/answer", second_headers, b'{"query":"hva med priser?"}').status, 400)
+        second = self.app.dispatch("POST", "/api/answer", second_headers, b'{"query":"hva med priser?"}')
+        self.assertEqual(second.status, 200)
+        second_answer = json.loads(second.body)["answer"]
+        self.assertEqual(second_answer["answer_status"], "clarification_required")
+        self.assertFalse(second_answer["is_follow_up"])
+        self.assertEqual(second_answer["official_menu_url"], "https://www.hamar.kommune.no/meny/")
 
     def test_concurrent_sessions_keep_followup_context_isolated(self):
         page_tokens = []
