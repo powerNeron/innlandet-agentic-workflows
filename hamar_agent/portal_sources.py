@@ -1,17 +1,12 @@
-"""Reviewed HTML/text ingestion. Empty defaults; no discovery, login or crawling."""
+"""Reviewed local snapshot/catalog imports; live HTML retrieval is disabled."""
 import argparse
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
 import hashlib
-import http.client
-import ipaddress
 import json
 from pathlib import Path
 import re
-import socket
-import ssl
-from threading import Lock
-import time
+import socket  # Compatibility namespace; no retrieval path calls it.
 from types import MappingProxyType
 from urllib.parse import urlsplit
 from .robots_policy import robots_interval
@@ -129,107 +124,23 @@ def import_reviewed_bytes(approval: PageApproval, raw: bytes, *, retrieved_at: s
                           raw_sha256=approval.raw_sha256)
 
 
-class RateGate:
-    def __init__(self, *, clock=time.monotonic, sleep=time.sleep):
-        self.clock, self.sleep = clock, sleep
-        self.last = None
-        self.lock = Lock()
-
-    def wait(self, interval):
-        with self.lock:
-            if self.last is not None:
-                self.sleep(max(0, self.last + interval - self.clock()))
-            self.last = self.clock()
-
-
-_RATE = RateGate()
-
-
-def public_addresses(host):
-    addresses = list(dict.fromkeys(item[4][0] for item in socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)))
-    if not addresses or any(not ipaddress.ip_address(ip).is_global for ip in addresses):
-        raise ValueError("DNS returned a private/reserved address; request refused")
-    return addresses
-
-
-class PinnedHTTPSConnection(http.client.HTTPSConnection):
-    def __init__(self, host, address):
-        super().__init__(host, timeout=10, context=ssl.create_default_context())
-        self.address = address
-
-    def connect(self):
-        # Pin the already validated address while validating the original hostname.
-        sock = socket.create_connection((self.address, 443), timeout=10)
-        try:
-            self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
-        except BaseException:
-            sock.close()
-            raise
-
-
 class ReviewedFetcher:
-    def __init__(self, *, enabled=False, approvals=APPROVED_PAGES, resolver=public_addresses,
-                 connection_factory=PinnedHTTPSConnection, rate_gate=_RATE):
+    def __init__(self, *, enabled=False, approvals=APPROVED_PAGES, resolver=None,
+                 connection_factory=None, rate_gate=None):
         self.enabled, self.approvals = enabled, approvals
-        self.resolver, self.connection_factory, self.rate_gate = resolver, connection_factory, rate_gate
+        # Accept legacy injection keywords for caller compatibility, but do
+        # not retain or invoke any network-capable transport.
 
     def _get(self, url, content_type, max_bytes, interval):
-        parts = validate_page_url(url)
-        addresses = self.resolver(parts.hostname)
-        if not addresses or any(not ipaddress.ip_address(ip).is_global for ip in addresses):
-            raise ValueError("Non-public address refused")
-        self.rate_gate.wait(interval)
-        connection = self.connection_factory(parts.hostname, addresses[0])
-        try:
-            connection.request("GET", parts.path, headers={"User-Agent": AGENT, "Accept": content_type, "Accept-Encoding": "identity"})
-            response = connection.getresponse()
-            try:
-                if response.status != 200:
-                    raise ValueError("Expected public HTTP 200; redirects/authentication/errors refused")
-                if len(response.headers.get_all("Content-Type", [])) != 1 or response.headers.get_content_type() != content_type:
-                    raise ValueError("Unexpected content type")
-                if response.headers.get_content_charset() not in (None, "utf-8") or sum(key.lower() == "charset" for key,_ in response.headers.get_params()) > 1:
-                    raise ValueError("Only unambiguous UTF-8 documents are allowed")
-                if parts.path != "/robots.txt" and re.search(r"noindex|none", ",".join(response.headers.get_all("X-Robots-Tag", [])), re.I):
-                    raise ValueError("Source requests exclusion from indexing")
-                encodings = response.headers.get_all("Content-Encoding", [])
-                if len(encodings) > 1 or encodings and encodings[0].strip().lower() != "identity":
-                    raise ValueError("Compressed/ambiguous encoding refused")
-                if response.headers.get("Transfer-Encoding") and response.headers.get("Content-Length"):
-                    raise ValueError("Ambiguous response framing")
-                lengths = response.headers.get_all("Content-Length", [])
-                if len(lengths) > 1 or lengths and (not re.fullmatch(r"[0-9]{1,12}", lengths[0]) or int(lengths[0]) > max_bytes):
-                    raise ValueError("Invalid/oversized content length")
-                chunks, total = [], 0
-                while True:
-                    chunk = response.read(min(64 * 1024, max_bytes + 1 - total))
-                    if not chunk:
-                        break
-                    total += len(chunk)
-                    if total > max_bytes:
-                        raise ValueError("Response size limit exceeded")
-                    chunks.append(chunk)
-                if lengths and total != int(lengths[0]):
-                    raise ValueError("Truncated/inconsistent response")
-                return b"".join(chunks)
-            finally:
-                response.close()
-        finally:
-            connection.close()
+        # Retain this private method as a compatibility seam, but do not allow
+        # direct callers to bypass the disabled public fetch method.
+        raise ValueError("Live HTML retrieval disabled: no network access was attempted")
 
     def fetch(self, source_id):
-        if not self.enabled or source_id not in self.approvals:
-            raise ValueError("Live retrieval is disabled or source is unapproved")
-        approval = self.approvals[source_id]
-        if approval.source_id != source_id or not approval.current():
-            raise ValueError("Source approval is not current")
-        try:
-            robots = self._get("https://" + HOST + "/robots.txt", "text/plain", 64 * 1024, 5 if approval.review_scope == "service_excerpts" else 2)
-            interval = validate_robots(approval, robots)
-            raw = self._get(approval.url, approval.content_type, MAX_BYTES, interval)
-            return import_reviewed_bytes(approval, raw, retrieved_at=datetime.now(timezone.utc).isoformat(), robots=robots)
-        except (OSError, http.client.HTTPException, UnicodeError) as exc:
-            raise ValueError("Approved retrieval failed; no document indexed") from None
+        # Filtering HTML after download is too late to guarantee that personal
+        # information was never acquired or processed. Keep reviewed local
+        # catalogs available, but fail closed before DNS or any network call.
+        raise ValueError("Live HTML retrieval disabled: use the existing reviewed local catalog")
 
 
 def save_catalog(documents, path):
@@ -272,7 +183,7 @@ def main(argv=None):
     parser.add_argument("--robots-snapshot", type=Path, help="Reviewed robots.txt used for the original acquisition")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--retrieved-at", help="Original snapshot retrieval time, ISO-8601 with timezone")
-    parser.add_argument("--enable-live", action="store_true")
+    parser.add_argument("--enable-live", action="store_true", help="Legacy flag; live HTML retrieval remains disabled")
     args = parser.parse_args(argv)
     try:
         approvals = load_approvals(args.approvals) if args.approvals else APPROVED_PAGES
