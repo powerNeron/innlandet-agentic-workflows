@@ -70,10 +70,27 @@ def create_service(provider="mock", *, model=None, timeout=45.0,
         if fallback_to_mock:
             raise ValueError("Fallback is only meaningful with provider ollama")
         return WorkflowService()
+    if provider == "openai":
+        if fallback_to_mock:
+            raise ValueError("Automatic provider fallback is not supported")
+        from .openai_provider import OpenAIClaimSummarizer, OpenAICorrectionProvider, OpenAIClient, OpenAIConfig
+        if client is None:
+            config = OpenAIConfig.from_env()
+            if model is not None and model != config.model:
+                raise ValueError("OpenAI model must match the server-configured model")
+            client = OpenAIClient(config)
+        correction = OpenAICorrectionProvider(client)
+        def correct(source, request):
+            return correction.revise(source, request.prior_claims, request.findings)
+        return WorkflowService(summarizer=OpenAIClaimSummarizer(client),
+                               provider="openai:" + client.config.model, corrector=correct)
     if provider != "ollama":
-        raise ValueError("Choose mock or ollama")
+        raise ValueError("Choose mock, ollama or openai")
     if client is None:
         selected = model if model is not None else OllamaConfig.from_env().model
-        client = OllamaClient(OllamaConfig(model=selected, timeout_seconds=timeout),
-                              transport=structured_transport())
+        # Validate timeout/model configuration before any local availability probe.
+        config = OllamaConfig(model=selected, timeout_seconds=timeout)
+        from .provider_registry import require_installed_ollama_model
+        require_installed_ollama_model(selected)
+        client = OllamaClient(config, transport=structured_transport())
     return OllamaApplicationService(client, fallback_to_mock=fallback_to_mock)

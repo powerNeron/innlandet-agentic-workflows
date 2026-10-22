@@ -3,6 +3,7 @@ from dataclasses import asdict
 import hashlib
 import json
 from pathlib import Path
+import time
 
 from .application import WorkflowService
 from .categories import CATEGORIES, MENU_REFERENCE, OFFICIAL_HOME
@@ -52,14 +53,24 @@ class PortalService:
         return {"query": "" if getattr(self.workflow, "real_sources", False) else query, "category": category, "results": [h.to_dict() for h in hits],
                 "coverage": self.overview()["coverage"], "provider": self.workflow.provider}
 
-    def answer(self, query: str, *, category: str | None = None):
-        safe_query = "" if getattr(self.workflow, "real_sources", False) else query
+    def answer(self, query: str, *, category: str | None = None, workflow_service=None,
+               prior_terms=()):
+        workflow = workflow_service if workflow_service is not None else self.workflow
+        safe_query = "" if getattr(workflow, "real_sources", False) else query
         try:
-            terms = validate_query(query, real_sources=True)
+            allowed_prior = tuple(dict.fromkeys(term for term in prior_terms
+                                                if isinstance(term, str) and term in REAL_SERVICE_QUERY_TERMS))
+            if len(allowed_prior) > 16:
+                raise ValueError("Invalid conversation context")
+            terms = validate_query(query, real_sources=True, allow_followup=bool(allowed_prior))
         except ValueError:
             return {"query": "", "answer_status": "input_rejected", "result": None, "citations": [],
                     "message": "Bruk bare generelle temaer om kommunale tjenester. Ikke skriv personopplysninger.",
                     "coverage": self.overview()["coverage"]}
+        is_follow_up = not terms and bool(allowed_prior)
+        if is_follow_up:
+            terms = list(allowed_prior)
+            query = " ".join(terms)
         hits = self.index.search(query, category=category, limit=3) if terms else ()
         context_terms = {term for hit in hits for p in hit.document.source.paragraphs if p.id in hit.paragraph_ids for term in tokens(p.text)}
         if not hits or not set(terms).issubset(context_terms):
@@ -75,21 +86,24 @@ class PortalService:
                     citations.append({"paragraph_id": id, **hit.document.provenance()})
         source = Source("portal-search-context", "Kildeutdrag for søk: " + query, tuple(paragraphs),
                         all(h.document.source.synthetic for h in hits))
-        if not source.synthetic and self.workflow.provider == "mock":
+        if not source.synthetic and workflow.provider == "mock":
             return {"query": safe_query, "answer_status": "provider_unavailable", "result": None, "citations": citations,
                     "message": "Kildene kan s\u00f8kes i, men den n\u00e5v\u00e6rende mock-leverand\u00f8ren er bare for syntetiske data. En godkjent modelladapter m\u00e5 kobles til f\u00f8r AI-svar kan lages.",
                     "coverage": self.overview()["coverage"]}
-        if not source.synthetic and getattr(self.workflow, "real_sources", False):
-            result = self.workflow.run_context(source)
+        provider_started = time.perf_counter()
+        if not source.synthetic and getattr(workflow, "real_sources", False):
+            result = workflow.run_context(source)
         elif source.synthetic:
-            result = self.workflow.run_prepared(source)
+            result = workflow.run_prepared(source)
         else:
-            result = run_workflow(source.id, self.workflow.summarizer, provider=self.workflow.provider,
-                                  loader=lambda _: source, corrector=self.workflow.corrector,
+            result = run_workflow(source.id, workflow.summarizer, provider=workflow.provider,
+                                  loader=lambda _: source, corrector=workflow.corrector,
                                   allow_non_synthetic=True)
         # The verifier is authoritative for excerpts/findings, never truth.
         data = json.loads(result.to_json())
         status = "review_required" if result.verification.has_findings else ("demo" if result.provider.startswith("mock") else "evidence_checked")
         return {"query": safe_query, "answer_status": status, "result": data, "citations": citations,
+                "is_follow_up": is_follow_up,
+                "provider_latency_ms": getattr(result, "provider_latency_ms", None) or round((time.perf_counter() - provider_started) * 1000),
                 "message": "Kildebasert utdrag med mock, ikke et ekte AI-svar." if result.provider.startswith("mock") else "Kildebasert svar; vurder funn og kildene før bruk.",
                 "coverage": self.overview()["coverage"]}

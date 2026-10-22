@@ -1,13 +1,13 @@
 # Searchable Hamar information portal
 
-## Start (Python 3.12, standard library only)
+## Start (Python 3.12)
 
 ```powershell
 cd C:\Users\LINDA\PycharmProjects\innlandet-agentic-workflows-full-system-web
 python -X utf8 -m hamar_agent.web --port 8000
 ```
 
-Open http://127.0.0.1:8000. Stop with Ctrl+C. No packages, credentials, live fetching, model downloads or paid APIs are required. In PyCharm run module hamar_agent.web with --port 8000 and the repository root as working directory.
+Open http://127.0.0.1:8000. Stop with Ctrl+C. Normal startup is real-source mode and requires the existing local approved catalog plus the selected provider. No raw HTML fetching or model download occurs. To run the explicitly synthetic demo offline, use `python -X utf8 -m hamar_agent.web --demo --provider mock --port 8000`. In PyCharm run module `hamar_agent.web` with the desired arguments and repository root as working directory.
 
 The Norwegian homepage provides a prominent topic search, category filters, ranked results, evidence/answer panel, citations, provenance, warnings and JSON download. It clearly links to https://www.hamar.kommune.no/ and identifies itself as an independent student project. The former source-run UI is retained under the developer details panel.
 
@@ -15,19 +15,19 @@ The Norwegian homepage provides a prominent topic search, category filters, rank
 
 The keyword/full-text search engine is real: search.py builds an inverted index over every paragraph, uses Unicode case-folded tokenization, conjunctive keyword matching and BM25-style ranking with title weights. It is not a hardcoded search-result list. Queries ignore a small Norwegian stopword list. Search is word-based, not stemming, semantic/vector search, or whole-website search. At most 200 reviewed documents, 512 KiB text per document and 20 results per query are allowed. The current UI uses up to ten search results and three answer sources.
 
-Default documents are eight explicitly fictional service examples from a hash-pinned, labeled portal-synthetic.json fixture. They are not Hamar facts or copies of municipal pages. Their URLs and retrieval timestamps are null; the UI says no network retrieval occurred. Indexed-at timestamps record when the local corpus was loaded. --empty-index starts with no demo corpus and honestly returns no evidence.
+Explicit demo mode uses eight fictional service examples from a hash-pinned, labeled portal-synthetic.json fixture. They are not Hamar facts or copies of municipal pages. Their URLs and retrieval timestamps are null; the UI says no network retrieval occurred. Indexed-at timestamps record when the local corpus was loaded. `--empty-index` starts with no demo corpus and honestly returns no evidence. Normal startup loads the existing individually approved local catalog and fails closed when it is missing or expired.
 
 The seven main category titles were referenced from the user-specified official menu https://www.hamar.kommune.no/meny/ on 2026-10-21. This was design-reference browsing only, not an approved application ingestion. Category titles/links are navigation metadata, never page approvals. No links from that menu are followed automatically.
 
 ## Query -> evidence -> answer
 
-POST /api/search searches the in-memory reviewed index; it never crawls or downloads. POST /api/answer selects matching paragraphs, gives them globally unique document:paragraph IDs, and passes that Source through the existing run_workflow, configured summarizer, verifier and optional bounded correction. The existing CLI/source workflow remains available unchanged alongside portal routes.
+POST /api/search searches the in-memory reviewed index; it never crawls or downloads. The separate POST /api/answer route selects matching paragraphs, gives them globally unique document:paragraph IDs, and passes that Source through the configured provider, verifier and optional bounded correction. Follow-ups retain only allowlisted topic terms in bounded, volatile per-page memory and repeat retrieval against approved paragraphs; previous answers never act as evidence. Reset and model changes clear context. The existing CLI/source workflow remains available alongside portal routes.
 
 Every answer includes query, answer_status, coverage notice, message, result (existing additive WorkflowResult, or null), and citations. Each citation records paragraph ID, source ID/title, exact source URL, original retrieval timestamp, index timestamp, raw/extracted hashes, category, synthetic flag and approval expiry when applicable. A title match without matching paragraph evidence is insufficient. Empty/no-hit searches never call a provider. Invalid references/unsupported numbers remain findings, never a claim of truth.
 
-The default provider is JeppeGs's MockSummarizer. It produces source extracts, not real AI answers; the UI says so. The current mock intentionally refuses non-synthetic sources. A real reviewed catalog therefore remains searchable but returns provider_unavailable for answers until a compatible real adapter is injected. No source is falsely relabeled synthetic to bypass that contract.
+Synthetic demo mode uses the mock provider and labels its output as synthetic. Real-source mode uses the local Ollama adapter by default. The web selector reflects the server allowlist and currently installed local models. OpenAI is optional and disabled unless server-side flags, credentials, SDK and model configuration are all present. No provider fallback is automatic. Provider setup and privacy limits are documented in [provider-configuration.md](provider-configuration.md).
 
-WorkflowService/PortalService accept the existing summarize(Source) protocol and correction callback via trusted Python configuration. The query is data in the prepared source title, not a new assumed Ollama method. The real Ollama adapter and its query/correction behavior still belong to JeppeGs and require interface agreement. No shared schema or JeppeGs module is modified.
+All providers use the existing `summarize(Source)` and correction contracts plus the shared verifier. Real-source answers are restricted to exact approved paragraphs; citations establish traceability, not semantic truth. Natural paraphrasing is not enabled because the current verifier cannot establish semantic entailment. No query or conversation history is sent to the OpenAI adapter.
 
 ## Approved real catalogs (offline loading only)
 
@@ -63,9 +63,9 @@ A separate actual loopback HTTP check and headless Chrome test demonstrated cate
 
 ## Integrated runtime update
 
-The earlier missing-adapter limitation is superseded by [the current integration report](meetings/ollama-integration.md). CLI and web now accept --provider ollama --model llama3.2:3b --ollama-timeout 90. Default remains mock; optional --fallback-to-mock is labeled and never implicit. The actual provider remains synthetic-only. All source approval boundaries and empty live registries remain in force.
+The earlier missing-adapter limitation is historical. CLI and web accept `--provider ollama --model llama3.2:3b --ollama-timeout 90`; real mode uses the local reviewed catalog and strict paragraph verifier. Optional `--fallback-to-mock` is explicit and never implicit. The demo remains synthetic-only.
 
 
 ## Current real-source update
 
-The user subsequently approved transient official HTML acquisition with retention limited to individually reviewed non-personal service excerpts. Earlier missing-adapter/full-document-only statements above describe the historical baseline. Eight sources and 39 paragraphs now run through the real-source adapter, mandatory strict verification and bounded correction. See [current implementation and commands](real-source-workflow.md) and [actual assignment matrix](assignment-requirements-matrix.md). Normal web startup is now real mode; use --demo explicitly for offline synthetic testing. No existing provider files/shared schemas were changed. This user policy does not override stricter course-assignment requirements.
+The historical import established eight source records and 39 approved paragraphs. The current policy blocks new raw HTML retrieval and snapshot parsing because personal data can be present before filtering. The application uses only the existing local catalog, with expiry enforcement, mandatory strict verification and bounded correction. Source-update checks are manual, sanitized and proposal-only; they do not change the active catalog or approval dates. See [source update limitations](source-update-proposals.md), [current implementation and commands](real-source-workflow.md), and [assignment matrix](assignment-requirements-matrix.md).

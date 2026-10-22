@@ -2,6 +2,7 @@
 import io
 import json
 from pathlib import Path
+from threading import Barrier, Event, Thread
 import unittest
 from unittest.mock import Mock, patch
 
@@ -50,7 +51,10 @@ class WebTests(unittest.TestCase):
     def test_page_and_static_assets(self):
         page = self.app.dispatch("GET", "/", self.headers)
         self.assertEqual(page.status, 200)
-        self.assertIn(self.app.token.encode(), page.body)
+        page_token = page.body.split(b'name="hamar-token" content="', 1)[1].split(b'"', 1)[0]
+        self.assertTrue(page_token)
+        self.assertNotEqual(page_token.decode(), self.app.token)
+        self.assertIsNotNone(self.app._session(page_token.decode()))
         self.assertIn(b"Hamar KommuneAgent", page.body)
         self.assertNotIn(b"{{TOKEN}}", page.body)
         for path in ("/app.js", "/style.css"):
@@ -201,3 +205,89 @@ class WebTests(unittest.TestCase):
     def test_non_ascii_token_is_rejected_without_crashing(self):
         headers = self.headers | {"X-Hamar-Token": "\u00f8"}
         self.assertEqual(self.app.dispatch("POST", "/api/run", headers, b"{}").status, 403)
+
+    def test_each_page_receives_an_isolated_session_token(self):
+        first = self.app.dispatch("GET", "/", self.headers).body
+        second = self.app.dispatch("GET", "/", self.headers).body
+        first_token = first.split(b'name="hamar-token" content="', 1)[1].split(b'"', 1)[0]
+        second_token = second.split(b'name="hamar-token" content="', 1)[1].split(b'"', 1)[0]
+        self.assertNotEqual(first_token, second_token)
+        self.assertIsNotNone(self.app._session(first_token.decode()))
+        self.assertIsNotNone(self.app._session(second_token.decode()))
+
+    def test_followup_uses_only_session_topic_terms_and_reset_clears_them(self):
+        first = self.app.dispatch("POST", "/api/answer", self.headers, b'{"query":"vann"}')
+        self.assertEqual(first.status, 200)
+        followup = self.app.dispatch("POST", "/api/answer", self.headers, b'{"query":"hva med priser?"}')
+        self.assertEqual(followup.status, 200)
+        self.assertTrue(json.loads(followup.body)["answer"]["is_follow_up"])
+        reset = self.app.dispatch("POST", "/api/conversation/reset", self.headers, b"{}")
+        self.assertEqual(reset.status, 200)
+        no_context = self.app.dispatch("POST", "/api/answer", self.headers, b'{"query":"hva med priser?"}')
+        self.assertEqual(no_context.status, 400)
+
+    def test_followup_cannot_use_another_page_session_context(self):
+        first_page = self.app.dispatch("GET", "/", self.headers).body
+        other_page = self.app.dispatch("GET", "/", self.headers).body
+        tokens = [page.split(b'name="hamar-token" content="', 1)[1].split(b'"', 1)[0].decode()
+                  for page in (first_page, other_page)]
+        first_headers = self.headers | {"X-Hamar-Token": tokens[0]}
+        second_headers = self.headers | {"X-Hamar-Token": tokens[1]}
+        self.assertEqual(self.app.dispatch("POST", "/api/answer", first_headers, b'{"query":"vann"}').status, 200)
+        self.assertEqual(self.app.dispatch("POST", "/api/answer", second_headers, b'{"query":"hva med priser?"}').status, 400)
+
+    def test_concurrent_sessions_keep_followup_context_isolated(self):
+        page_tokens = []
+        for _ in range(2):
+            page = self.app.dispatch("GET", "/", self.headers).body
+            page_tokens.append(page.split(b'name="hamar-token" content="', 1)[1].split(b'"', 1)[0].decode())
+        rendezvous = Barrier(2)
+        original = self.app.portal.answer
+        def concurrent_answer(*args, **kwargs):
+            rendezvous.wait(timeout=2)
+            return original(*args, **kwargs)
+        self.app.portal.answer = concurrent_answer
+        queries = ("vann", "bibliotek")
+        responses = [None, None]
+        def run(index):
+            headers = self.headers | {"X-Hamar-Token": page_tokens[index]}
+            responses[index] = self.app.dispatch("POST", "/api/answer", headers,
+                json.dumps({"query": queries[index]}).encode())
+        workers = [Thread(target=run, args=(i,)) for i in range(2)]
+        for worker in workers: worker.start()
+        for worker in workers: worker.join(3)
+        self.assertTrue(all(not worker.is_alive() for worker in workers))
+        self.assertEqual([response.status for response in responses], [200, 200])
+        self.assertTrue(all(json.loads(response.body)["answer"]["result"] for response in responses))
+        self.assertIn("vann", self.app.sessions[page_tokens[0]].topic_terms)
+        self.assertIn("bibliotek", self.app.sessions[page_tokens[1]].topic_terms)
+        self.assertNotIn("bibliotek", self.app.sessions[page_tokens[0]].topic_terms)
+        self.assertNotIn("vann", self.app.sessions[page_tokens[1]].topic_terms)
+
+    def test_reset_during_inference_rejects_stale_conversation_update(self):
+        entered, release = Event(), Event()
+        original = self.app.portal.answer
+        def blocked(*args, **kwargs):
+            entered.set(); release.wait(2)
+            return original(*args, **kwargs)
+        self.app.portal.answer = blocked
+        response_box = []
+        worker = Thread(target=lambda: response_box.append(
+            self.app.dispatch("POST", "/api/answer", self.headers, b'{"query":"vann"}')))
+        worker.start()
+        self.assertTrue(entered.wait(1))
+        self.assertEqual(self.app.dispatch("POST", "/api/conversation/reset", self.headers, b"{}").status, 200)
+        release.set(); worker.join(2)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(response_box[0].status, 409)
+        self.assertFalse(self.app.results)
+
+    def test_expired_session_removes_its_saved_json_results(self):
+        page = self.app.dispatch("GET", "/", self.headers).body
+        token = page.split(b'name="hamar-token" content="', 1)[1].split(b'"', 1)[0].decode()
+        headers = self.headers | {"X-Hamar-Token": token}
+        answer = json.loads(self.app.dispatch("POST", "/api/answer", headers, b'{"query":"vann"}').body)
+        run_id = answer["run_id"]
+        self.app.sessions[token].last_seen -= 3 * 60 * 60
+        self.assertEqual(self.app.dispatch("GET", "/api/results/" + run_id, headers).status, 403)
+        self.assertNotIn(run_id, self.app.results)

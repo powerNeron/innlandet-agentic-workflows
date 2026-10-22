@@ -1,15 +1,17 @@
 """Small loopback-only HTTP adapter over WorkflowService; no external assets."""
 import argparse
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import secrets
 from threading import Lock
+import time
 
 from .application import WorkflowService
 from .portal import PortalService
+from .provider_registry import ProviderRegistry
 
 MAX_REQUEST_BYTES = 8192
 ASSETS = Path(__file__).with_name("web_assets")
@@ -23,6 +25,19 @@ class Response:
     download: bool = False
 
 
+@dataclass
+class ClientSession:
+    topic_terms: tuple[str, ...] = ()
+    turns: int = 0
+    revision: int = 0
+    last_seen: float = field(default_factory=time.monotonic)
+
+
+SESSION_TTL_SECONDS = 2 * 60 * 60
+MAX_SESSIONS = 64
+MAX_CONVERSATION_TURNS = 8
+
+
 def _json(status: int, value: object) -> Response:
     return Response(status, json.dumps(value, ensure_ascii=False).encode("utf-8"))
 
@@ -31,13 +46,57 @@ class WebApplication:
     """HTTP-independent routes, testable without network connections."""
 
     def __init__(self, service: WorkflowService | None = None, *, port: int = 8000,
-                 portal: PortalService | None = None) -> None:
+                 portal: PortalService | None = None, service_factory=None,
+                 provider_registry: ProviderRegistry | None = None) -> None:
         self.service = service if service is not None else WorkflowService()
         self.portal = portal if portal is not None else PortalService(self.service)
         self.port = port
         self.token = secrets.token_urlsafe(32)
         self.results: OrderedDict[str, bytes] = OrderedDict()
+        self.result_owners: dict[str, str] = {}
         self.lock = Lock()
+        self.sessions: OrderedDict[str, ClientSession] = OrderedDict(((self.token, ClientSession()),))
+        self.service_factory = service_factory
+        self.provider_registry = provider_registry
+
+    def _new_page_token(self) -> str:
+        token = secrets.token_urlsafe(32)
+        with self.lock:
+            self.sessions[token] = ClientSession()
+            now = time.monotonic()
+            for key in tuple(self.sessions):
+                if now - self.sessions[key].last_seen > SESSION_TTL_SECONDS:
+                    self.sessions.pop(key, None)
+                    self._delete_owned_results(key)
+            while len(self.sessions) > MAX_SESSIONS:
+                expired, _ = self.sessions.popitem(last=False)
+                self._delete_owned_results(expired)
+        return token
+
+    def _delete_owned_results(self, token: str) -> None:
+        for run_id, owner in tuple(self.result_owners.items()):
+            if owner == token:
+                self.result_owners.pop(run_id, None)
+                self.results.pop(run_id, None)
+
+    def _session(self, token: str) -> ClientSession | None:
+        if not isinstance(token, str) or len(token) > 128:
+            return None
+        try:
+            token.encode("ascii")
+        except UnicodeEncodeError:
+            return None
+        with self.lock:
+            key = next((stored for stored in self.sessions if secrets.compare_digest(token, stored)), None)
+            session = self.sessions.get(key) if key is not None else None
+            if session is None or time.monotonic() - session.last_seen > SESSION_TTL_SECONDS:
+                if key is not None:
+                    self.sessions.pop(key, None)
+                    self._delete_owned_results(key)
+                return None
+            session.last_seen = time.monotonic()
+            self.sessions.move_to_end(key)
+            return session
 
     def dispatch(self, method: str, path: str, headers: dict[str, str], body: bytes = b"") -> Response:
         headers = {k.lower(): v for k, v in headers.items()}
@@ -47,7 +106,7 @@ class WebApplication:
         if len(body) > MAX_REQUEST_BYTES:
             return _json(413, {"error": "Request too large."})
         if method == "GET" and path == "/":
-            html = (ASSETS / "index.html").read_text(encoding="utf-8").replace("{{TOKEN}}", self.token)
+            html = (ASSETS / "index.html").read_text(encoding="utf-8").replace("{{TOKEN}}", self._new_page_token())
             return Response(200, html.encode("utf-8"), "text/html; charset=utf-8")
         if method == "GET" and path == "/hamar-background.png":
             # Only a reviewed clean scenic image should activate has-scenic-image.
@@ -63,28 +122,53 @@ class WebApplication:
             return Response(200, (ASSETS / path[1:]).read_bytes(), kind + "; charset=utf-8")
         if method == "GET" and path == "/api/portal":
             return _json(200, self.portal.overview())
+        if method == "GET" and path == "/api/providers":
+            if self.provider_registry is not None:
+                try:
+                    return _json(200, {"choices": self.provider_registry.choices()})
+                except (OSError, RuntimeError, ValueError, TypeError):
+                    return _json(503, {"choices": [], "error": "Provider availability could not be checked safely."})
+            provider, _, model = self.service.provider.partition(":")
+            return _json(200, {"choices": [{"provider": provider, "model": model or "mock",
+                "label": self.service.provider, "processing": "local", "available": True, "reason": ""}]})
         if method == "GET" and path == "/api/sources":
             return _json(200, {"sources": self.service.sources(), "provider": self.service.provider,
                                "external_retrieval": self.service.enable_http})
         if method == "GET" and path.startswith("/api/results/"):
-            if not secrets.compare_digest(headers.get("x-hamar-token", "").encode("utf-8"), self.token.encode("ascii")):
+            token = headers.get("x-hamar-token", "")
+            if self._session(token) is None:
                 return _json(403, {"error": "Invalid local session token."})
             run_id = path.removeprefix("/api/results/")
             with self.lock:
                 payload = self.results.get(run_id)
-            if payload is None:
+                owner = self.result_owners.get(run_id)
+            if payload is None or owner is None or not secrets.compare_digest(owner, token):
                 return _json(404, {"error": "Result not found or expired; run again."})
             return Response(200, payload, download=True)
-        if method != "POST" or path not in ("/api/run", "/api/search", "/api/answer"):
+        if method != "POST" or path not in ("/api/run", "/api/search", "/api/answer", "/api/conversation/reset"):
             return _json(404 if method in ("GET", "POST") else 405, {"error": "Route not available."})
         if headers.get("origin") not in tuple("http://" + host for host in hosts):
             return _json(403, {"error": "Requests must originate from the local interface."})
-        if not secrets.compare_digest(headers.get("x-hamar-token", "").encode("utf-8"), self.token.encode("ascii")):
+        token = headers.get("x-hamar-token", "")
+        session = self._session(token)
+        if session is None:
             return _json(403, {"error": "Invalid local session token."})
         if headers.get("content-type", "").split(";", 1)[0].strip().lower() != "application/json":
             return _json(415, {"error": "Expected application/json."})
         if path in ("/api/search", "/api/answer"):
-            return self._portal_request(path, body)
+            return self._portal_request(path, body, token, session)
+        if path == "/api/conversation/reset":
+            try:
+                request = json.loads(body.decode("utf-8"))
+                if request != {}:
+                    raise ValueError
+            except (ValueError, UnicodeError, TypeError):
+                return _json(400, {"error": "Reset requires an empty JSON object."})
+            with self.lock:
+                session.topic_terms = ()
+                session.turns = 0
+                session.revision += 1
+            return _json(200, {"reset": True})
         try:
             request = json.loads(body.decode("utf-8"))
             if not isinstance(request, dict) or set(request) != {"source_id"}:
@@ -102,36 +186,77 @@ class WebApplication:
         run_id = secrets.token_hex(16)
         with self.lock:
             self.results[run_id] = payload
+            self.result_owners[run_id] = token
             while len(self.results) > 16:
                 self.results.popitem(last=False)
         return _json(200, {"run_id": run_id, "result": json.loads(payload)})
 
 
-    def _portal_request(self, path: str, body: bytes) -> Response:
+    def _portal_request(self, path: str, body: bytes, token: str, session: ClientSession) -> Response:
         from .search import validate_query
         from .categories import CATEGORY_IDS
+        selected_created = False
+        with self.lock:
+            request_revision = session.revision
         try:
             request = json.loads(body.decode("utf-8"))
-            if not isinstance(request, dict) or set(request) - {"query", "category"} or "query" not in request:
+            allowed = {"query", "category"} if path == "/api/search" else {"query", "category", "provider", "model"}
+            if not isinstance(request, dict) or set(request) - allowed or "query" not in request:
                 raise ValueError("Invalid search request")
             query, category = request["query"], request.get("category")
-            validate_query(query, real_sources=True)
+            prior_terms = session.topic_terms if session.turns < MAX_CONVERSATION_TURNS else ()
+            validate_query(query, real_sources=True, allow_followup=bool(prior_terms))
             if category is not None and (not isinstance(category, str) or category not in CATEGORY_IDS):
                 raise ValueError("Invalid category")
+            selected_workflow = self.service
+            if path == "/api/answer" and ("provider" in request or "model" in request):
+                if not {"provider", "model"}.issubset(request) or self.provider_registry is None or self.service_factory is None:
+                    raise ValueError("Provider selection is unavailable")
+                self.provider_registry.require_choice(request["provider"], request["model"])
+                selected_workflow = self.service_factory(request["provider"], request["model"])
+                selected_created = True
         except (ValueError, UnicodeError, TypeError):
             return _json(400, {"error": "Ugyldig s\u00f8k. Bruk korte temaord uten personopplysninger eller nettadresser."})
+        except (OSError, RuntimeError, KeyError):
+            return _json(503, {"error": "Valgt leverand\u00f8r er ikke tilgjengelig. Ingen reserveleverand\u00f8r ble brukt."})
         try:
             if path == "/api/search":
                 return _json(200, self.portal.search(query, category=category))
-            answer = self.portal.answer(query, category=category)
+            answer = self.portal.answer(query, category=category, workflow_service=selected_workflow,
+                                        prior_terms=prior_terms)
         except (OSError, RuntimeError, ValueError, TypeError, KeyError):
             return _json(422, {"error": "Arbeidsflyten feilet. Ingen nye kilder ble hentet."})
+        finally:
+            if selected_created:
+                closer = getattr(selected_workflow, "close", None)
+                if not callable(closer):
+                    closer = getattr(getattr(selected_workflow, "summarizer", None), "client", None)
+                    closer = getattr(closer, "close", None)
+                if callable(closer):
+                    closer()
+        try:
+            current_terms = validate_query(query, real_sources=True, allow_followup=bool(prior_terms))
+        except ValueError:
+            current_terms = []
+        effective_terms = tuple(current_terms or prior_terms)
+        with self.lock:
+            if session.revision != request_revision:
+                return _json(409, {"error": "Conversation changed while the answer was being prepared. Submit the question again."})
+            if answer.get("answer_status") in {"evidence_checked", "demo"} and answer.get("result"):
+                session.topic_terms = effective_terms[:16]
+                session.turns = (session.turns + 1) if prior_terms else 1
+            else:
+                session.topic_terms = ()
+                session.turns = 0
+        answer["is_follow_up"] = bool(answer.get("is_follow_up", False))
         payload = json.dumps(answer, ensure_ascii=False).encode("utf-8")
         run_id = secrets.token_hex(16)
         with self.lock:
             self.results[run_id] = payload
+            self.result_owners[run_id] = token
             while len(self.results) > 16:
-                self.results.popitem(last=False)
+                expired, _ = self.results.popitem(last=False)
+                self.result_owners.pop(expired, None)
         return _json(200, {"run_id": run_id, "answer": answer})
 
 
@@ -194,8 +319,10 @@ def make_handler(app: WebApplication) -> type[BaseHTTPRequestHandler]:
 
 
 def create_server(*, port: int = 8000, service: WorkflowService | None = None,
-                  portal: PortalService | None = None) -> ThreadingHTTPServer:
-    app = WebApplication(service, port=port, portal=portal)
+                  portal: PortalService | None = None, service_factory=None,
+                  provider_registry: ProviderRegistry | None = None) -> ThreadingHTTPServer:
+    app = WebApplication(service, port=port, portal=portal, service_factory=service_factory,
+                         provider_registry=provider_registry)
     server = ThreadingHTTPServer(("127.0.0.1", port), make_handler(app))
     app.port = server.server_port
     return server
@@ -207,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--catalog", type=Path, action="append", default=[], help="Offline reviewed catalog; repeat for multiple files")
     parser.add_argument("--approvals", type=Path, help="Individually reviewed page manifest; never enables live fetching")
     parser.add_argument("--empty-index", action="store_true", help="Start without synthetic demo documents")
-    parser.add_argument("--provider", choices=("mock", "ollama"), default=None)
+    parser.add_argument("--provider", choices=("mock", "ollama", "openai"), default=None)
     parser.add_argument("--demo", action="store_true", help="Explicit offline synthetic demo only")
     parser.add_argument("--real-sources", action="store_true", help="Explicit real mode (also the default)")
     parser.add_argument("--model", help="Installed Ollama model")
@@ -220,13 +347,20 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("Real-source mode cannot use a synthetic demo or empty test index")
     real_mode = args.real_sources or not (args.demo or args.empty_index)
     portal = None
+    service_factory = None
+    provider_registry = ProviderRegistry(include_mock=not (args.real_sources or not (args.demo or args.empty_index)))
     try:
         if real_mode:
-            if args.fallback_to_mock or args.provider == "mock":
+            selected_provider = args.provider or "ollama"
+            if args.fallback_to_mock or selected_provider == "mock":
                 raise ValueError("Real-source mode refuses mock fallback")
+            catalog_paths = args.catalog or [Path("output/municipal-catalog.json")]
+            approval_path = args.approvals or Path("docs/approved-service-pages.json")
             from .real_sources import create_municipal_service
-            service = create_municipal_service(args.catalog or [Path("output/municipal-catalog.json")],
-                args.approvals or Path("docs/approved-service-pages.json"), model=args.model, timeout=args.ollama_timeout)
+            service = create_municipal_service(catalog_paths, approval_path, model=args.model,
+                timeout=args.ollama_timeout, provider=selected_provider)
+            service_factory = lambda selected, model: create_municipal_service(
+                catalog_paths, approval_path, model=model, timeout=args.ollama_timeout, provider=selected)
             portal = PortalService(service, index=service.index)
         else:
             if args.catalog or args.approvals:
@@ -234,13 +368,16 @@ def main(argv: list[str] | None = None) -> int:
             from .runtime import create_service
             service = create_service(args.provider or "mock", model=args.model, timeout=args.ollama_timeout,
                                      fallback_to_mock=args.fallback_to_mock)
+            service_factory = lambda selected, model: create_service(
+                selected, model=model, timeout=args.ollama_timeout, fallback_to_mock=False)
             if args.empty_index:
                 from .search import SearchIndex
                 portal = PortalService(service, index=SearchIndex())
     except (OSError, ValueError, TypeError, KeyError):
         parser.error("Provider/catalog validation failed; no synthetic fallback. Use --demo only for offline testing.")
     try:
-        with create_server(port=args.port, service=service, portal=portal) as server:
+        with create_server(port=args.port, service=service, portal=portal,
+                           service_factory=service_factory, provider_registry=provider_registry) as server:
             print(f"Hamar KommuneAgent: http://127.0.0.1:{server.server_port} (provider: {service.provider})", flush=True)
             server.serve_forever()
     except KeyboardInterrupt:

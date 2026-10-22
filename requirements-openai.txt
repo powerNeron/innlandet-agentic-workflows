@@ -1,0 +1,2 @@
+# Optional only. The offline/Ollama application does not require this package.
+openai>=1.66,<3
