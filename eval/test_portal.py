@@ -96,6 +96,7 @@ class PortalTests(unittest.TestCase):
         index = SearchIndex([
             reviewed_document("hamar-miljo-test", "Luftkvalitet og miljø", "Informasjon om luftkvalitet og miljø i Hamar.", "miljo"),
             reviewed_document("hamar-sfo-test", "Gratis SFO", "Informasjon om gratis SFO for elever.", "oppvekst"),
+            reviewed_document("hamar-vann-test", "Drikkevann", "Informasjon om drikkevann i kommunen.", "teknisk"),
         ])
         norwegian_miljo = "milj" + chr(248)
         self.assertEqual([h.document.source.id for h in index.search(norwegian_miljo)], ["hamar-miljo-test"])
@@ -105,6 +106,9 @@ class PortalTests(unittest.TestCase):
         self.assertEqual([h.document.source.id for h in index.search(question)], ["hamar-sfo-test"])
         self.assertEqual(validate_query("Hva gjelder for vann?", real_sources=True), ["vann"])
         self.assertFalse(index.search("skole vann"))
+        drinking_water_question = "Hvor finner jeg informasjon om drikkevann?"
+        self.assertEqual(validate_query(drinking_water_question, real_sources=True), ["drikkevann"])
+        self.assertEqual([h.document.source.id for h in index.search(drinking_water_question)], ["hamar-vann-test"])
         with self.assertRaises(ValueError):
             index.search("adresse til privat person")
 
