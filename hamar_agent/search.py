@@ -12,6 +12,7 @@ from .schemas import Source
 
 STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
              "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne", "finner", "informasjon",
+             "hvem", "far", "fa", "tid", "de", "yngste", "elevene", "tilbud",
              "fungerer", "elever", "hamar"}
 FOLLOWUP_MODIFIERS = frozenset({"pris", "priser", "prisen", "vilkar", "frister", "krav", "mer", "videre", "ogsa"})
 # Live search accepts only broad, reviewed service topics. This prevents names,
