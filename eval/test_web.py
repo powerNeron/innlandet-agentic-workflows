@@ -57,6 +57,35 @@ class WebTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(self.app.dispatch("GET", path, self.headers).status, 200)
 
+    def test_independent_search_and_ai_forms_are_present(self):
+        html = self.app.dispatch("GET", "/", self.headers).body.decode("utf-8")
+        search_form = html.split('<form id="search-form"', 1)[1].split("</form>", 1)[0]
+        ai_form = html.split('<form id="ai-form"', 1)[1].split("</form>", 1)[0]
+        search_section = html.split('<section id="search-area"', 1)[1].split("</section>", 1)[0]
+        self.assertIn('id="query"', search_form)
+        self.assertNotIn("/api/answer", search_section)
+        self.assertIn('id="ai-query"', ai_form)
+        self.assertIn("Sp\u00f8r AI-agenten", ai_form)
+        self.assertIn('id="answer-content"', html)
+
+    def test_ai_answer_route_runs_without_a_prior_search_and_downloads_its_own_result(self):
+        query = b'{"query":"vann"}'
+        answer_response = self.app.dispatch("POST", "/api/answer", self.headers, query)
+        self.assertEqual(answer_response.status, 200)
+        answer = json.loads(answer_response.body)
+        self.assertEqual(answer["answer"]["answer_status"], "demo")
+        self.assertTrue(answer["answer"]["citations"])
+        download = self.app.dispatch("GET", "/api/results/" + answer["run_id"], self.headers)
+        self.assertEqual(json.loads(download.body), answer["answer"])
+
+    def test_search_and_ai_answer_are_independent_requests(self):
+        search = self.app.dispatch("POST", "/api/search", self.headers, b'{"query":"vann"}')
+        answer = self.app.dispatch("POST", "/api/answer", self.headers, b'{"query":"bibliotek"}')
+        self.assertEqual(search.status, 200)
+        self.assertEqual(answer.status, 200)
+        self.assertNotEqual(json.loads(search.body)["results"][0]["source_id"],
+                            json.loads(answer.body)["answer"]["citations"][0]["source_id"])
+
     def test_source_list_contains_only_approved_fixtures(self):
         data = json.loads(self.app.dispatch("GET", "/api/sources", self.headers).body)
         self.assertEqual({s["id"] for s in data["sources"]}, {SOURCE_ID, "synthetic-water-demo"})

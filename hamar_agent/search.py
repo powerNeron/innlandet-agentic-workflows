@@ -11,11 +11,12 @@ from .categories import CATEGORY_IDS
 from .schemas import Source
 
 STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
-             "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne", "finner", "informasjon"}
+             "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne", "finner", "informasjon",
+             "fungerer", "elever", "hamar"}
 # Live search accepts only broad, reviewed service topics. This prevents names,
 # addresses and other free-form text from reaching the municipal search index.
 REAL_SERVICE_QUERY_TERMS = frozenset({
-    "barnehage", "bibliotek", "bolig", "byggesak", "drikkevann", "familie",
+    "barnehage", "bibliotek", "bolig", "byggesak", "bygge", "drikkevann", "familie",
     "folkehelse", "gratis", "helse", "kommuneplan", "kultur", "luftkvalitet",
     "miljo", "miljø", "oppvekst", "parkering", "plan", "planer", "politikk",
     "service", "skole", "skolefritidsordning", "sfo", "sosial", "teknisk", "trinn", "vann",
@@ -32,6 +33,7 @@ def tokens(text: str) -> list[str]:
     return [
         "kommuneplan" if word in {"kommuneplanen", "kommuneplanens"}
         else "folkehelse" if word.startswith("folkehelsearbeid")
+        else "bygge" if word == "byggesak"
         else word
         for word in words
     ]
