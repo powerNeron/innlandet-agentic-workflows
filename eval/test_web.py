@@ -57,9 +57,16 @@ class WebTests(unittest.TestCase):
         self.assertIsNotNone(self.app._session(page_token.decode()))
         self.assertIn(b"Hamar KommuneAgent", page.body)
         self.assertNotIn(b"{{TOKEN}}", page.body)
+        self.assertIn(b'<link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon">', page.body)
         for path in ("/app.js", "/style.css"):
             with self.subTest(path=path):
                 self.assertEqual(self.app.dispatch("GET", path, self.headers).status, 200)
+
+    def test_favicon_is_served_as_a_valid_ico_asset(self):
+        response = self.app.dispatch("GET", "/favicon.ico", self.headers)
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.content_type, "image/vnd.microsoft.icon")
+        self.assertTrue(response.body.startswith(b"\x00\x00\x01\x00"))
 
     def test_independent_search_and_ai_forms_are_present(self):
         html = self.app.dispatch("GET", "/", self.headers).body.decode("utf-8")

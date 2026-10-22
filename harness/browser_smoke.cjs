@@ -14,7 +14,7 @@ const fs=require('fs');
   ['Hvor kommer drikkevannet fra?','water-origin'],['Hvordan fungerer vannforsyningen?','water-service'],
   ['Hva kan jeg låne på biblioteket?','library-loan'],['Hva gjelder teleportering?','unsupported']
  ]);
- ws.onmessage=e=>{const d=JSON.parse(e.data);if(pending.has(d.id)){const p=pending.get(d.id);pending.delete(d.id);d.error?p.reject(Error(JSON.stringify(d.error))):p.resolve(d.result);return}if(d.method==='Runtime.exceptionThrown')javascriptExceptions.push(d.params.exceptionDetails.text||d.params.exceptionDetails.exception?.description||'JavaScript exception');if(d.method==='Log.entryAdded'&&d.params.entry.level==='error')consoleErrors.push(d.params.entry.text);if(d.method==='Network.requestWillBeSent'){const req=d.params.request,path=new URL(req.url).pathname,row={path,method:req.method,status:null,queryCase:null};if((path==='/api/search'||path==='/api/answer')&&req.method==='POST'&&req.postData){try{row.queryCase=queryCases.get(JSON.parse(req.postData).query)||null}catch{}}observedNetwork.push(row)}if(d.method==='Network.responseReceived'){const row=observedNetwork.findLast(x=>x.path===new URL(d.params.response.url).pathname&&x.status===null);if(row)row.status=d.params.response.status}};
+ ws.onmessage=e=>{const d=JSON.parse(e.data);if(pending.has(d.id)){const p=pending.get(d.id);pending.delete(d.id);d.error?p.reject(Error(JSON.stringify(d.error))):p.resolve(d.result);return}if(d.method==='Runtime.exceptionThrown')javascriptExceptions.push(d.params.exceptionDetails.text||d.params.exceptionDetails.exception?.description||'JavaScript exception');if(d.method==='Log.entryAdded'&&d.params.entry.level==='error')consoleErrors.push(d.params.entry.text);if(d.method==='Network.requestWillBeSent'){const req=d.params.request,path=new URL(req.url).pathname,row={path,method:req.method,status:null,mimeType:null,queryCase:null};if((path==='/api/search'||path==='/api/answer')&&req.method==='POST'&&req.postData){try{row.queryCase=queryCases.get(JSON.parse(req.postData).query)||null}catch{}}observedNetwork.push(row)}if(d.method==='Network.responseReceived'){const row=observedNetwork.findLast(x=>x.path===new URL(d.params.response.url).pathname&&x.status===null);if(row){row.status=d.params.response.status;row.mimeType=d.params.response.mimeType}}};
  const send=(method,params={})=>new Promise((resolve,reject)=>{const id=next++;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));setTimeout(()=>{if(pending.has(id)){pending.delete(id);reject(Error(method))}},5000)});
  const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value};
  const typeInto=async(id,value)=>{const quoted=JSON.stringify(id);await evaluate('(()=>{const e=document.getElementById('+quoted+');e.focus();e.value="";e.dispatchEvent(new Event("input",{bubbles:true}));return true})()');await send('Input.insertText',{text:value})};
@@ -24,6 +24,10 @@ const fs=require('fs');
  await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:folder});
  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
  await send('Page.navigate',{url:site});await wait('document.querySelectorAll(".category-card").length===8');
+ for(let i=0;i<100&&!observedNetwork.findLast(r=>r.path==='/favicon.ico'&&r.status!==null);i++)await new Promise(r=>setTimeout(r,50));
+ const favicon=observedNetwork.findLast(r=>r.path==='/favicon.ico');
+ if(!favicon||favicon.status!==200||favicon.mimeType!=='image/vnd.microsoft.icon')throw Error('Project favicon failed to load as an ICO '+JSON.stringify(favicon));
+ console.log('FAVICON',JSON.stringify(favicon));
  if(await evaluate('document.querySelector(".developer").open'))throw Error('Manual source-selection panel should be optional and collapsed by default');
  await wait('!document.getElementById("provider-model").disabled');
  const providerState=await evaluate('(()=>{const s=document.getElementById("provider-model");return {selected:s.value,label:s.selectedOptions[0]?.textContent,openai:[...s.options].filter(o=>o.value.startsWith("openai|")).map(o=>({disabled:o.disabled,label:o.textContent}))}})()');
@@ -193,7 +197,7 @@ const fs=require('fs');
  }
  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
-  if(javascriptExceptions.length)throw Error('Browser JavaScript exceptions '+JSON.stringify(javascriptExceptions));
+  if(javascriptExceptions.length||consoleErrors.length)throw Error('Browser console failures '+JSON.stringify({javascriptExceptions,consoleErrors}));
   console.log('BROWSER_CONSOLE',JSON.stringify({javascript_exceptions:javascriptExceptions,console_errors:consoleErrors}));
   console.log('HTTP_FAILURES',JSON.stringify(observedNetwork.filter(r=>r.status>=400)));
  console.log(JSON.stringify({title,service_searches:8,answer_claims:downloaded.result.claims.length,downloads:2,responsive:['desktop','tablet','mobile'],keyboard_focus:await evaluate('document.activeElement.tagName')}));ws.close();
