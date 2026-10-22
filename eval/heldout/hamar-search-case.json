@@ -1,0 +1,33 @@
+{
+  "case_id": "heldout-synthetic-water-search-01",
+  "synthetic": true,
+  "query": "vanntrykk drikkevann",
+  "expected_source_id": "heldout-water-service",
+  "expected_paragraph_id": "heldout-water-service:p1",
+  "unsupported_query": "barnehage",
+  "documents": [
+    {
+      "id": "heldout-water-service",
+      "title": "Oppdiktet vanninformasjon",
+      "category": "teknisk",
+      "paragraphs": [
+        {
+          "id": "p1",
+          "text": "Syntetisk testinformasjon: drikkevann og vanntrykk kan undersøkes i dette oppdiktede tjenesteavsnittet."
+        }
+      ]
+    },
+    {
+      "id": "heldout-park-service",
+      "title": "Oppdiktet parkeringstjeneste",
+      "category": "teknisk",
+      "paragraphs": [
+        {
+          "id": "p1",
+          "text": "Syntetisk testinformasjon om parkering og betaling i en oppdiktet tjeneste."
+        }
+      ]
+    }
+  ],
+  "limitation": "One reserved synthetic search-and-citation case; not an LLM quality, semantic accuracy, or municipal coverage measure."
+}
