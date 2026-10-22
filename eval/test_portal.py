@@ -1,6 +1,6 @@
 """Offline HTML, full-text relevance, provenance and portal integration tests."""
 from dataclasses import replace
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import json
 import unittest
@@ -18,6 +18,13 @@ from hamar_agent.web import WebApplication
 
 def document(id, title, text, category="teknisk"):
     return index_document(Source(id, title, (Paragraph("p1", text),), True), category)
+
+
+def reviewed_document(id, title, text, category):
+    source = Source(id, title, (Paragraph("p1", text),), False,
+                    "https://www.hamar.kommune.no/tjenester/")
+    return index_document(source, category, retrieved_at=datetime.now(timezone.utc).isoformat(),
+                          approval_expires=(date.today() + timedelta(days=1)).isoformat(), raw_sha256="0" * 64)
 
 
 class PortalTests(unittest.TestCase):
@@ -84,6 +91,22 @@ class PortalTests(unittest.TestCase):
         for query in ("Fictional Person", "Storgata 12", "diagnose eksempel"):
             with self.subTest(query=query), self.assertRaises(ValueError):
                 validate_query(query, real_sources=True)
+
+    def test_real_search_accepts_norwegian_question_phrasing_and_ascii_spelling(self):
+        index = SearchIndex([
+            reviewed_document("hamar-miljo-test", "Luftkvalitet og miljø", "Informasjon om luftkvalitet og miljø i Hamar.", "miljo"),
+            reviewed_document("hamar-sfo-test", "Gratis SFO", "Informasjon om gratis SFO for elever.", "oppvekst"),
+        ])
+        norwegian_miljo = "milj" + chr(248)
+        self.assertEqual([h.document.source.id for h in index.search(norwegian_miljo)], ["hamar-miljo-test"])
+        self.assertEqual([h.document.source.id for h in index.search("miljo")], ["hamar-miljo-test"])
+        question = "Hvordan s" + chr(248) + "ker jeg gratis SFO?"
+        self.assertEqual(validate_query(question, real_sources=True), ["gratis", "sfo"])
+        self.assertEqual([h.document.source.id for h in index.search(question)], ["hamar-sfo-test"])
+        self.assertEqual(validate_query("Hva gjelder for vann?", real_sources=True), ["vann"])
+        self.assertFalse(index.search("skole vann"))
+        with self.assertRaises(ValueError):
+            index.search("adresse til privat person")
 
     def test_text_integrity_is_required(self):
         with self.assertRaises(ValueError):
@@ -173,3 +196,35 @@ class PortalTests(unittest.TestCase):
         self.assertIn('id="query"',html)
         self.assertIn('Ikke skriv navn',html)
         self.assertNotIn('<script src="http',html)
+
+    def test_public_pages_and_answer_json_use_neutral_credit_without_student_names(self):
+        app = WebApplication()
+        host = {"Host": "127.0.0.1:8000"}
+        headers = host | {"Origin": "http://127.0.0.1:8000", "Content-Type": "application/json",
+                          "X-Hamar-Token": app.token}
+        homepage = app.dispatch("GET", "/", host)
+        html = homepage.body.decode("utf-8")
+        self.assertIn("Studentprosjekt ved Universitetet i Innlandet.", html)
+        self.assertNotIn("Laget av programmerere", html)
+
+        public_bodies = [homepage.body, app.dispatch("GET", "/app.js", host).body,
+                         app.dispatch("GET", "/style.css", host).body,
+                         app.dispatch("GET", "/api/portal", host).body,
+                         app.dispatch("GET", "/api/sources", host).body]
+        search_response = app.dispatch("POST", "/api/search", headers, b'{"query":"vann"}')
+        self.assertEqual(search_response.status, 200)
+        public_bodies.append(search_response.body)
+        answer_response = app.dispatch("POST", "/api/answer", headers, b'{"query":"vann"}')
+        self.assertEqual(answer_response.status, 200)
+        answer_payload = json.loads(answer_response.body)
+        public_bodies.append(answer_response.body)
+        download = app.dispatch("GET", "/api/results/" + answer_payload["run_id"], headers)
+        self.assertEqual(download.status, 200)
+        public_bodies.append(download.body)
+
+        student_names = ("Linda", "Linda Merete Svela", "Jesper", "Jesper Guttormsen")
+        for body in public_bodies:
+            text = body.decode("utf-8").casefold()
+            for name in student_names:
+                with self.subTest(name=name):
+                    self.assertNotIn(name.casefold(), text)

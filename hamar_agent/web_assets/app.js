@@ -69,9 +69,10 @@ let selectedCategory = null;
 let selectedService = null;
 let portalReady = false;
 let allowedRealQueryTerms = new Set();
-const queryStopwords = new Set(["og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med"]);
+const queryStopwords = new Set(["og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med", "soker", "søker", "soke", "søke", "gjelder", "koster", "trenger", "finn", "finne"]);
 function isAllowedRealQuery(query) {
-  const terms = (query.normalize("NFC").toLocaleLowerCase("nb-NO").match(/[\p{L}\p{N}]+/gu) || [])
+  const folded = query.normalize("NFC").toLocaleLowerCase("nb-NO").replaceAll("æ", "ae").replaceAll("ø", "o").replaceAll("å", "a");
+  const terms = (folded.match(/[\p{L}\p{N}]+/gu) || [])
     .filter((term) => !queryStopwords.has(term));
   return terms.length <= 16 && terms.every((term) => allowedRealQueryTerms.has(term));
 }
