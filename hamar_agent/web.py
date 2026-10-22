@@ -193,7 +193,7 @@ class WebApplication:
 
 
     def _portal_request(self, path: str, body: bytes, token: str, session: ClientSession) -> Response:
-        from .search import validate_query
+        from .search import InvalidQueryError, QueryPrivacyError, UnsupportedTopicError, validate_query
         from .categories import CATEGORY_IDS
         selected_created = False
         with self.lock:
@@ -205,7 +205,12 @@ class WebApplication:
                 raise ValueError("Invalid search request")
             query, category = request["query"], request.get("category")
             prior_terms = session.topic_terms if session.turns < MAX_CONVERSATION_TURNS else ()
-            validate_query(query, real_sources=True, allow_followup=bool(prior_terms))
+            try:
+                validate_query(query, real_sources=True, allow_followup=bool(prior_terms))
+            except UnsupportedTopicError:
+                # Safe but unrecognized topics get a clarification/empty result;
+                # they are never forwarded to the model or retained.
+                pass
             if category is not None and (not isinstance(category, str) or category not in CATEGORY_IDS):
                 raise ValueError("Invalid category")
             selected_workflow = self.service
@@ -215,7 +220,9 @@ class WebApplication:
                 self.provider_registry.require_choice(request["provider"], request["model"])
                 selected_workflow = self.service_factory(request["provider"], request["model"])
                 selected_created = True
-        except (ValueError, UnicodeError, TypeError):
+        except QueryPrivacyError:
+            return _json(400, {"error": "Foresp\u00f8rselen ble avvist av hensyn til personvernet. Ikke skriv personopplysninger."})
+        except (InvalidQueryError, ValueError, UnicodeError, TypeError):
             return _json(400, {"error": "Ugyldig s\u00f8k. Bruk korte temaord uten personopplysninger eller nettadresser."})
         except (OSError, RuntimeError, KeyError):
             return _json(503, {"error": "Valgt leverand\u00f8r er ikke tilgjengelig. Ingen reserveleverand\u00f8r ble brukt."})

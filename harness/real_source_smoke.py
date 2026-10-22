@@ -72,6 +72,51 @@ def main(argv=None):
                     with (args.output/("search-"+query+".json")).open("x",encoding="utf-8") as stream:json.dump(answer,stream,ensure_ascii=False,indent=2)
                 rows.append({"case":case,"pass":True,"claims":len(claims),"grounded_claims":len(claims),"citations_valid":True,"provider_latency_ms":latency,"seconds":round(time.monotonic()-started,3)})
             except (OSError,RuntimeError,ValueError,AssertionError):rows.append({"case":"search:"+query,"pass":False,"seconds":round(time.monotonic()-started,3)})
+        phrase_cases=(
+            ("Hvem får gratis SFO-tid i Hamar?","evidence_checked","hamar-sfo"),
+            ("Hva gjelder for gratis SFO?","evidence_checked","hamar-sfo"),
+            ("Hvordan søker jeg om SFO?","insufficient_evidence","hamar-sfo"),
+            ("Hva kan jeg bygge uten å søke?","evidence_checked","hamar-byggesak"),
+            ("Bygge uten søknad","evidence_checked","hamar-byggesak"),
+            ("Hvordan søker jeg om byggetillatelse?","insufficient_evidence","hamar-byggesak"),
+            ("Hva koster parkering i Hamar?","insufficient_evidence","hamar-parkering"),
+        )
+        for ordinal,(query,expected,source_id) in enumerate(phrase_cases,1):
+            started=time.monotonic()
+            try:
+                with patch.object(service.summarizer,"summarize",wraps=service.summarizer.summarize) as generation:
+                    answer=portal.answer(query)
+                assert answer["answer_status"]==expected and source_id in {c["source_id"] for c in answer["citations"]}
+                assert all(c["url"].startswith("https://www.hamar.kommune.no/") for c in answer["citations"])
+                if expected=="insufficient_evidence":
+                    assert answer["result"] is None and generation.call_count==0
+                else:
+                    result=answer["result"]
+                    assert result["provider"]=="ollama:llama3.2:3b" and not result["verification"]["findings"]
+                    assert result["correction"]["attempts"]<=1
+                    citation_ids={c["paragraph_id"] for c in answer["citations"]}
+                    paragraphs={p.id:p.text for p in service.index.documents[source_id].source.paragraphs}
+                    assert result["claims"] and all(c["paragraph_id"] in citation_ids and c["text"]==c["evidence_quote"]==paragraphs[c["paragraph_id"].split(":",1)[1]] for c in result["claims"])
+                    latency=answer.get("provider_latency_ms")
+                    if latency is not None:latency_samples.append(int(latency))
+                with (args.output/f"question-{ordinal}.json").open("x",encoding="utf-8") as stream:json.dump(answer,stream,ensure_ascii=False,indent=2)
+                rows.append({"case":f"required-question:{ordinal}","pass":True,"expected_status":expected,
+                             "answer_status":answer["answer_status"],"source_id":source_id,
+                             "ollama_invoked":bool(generation.call_count),"claims":len((answer.get("result") or {}).get("claims",[])),
+                             "citations_valid":True,"provider_latency_ms":answer.get("provider_latency_ms"),
+                             "seconds":round(time.monotonic()-started,3)})
+            except (OSError,RuntimeError,ValueError,AssertionError,KeyError,TypeError):
+                rows.append({"case":f"required-question:{ordinal}","pass":False,"expected_status":expected,
+                             "source_id":source_id,"seconds":round(time.monotonic()-started,3)})
+        started=time.monotonic()
+        try:
+            with patch.object(service.summarizer,"summarize",wraps=service.summarizer.summarize) as generation:
+                privacy=portal.answer("Synthetic Example lives at Example Street 12")
+            assert privacy["answer_status"]=="input_rejected" and privacy["query"]=="" and not privacy["citations"] and generation.call_count==0
+            rows.append({"case":"privacy:synthetic-personal-input","pass":True,"answer_status":privacy["answer_status"],
+                         "ollama_invoked":False,"citations_valid":True,"seconds":round(time.monotonic()-started,3)})
+        except (OSError,RuntimeError,ValueError,AssertionError):
+            rows.append({"case":"privacy:synthetic-personal-input","pass":False,"seconds":round(time.monotonic()-started,3)})
         started=time.monotonic()
         try:
             refusal=portal.answer("service")

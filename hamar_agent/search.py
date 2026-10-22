@@ -10,13 +10,24 @@ import unicodedata
 from .categories import CATEGORY_IDS
 from .schemas import Source
 
-STOPWORDS = {"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
+STOPWORDS = frozenset({"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
              "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne", "finner", "informasjon",
              "hvem", "far", "fa", "tid", "de", "yngste", "elevene", "tilbud",
-             "fungerer", "elever", "hamar"}
+             "fungerer", "elever", "hamar", "uten", "soknad", "soknader", "a", "å", "ma", "pa", "som"})
+STOPWORDS = STOPWORDS | frozenset({"kommer", "fra"})
+QUERY_ALIASES = {
+    "garasje": "bygge", "garasjen": "bygge", "garasjer": "bygge",
+    "parkere": "parkering", "parkerer": "parkering", "parkeringen": "parkering",
+    "parkeringsplass": "parkering", "parkeringsplasser": "parkering",
+    "drikkevannet": "drikkevann", "vannforsyning": "vann", "vannforsyningen": "vann",
+    "biblioteket": "bibliotek", "bibliotekets": "bibliotek", "lane": "bibliotek",
+    "kommuneplanen": "kommuneplan", "kommuneplanens": "kommuneplan",
+    "byggesak": "bygge", "byggetillatelse": "bygge", "byggetillatelsen": "bygge",
+    "byggesøknad": "bygge", "byggesoknad": "bygge",
+}
 FOLLOWUP_MODIFIERS = frozenset({"pris", "priser", "prisen", "vilkar", "frister", "krav", "mer", "videre", "ogsa"})
-# Live search accepts only broad, reviewed service topics. This prevents names,
-# addresses and other free-form text from reaching the municipal search index.
+# Live search accepts only broad, reviewed service topics. Personal data is
+# detected separately; an unrecognized safe topic never reaches the model.
 REAL_SERVICE_QUERY_TERMS = frozenset({
     "barnehage", "bibliotek", "bolig", "byggesak", "bygge", "drikkevann", "familie",
     "folkehelse", "gratis", "helse", "kommuneplan", "kultur", "luftkvalitet",
@@ -26,31 +37,57 @@ REAL_SERVICE_QUERY_TERMS = frozenset({
 })
 
 
+class QueryPrivacyError(ValueError):
+    """Input matched a prohibited personal/contact-data pattern."""
+
+
+class InvalidQueryError(ValueError):
+    """Input is malformed or exceeds the documented query limit."""
+
+
+class UnsupportedTopicError(ValueError):
+    """Safe query terms do not map to an approved municipal topic."""
+
+
+_PERSONAL_ADDRESS = re.compile(
+    r"\b(?:(?:[\w.'-]*?(?:gata|vei|veien))|(?:[\w.'-]+\s+(?:gate|street|road))|(?:gate|gata|vei|veien|street|road))\s+\d{1,4}[a-z]?\b",
+    re.I,
+)
+_PERSONAL_DETAILS = re.compile(
+    r"\b(?:jeg\s+heter|navnet\s+mitt\s+er|mitt\s+navn\s+er|fødselsnummer|personnummer|"
+    r"telefonnummer|e-?postadresse|min\s+adresse|jeg\s+bor\s+i)\b",
+    re.I,
+)
+
+
+def validate_query_privacy(query: str) -> None:
+    """Reject recognizable personal/contact information before topic checks."""
+    if not isinstance(query, str):
+        raise InvalidQueryError("Query must be text")
+    if len(query) > 160 or any(ord(c) < 32 for c in query):
+        raise InvalidQueryError("Query is malformed or too long")
+    if (re.search(r"@|https?://|\d[\d ()+-]{5,}\d", query, re.I)
+            or _PERSONAL_ADDRESS.search(query) or _PERSONAL_DETAILS.search(query)):
+        raise QueryPrivacyError("Personal or contact information is not accepted")
+
+
 def tokens(text: str) -> list[str]:
     # Match common Norwegian spellings even when users omit diacritics.
     folded = unicodedata.normalize("NFC", text).casefold().translate(str.maketrans({"æ": "ae", "ø": "o", "å": "a"}))
     words = re.findall(r"[^\W_]+", folded)
     # Normalize frequent inflections/compounds present in reviewed plans and
     # public-health excerpts so base-form queries match their paragraphs.
-    return [
-        "kommuneplan" if word in {"kommuneplanen", "kommuneplanens"}
-        else "folkehelse" if word.startswith("folkehelsearbeid")
-        else "bygge" if word == "byggesak"
-        else word
-        for word in words
-    ]
+    return ["folkehelse" if word.startswith("folkehelsearbeid") else QUERY_ALIASES.get(word, word)
+            for word in words]
 
 
 def validate_query(query: str, *, real_sources: bool = False, allow_followup: bool = False) -> list[str]:
-    if not isinstance(query, str) or len(query) > 160 or any(ord(c) < 32 for c in query):
-        raise ValueError("Søket kan ha maksimalt 160 tegn og ingen kontrolltegn.")
-    if re.search(r"@|https?://|\d[\d ()+-]{5,}\d", query, re.I):
-        raise ValueError("Ikke skriv personopplysninger, kontaktdata eller nettadresser i søket.")
+    validate_query_privacy(query)
     terms = list(dict.fromkeys(t for t in tokens(query) if t not in STOPWORDS))[:16]
     if allow_followup:
         terms = [term for term in terms if term not in FOLLOWUP_MODIFIERS]
     if real_sources and any(term not in REAL_SERVICE_QUERY_TERMS for term in terms):
-        raise ValueError("Use only general municipal service topics; do not enter personal information.")
+        raise UnsupportedTopicError("No approved municipal topic was identified")
     return terms
 
 
