@@ -49,7 +49,15 @@ const fs=require('fs');
  if(!image.active||image.width<1||!image.css.includes('hamar-background.png'))throw Error('Photo not active');
  console.log('BACKGROUND_IMAGE',JSON.stringify(image));
  const simpleCopy=await evaluate(`({heading:document.querySelector('h1').textContent,intro:document.querySelector('.intro').textContent,subtitle:document.querySelector('.subtitle').textContent,label:document.querySelector('label[for="query"]').textContent,placeholder:document.getElementById('query').placeholder,aiHeading:document.getElementById('ai-title').textContent,ai:document.querySelector('.ai-intro').textContent,removed:document.querySelector('.workflow-steps,.mode-strip,#mode,#coverage,.source-policy,#ai-privacy')!==null,aboutClosed:!document.getElementById('about-service').open})`);
- if(simpleCopy.heading!=='Hva kan vi hjelpe deg med?'||simpleCopy.intro!=='Søk etter informasjon om Hamar og kommunale tjenester.'||simpleCopy.subtitle!=='Din AI-guide til informasjon og kommunale tjenester i Hamar.'||simpleCopy.label!=='Søk etter en tjeneste'||simpleCopy.placeholder!=='F.eks. parkering, vann eller byggesak'||simpleCopy.aiHeading!=='Spør Aisha'||simpleCopy.ai!=='Still et spørsmål om informasjon og kommunale tjenester i Hamar.'||simpleCopy.removed||!simpleCopy.aboutClosed)throw Error('Aisha branding/copy/layout mismatch '+JSON.stringify(simpleCopy));
+ if(simpleCopy.heading!=='Aisha Agent'||simpleCopy.intro!=='Søk etter informasjon om Hamar og kommunale tjenester.'||simpleCopy.subtitle!=='Din AI-guide til informasjon og kommunale tjenester i Hamar.'||simpleCopy.label!=='Søk etter en tjeneste'||simpleCopy.placeholder!=='F.eks. parkering, vann eller byggesak'||simpleCopy.aiHeading!=='Spør Aisha'||simpleCopy.ai!=='Still et spørsmål om informasjon og kommunale tjenester i Hamar.'||simpleCopy.removed||!simpleCopy.aboutClosed)throw Error('Aisha branding/copy/layout mismatch '+JSON.stringify(simpleCopy));
+ const expectedHeroCopy=['Aisha Agent','Din AI-guide til informasjon og kommunale tjenester i Hamar.','Hva kan vi hjelpe deg med?','Søk etter informasjon om Hamar og kommunale tjenester.'];
+ const checkHeroLayout=async(viewport)=>{
+  await evaluate('window.scrollTo({top:0,behavior:"instant"});true');
+  const state=await evaluate('(()=>{const nodes=[...document.querySelector(".hero").children].slice(0,4);return {headings:document.querySelectorAll("h1").length,tags:nodes.map(e=>e.tagName),copy:nodes.map(e=>e.textContent),sizes:nodes.map(e=>parseFloat(getComputedStyle(e).fontSize)),boxes:nodes.map(e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right}}),width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth}})()');
+  if(state.headings!==1||JSON.stringify(state.tags)!==JSON.stringify(['H1','P','H2','P'])||JSON.stringify(state.copy)!==JSON.stringify(expectedHeroCopy)||state.sizes[0]<=state.sizes[2]||state.overflow||state.boxes.some((r,i)=>r.left<0||r.right>state.width+1||(i>0&&r.top<state.boxes[i-1].bottom))||state.boxes[0].top<0||state.boxes[0].bottom>state.height)throw Error('Main heading order, prominence or responsive layout failed at '+viewport+' '+JSON.stringify(state));
+  console.log('AISHA_HERO_LAYOUT',viewport,JSON.stringify(state));
+ };
+ await checkHeroLayout('desktop');
  await evaluate('document.querySelector("#about-service summary").click();true');
  if(!await evaluate('document.getElementById("about-service").open && document.getElementById("privacy").checkVisibility()'))throw Error('Privacy/coverage help is inaccessible');
  await evaluate('document.querySelector("#about-service summary").click();true');
@@ -216,6 +224,8 @@ const fs=require('fs');
  for(const [name,width,height] of [['tablet',820,1180],['mobile',390,844]]){
   await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
   await send('Page.navigate',{url:site});await wait('document.querySelectorAll(".category-card").length===8');
+  await checkHeroLayout(name);
+  fs.writeFileSync(folder+'/'+name+'-hero.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
   await evaluate('document.querySelector("[data-service=vann]").click();true'); await wait('!document.getElementById("search-button").disabled'); if(!await evaluate('/^[1-9]/.test(document.getElementById("result-count").textContent)'))throw Error('Responsive search failed'); if(!await evaluate('document.documentElement.scrollWidth<=window.innerWidth'))throw Error('Horizontal overflow '+name); if(!await evaluate('document.querySelector("#ai-form").offsetWidth>0 && document.getElementById("ai-button").textContent==="Spør Aisha"'))throw Error('Independent Aisha form is unavailable at '+name+' viewport');
   fs.writeFileSync(folder+'/'+name+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
   if(name==='mobile'){

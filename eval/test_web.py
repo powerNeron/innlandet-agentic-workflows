@@ -58,7 +58,14 @@ class WebTests(unittest.TestCase):
         self.assertIn(b"<title>Aisha Agent</title>", page.body)
         self.assertNotIn(b"KommuneAgent", page.body)
         html = page.body.decode("utf-8")
-        self.assertIn("<h1>Hva kan vi hjelpe deg med?</h1>", html)
+        self.assertIn("<h1>Aisha Agent</h1>", html)
+        self.assertEqual(html.count("<h1>"), 1)
+        hero = html.split('<section class="hero glass">', 1)[1].split('<form id="search-form"', 1)[0]
+        expected_hero = ("Aisha Agent", "Din AI-guide til informasjon og kommunale tjenester i Hamar.",
+                         "Hva kan vi hjelpe deg med?", "Søk etter informasjon om Hamar og kommunale tjenester.")
+        positions = [hero.index(text) for text in expected_hero]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn('<h2 class="hero-question">Hva kan vi hjelpe deg med?</h2>', hero)
         self.assertIn("Din AI-guide til informasjon og kommunale tjenester i Hamar.", html)
         self.assertIn("Søk etter informasjon om Hamar og kommunale tjenester.", html)
         self.assertLess(html.index('id="about-service"'), html.index('id="about-project"'))
