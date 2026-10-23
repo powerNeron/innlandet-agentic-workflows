@@ -55,7 +55,18 @@ class WebTests(unittest.TestCase):
         self.assertTrue(page_token)
         self.assertNotEqual(page_token.decode(), self.app.token)
         self.assertIsNotNone(self.app._session(page_token.decode()))
-        self.assertIn(b"Hamar KommuneAgent", page.body)
+        self.assertIn(b"<title>Aisha Agent</title>", page.body)
+        self.assertNotIn(b"KommuneAgent", page.body)
+        html = page.body.decode("utf-8")
+        self.assertIn("<h1>Hva kan vi hjelpe deg med?</h1>", html)
+        self.assertIn("Din AI-guide til informasjon og kommunale tjenester i Hamar.", html)
+        self.assertIn("Søk etter informasjon om Hamar og kommunale tjenester.", html)
+        self.assertLess(html.index('id="about-service"'), html.index('id="about-project"'))
+        project = html.split('<details id="about-project"', 1)[1].split("</details>", 1)[0]
+        self.assertNotRegex(project.split(">", 1)[0], r"\bopen\b")
+        self.assertIn("KIUA-2003 – Aisha Agent", project)
+        self.assertIn("Prosjektets læringsmål", project)
+        self.assertIn("Dette er et studentprosjekt og ikke en offisiell tjeneste fra Hamar kommune.", project)
         for removed_id in ("portal-download", "download", "source", "run", "result", "json"):
             self.assertNotIn(f'id="{removed_id}"'.encode(), page.body)
         self.assertNotIn(b'class="developer', page.body)
@@ -79,7 +90,7 @@ class WebTests(unittest.TestCase):
         self.assertIn('id="query"', search_form)
         self.assertNotIn("/api/answer", search_section)
         self.assertIn('id="ai-query"', ai_form)
-        self.assertIn("Sp\u00f8r AI-agenten", ai_form)
+        self.assertIn("Sp\u00f8r Aisha", ai_form)
         self.assertIn('id="answer-content"', html)
 
     def test_ai_answer_route_runs_without_a_prior_search_and_downloads_its_own_result(self):

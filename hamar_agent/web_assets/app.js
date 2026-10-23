@@ -133,7 +133,7 @@ async function searchPortal() {
     revealInView($("search-area"));
     document.querySelectorAll(".category-card").forEach((c) => (c.classList.toggle("active", c.dataset.service === selectedService), c.setAttribute("aria-pressed", String(c.dataset.service === selectedService))));
   } catch (error) { if (generation === searchGeneration) {
-    const message = visibleRequestError(error, "Kan ikke kontakte den lokale tjenesten. Kontroller at Hamar-agenten fortsatt kjører.");
+    const message = visibleRequestError(error, "Kan ikke kontakte den lokale tjenesten. Kontroller at Aisha Agent fortsatt kjører.");
     $("portal-status").textContent = message; renderSearchMessage("Søket kunne ikke fullføres", message); revealInView($("search-area"));
   } }
   finally { if (generation === searchGeneration) { $("search-button").disabled = false; $("search-button").querySelector(".button-label").textContent = "Søk"; } }
@@ -289,7 +289,7 @@ async function askAi() {
   if (!portalReady) {
     $("ai-query").value = "";
     $("answer-state").textContent = "Tjenesten er ikke klar"; $("answer-state").className = "answer-state warning";
-    $("portal-status").textContent = "AI-agenten er ikke klar ennå. Ingen tekst ble sendt.";
+    $("portal-status").textContent = "Aisha er ikke klar ennå. Ingen tekst ble sendt.";
     return;
   }
   const inputProblem = queryInputProblem(query);
@@ -306,7 +306,7 @@ async function askAi() {
   const processing = providerChoices.find((choice) => choice.provider === chosenProvider && choice.model === chosenModel)?.processing;
   $("answer-state").textContent = "Søker, lager og kontrollerer svar …"; $("answer-state").className = "answer-state loading";
   item($("answer-content"), "p", processing === "external" ? "Ekstern leverandør behandler bare godkjente kildeutdrag …" : "Lokal leverandør arbeider med gjennomgåtte kildeutdrag …").className = "loading-message";
-  $("portal-status").textContent = "AI-agenten søker og kontrollerer kildehenvisningene …";
+  $("portal-status").textContent = "Aisha søker og kontrollerer kildehenvisningene …";
   revealInView($("ai-result"));
   try {
     const data = await api("/api/answer", { method: "POST", signal: answerAbort.signal, headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify({ query, provider: chosenProvider, model: chosenModel }) });
@@ -358,7 +358,7 @@ async function loadPortal() {
     if (data.query_contract_version !== 1 || !Array.isArray(data.allowed_query_terms)
         || !Array.isArray(data.query_stopwords) || !Array.isArray(data.query_followup_modifiers)
         || !data.query_aliases || typeof data.query_aliases !== "object") {
-      throw new Error("Serverversjonen for s\u00f8k er utdatert. Start Hamar-agenten p\u00e5 nytt.");
+      throw new Error("Serverversjonen for s\u00f8k er utdatert. Start Aisha Agent p\u00e5 nytt.");
     }
     officialMenuUrl = data.category_reference === "https://www.hamar.kommune.no/meny/"
       ? data.category_reference : "https://www.hamar.kommune.no/meny/";
