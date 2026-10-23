@@ -1,7 +1,6 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 const token = document.querySelector('meta[name="hamar-token"]').content;
-let runId = null;
 function item(parent, tag, text) { const el = document.createElement(tag); el.textContent = text; parent.appendChild(el); return el; }
 async function api(path, options = {}) {
   const response = await fetch(path, options);
@@ -12,42 +11,6 @@ async function api(path, options = {}) {
 function visibleRequestError(error, fallback) {
   return error instanceof TypeError ? fallback : (error.message || fallback);
 }
-async function load() {
-  try {
-    const data = await api("/api/sources");
-    data.sources.forEach((s) => { const option = item($("source"), "option", s.label); option.value = s.id; });
-    $("source").disabled = !data.sources.length; $("run").disabled = !data.sources.length;
-    $("status").textContent = data.sources.length ? (data.sources.some((source) => source.kind === "reviewed municipal excerpts") ? "Klar. Kun godkjente kommunale tjenesteutdrag er tilgjengelige." : "Klar. Kun godkjente syntetiske kilder er tilgjengelige.") : "Ingen godkjente kilder.";
-  } catch (error) { $("status").textContent = error.message; }
-}
-$("run").addEventListener("click", async () => {
-  $("run").disabled = true; $("result").hidden = true; runId = null; $("status").textContent = "Kjører …";
-  try {
-    const data = await api("/api/run", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify({ source_id: $("source").value }) });
-    runId = data.run_id; const result = data.result;
-    ["warnings", "findings", "claims", "paragraphs"].forEach((id) => $(id).replaceChildren());
-    $("summary").textContent = `Leverandør: ${result.provider}. ${result.claims.length} påstander. Korreksjon: ${result.correction.status}.`;
-    result.warnings.forEach((w) => item($("warnings"), "li", w));
-    if (!result.verification.findings.length) item($("findings"), "li", "Ingen funn fra de begrensede kontrollene. Dette beviser ikke sannhet.");
-    result.verification.findings.forEach((f) => item($("findings"), "li", `${f.code}: ${f.message} (${f.claim_ids.join(", ")})`));
-    result.claims.forEach((c) => { const card = item($("claims"), "article", ""); item(card, "h4", c.id + ": " + c.text); item(card, "p", "Evidensstatus: " + c.evidence_status); item(card, "blockquote", c.evidence_quote); item(card, "p", "Avsnitt: " + c.paragraph_id); });
-    result.source.paragraphs.forEach((p) => item($("paragraphs"), "p", p.id + ": " + p.text));
-    (result.source_provenance || []).forEach((citation) => { sourceLink($("paragraphs"), citation); provenance($("paragraphs"), citation); });
-    $("json").textContent = JSON.stringify(result, null, 2); $("result").hidden = false; $("status").textContent = "Ferdig. Se varsler og evidens.";
-  } catch (error) { $("status").textContent = error.message; }
-  finally { $("run").disabled = false; }
-});
-$("download").addEventListener("click", async () => {
-  if (!runId) return;
-  try {
-    const response = await fetch("/api/results/" + runId, { headers: { "X-Hamar-Token": token } });
-    if (!response.ok) { const data = await response.json(); throw new Error(data.error); }
-    const url = URL.createObjectURL(await response.blob()); const link = document.createElement("a");
-    link.href = url; link.download = "hamar-result.json"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch (error) { $("status").textContent = error.message; }
-});
-load();
-
 // Portal search is a separate presentation over the same verified workflow.
 const portalWarnings = {
   "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.": "Kun ordrette, gjennomg\u00e5tte kildeutdrag. Ikke semantisk faktasjekk eller garanti for riktighet.",
@@ -59,15 +22,6 @@ const portalWarnings = {
   "Ollama failed. Explicit mock fallback used; this result is not real LLM output.": "Ollama feilet. Avtalt mock-reserve ble brukt; dette er ikke et ekte LLM-svar.",
   "Correction failed; original findings retained for review.": "Korreksjonen feilet. Opprinnelige funn er bevart for vurdering."
 };
-const findingLabels = {
-  invalid_paragraph_id: "Ugyldig avsnittshenvisning", fabricated_evidence: "Sitatet finnes ikke i kilden",
-  unsupported_number: "En tallverdi mangler støtte i sitatet", conflicting_claims: "Motstridende tallpåstander",
-  missing_citation: "Kildehenvisning mangler", malformed_output: "Ugyldig svarformat", malformed_claim: "Ugyldig påstandsformat",
-  potentially_unsupported: "Påstanden kan mangle støtte; krever vurdering", uncertain_claim: "Påstanden er uttrykkelig usikker",
-  duplicate_claim_id: "Duplisert påstands-ID"
-};
-const evidenceLabels = { exact_match: "Sitat funnet i oppgitt avsnitt", missing: "Manglende eller ugyldig evidens", not_checked: "Ikke kontrollert" };
-
 let selectedCategory = null;
 let selectedService = null;
 let portalReady = false;
@@ -94,7 +48,6 @@ function queryInputProblem(query) {
 }
 let searchGeneration = 0;
 let answerGeneration = 0;
-let aiRunId = null;
 let lastAnsweredQuery = null;
 let aiBusy = false;
 let lastSearch = null;
@@ -192,7 +145,7 @@ $("query").addEventListener("keydown", (event) => {
 $("clear-category").addEventListener("click", () => { selectedCategory = null; selectedService = null; searchPortal(); });
 function addTechnicalDetails(container, answer) {
   const details = item(container, "details", ""); details.className = "technical-details";
-  item(details, "summary", "Teknisk kontroll, kildesporing og JSON");
+  item(details, "summary", "Teknisk kontroll og kildesporing");
   const body = item(details, "div", ""); body.className = "technical-body";
   if (answer.result) {
     const result = answer.result;
@@ -213,7 +166,6 @@ function addTechnicalDetails(container, answer) {
       answer.citations.forEach((citation) => item(citations, "li", `${citation.source_id} · ${citation.paragraph_id} · ${citation.url || "ingen URL"} · hentet ${citation.retrieved_at || "ukjent"} · godkjenning utløper ${citation.approval_expires || "ukjent"}`));
     }
   }
-  item(body, "pre", JSON.stringify(answer, null, 2));
 }
 function renderAnswer(answer) {
   const container = $("answer-content"); container.replaceChildren();
@@ -304,7 +256,7 @@ function populateProviders(data, preferredProvider) {
 $("provider-model").addEventListener("change", async () => {
   ++answerGeneration; if (answerAbort) answerAbort.abort(); answerAbort = null; aiBusy = false;
   $("ai-query").disabled = false; $("ai-result").setAttribute("aria-busy", "false");
-  aiRunId = null; lastAnsweredQuery = null; $("portal-download").hidden = true; $("answer-content").replaceChildren();
+  lastAnsweredQuery = null; $("answer-content").replaceChildren();
   const [provider, ...modelParts] = $("provider-model").value.split("|");
   const model = modelParts.join("|");
   const choice = providerChoices.find((item) => item.available && item.provider === provider && item.model === model);
@@ -333,7 +285,7 @@ async function askAi() {
     $("provider-processing").textContent = "Ingen tilgjengelig leverandør er valgt. Kontroller serveroppsettet.";
     return;
   }
-  aiRunId = null; $("portal-download").hidden = true; $("answer-content").replaceChildren();
+  $("answer-content").replaceChildren();
   if (!portalReady) {
     $("ai-query").value = "";
     $("answer-state").textContent = "Tjenesten er ikke klar"; $("answer-state").className = "answer-state warning";
@@ -359,11 +311,10 @@ async function askAi() {
   try {
     const data = await api("/api/answer", { method: "POST", signal: answerAbort.signal, headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify({ query, provider: chosenProvider, model: chosenModel }) });
     if (generation !== answerGeneration) return;
-    aiRunId = data.run_id;
     lastAnsweredQuery = query;
     conversationActive = true;
     renderAnswer(data.answer);
-    $("portal-download").hidden = !data.answer.result; $("portal-status").textContent = "AI-svaret er ferdig. Vurder kildeutdrag og kontrollstatus før bruk.";
+    $("portal-status").textContent = "AI-svaret er ferdig. Vurder kildeutdrag og kontrollstatus før bruk.";
     revealInView($("ai-result"));
   } catch (error) {
     if (generation === answerGeneration) {
@@ -382,7 +333,7 @@ $("ai-query").addEventListener("input", () => {
   if (aiBusy) return;
   $("ai-button").disabled = !portalReady || !$("ai-query").value.trim();
   if (lastAnsweredQuery !== null && $("ai-query").value.trim() !== lastAnsweredQuery) {
-    lastAnsweredQuery = null; aiRunId = null; $("portal-download").hidden = true; $("answer-content").replaceChildren();
+    lastAnsweredQuery = null; $("answer-content").replaceChildren();
     $("answer-state").textContent = "Klar for et nytt spørsmål"; $("answer-state").className = "answer-state";
   }
 });
@@ -391,8 +342,8 @@ $("ai-query").addEventListener("input", () => {
 });
 $("reset-conversation").addEventListener("click", async () => {
   ++answerGeneration; if (answerAbort) answerAbort.abort(); answerAbort = null; aiBusy = false;
-  $("ai-query").disabled = false; $("answer-content").replaceChildren(); $("portal-download").hidden = true;
-  aiRunId = null; lastAnsweredQuery = null; $("ai-result").setAttribute("aria-busy", "false");
+  $("ai-query").disabled = false; $("answer-content").replaceChildren();
+  lastAnsweredQuery = null; $("ai-result").setAttribute("aria-busy", "false");
   try {
     await api("/api/conversation/reset", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: "{}" });
     conversationActive = false;
@@ -400,15 +351,6 @@ $("reset-conversation").addEventListener("click", async () => {
     $("portal-status").textContent = "Samtalekonteksten er slettet.";
   } catch (error) { $("portal-status").textContent = visibleRequestError(error, "Kunne ikke nullstille samtalen."); }
   $("ai-button").disabled = !portalReady || !chosenProvider || !$("ai-query").value.trim();
-});
-$("portal-download").addEventListener("click", async () => {
-  if (!aiRunId) return;
-  try {
-    const response = await fetch("/api/results/" + aiRunId, { headers: { "X-Hamar-Token": token } });
-    if (!response.ok) throw new Error("Resultatet er utløpt. Kjør søket på nytt.");
-    const url = URL.createObjectURL(await response.blob()); const link = document.createElement("a");
-    link.href = url; link.download = "hamar-kildebasert-svar.json"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch (error) { $("portal-status").textContent = error.message; }
 });
 async function loadPortal() {
   try {
@@ -429,9 +371,7 @@ async function loadPortal() {
     try { providerData = await api("/api/providers"); } catch (_) { /* Ordinary search remains usable if model discovery fails. */ }
     populateProviders(providerData, data.provider);
     const mockMode = data.provider.startsWith("mock");
-    $("mode").textContent = data.synthetic ? (mockMode ? "Demomodus · syntetiske kilder" : "Lokal LLM · syntetiske kilder") : "Avgrenset, godkjent kildeutvalg";
     $("answer-help").textContent = mockMode ? "Demoen bruker mock, ikke en ekte språkmodell. Resultatene er syntetiske." : "Leverandør: " + data.provider + ". Ordrette kildeutdrag kontrolleres; samsvar er ikke semantisk faktasjekk.";
-    $("coverage").textContent = `${data.documents} indekserte dokumenter · Ikke fullstendig kommunal dekning`;
     const services = [
       { id: "skole", title: "Skole", category: "oppvekst", query: data.synthetic ? "barnehage" : "skole", icon: "school" },
       { id: "bolig", title: "Bolig", category: "bolig", query: "byggesak", icon: "home" },

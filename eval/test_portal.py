@@ -330,7 +330,9 @@ class PortalTests(unittest.TestCase):
         html = response.body.decode("utf-8")
         self.assertIn('href="https://www.hamar.kommune.no/"',html)
         self.assertIn('id="query"',html)
-        self.assertIn('Ikke skriv navn',html)
+        about = html.split('<details id="about-service"', 1)[1].split('</details>', 1)[0]
+        self.assertIn('Ikke skriv personopplysninger.', about)
+        self.assertIn('ikke direktesøk', about)
         self.assertNotIn('<script src="http',html)
 
     def test_public_pages_and_answer_json_use_neutral_credit_without_student_names(self):

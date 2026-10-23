@@ -56,6 +56,9 @@ class WebTests(unittest.TestCase):
         self.assertNotEqual(page_token.decode(), self.app.token)
         self.assertIsNotNone(self.app._session(page_token.decode()))
         self.assertIn(b"Hamar KommuneAgent", page.body)
+        for removed_id in ("portal-download", "download", "source", "run", "result", "json"):
+            self.assertNotIn(f'id="{removed_id}"'.encode(), page.body)
+        self.assertNotIn(b'class="developer', page.body)
         self.assertNotIn(b"{{TOKEN}}", page.body)
         self.assertIn(b'<link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon">', page.body)
         for path in ("/app.js", "/style.css"):
