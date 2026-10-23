@@ -1,0 +1,44 @@
+[
+  {
+    "source": "resultat/logger/offline.txt",
+    "copy": "evidence/offline.txt",
+    "sha256": "8a0ba952945d10cd23416c991f3a9bce4a26a688cd751fef57b1e8e89c90e67d",
+    "bytes": 41784
+  },
+  {
+    "source": "resultat/logger/real-smoke/summary.json",
+    "copy": "evidence/ollama-summary.json",
+    "sha256": "f91305b7e26fbbdac051e746d6ad10719dea69485d2aa6062970b85c252f1f79",
+    "bytes": 6693
+  },
+  {
+    "source": "resultat/logger/model-measurements.json",
+    "copy": "evidence/model-measurements.json",
+    "sha256": "01f195f15aa190bc4a6c27476604100c5a65406a8faf6bf1d6d54d8cc117bcde",
+    "bytes": 10683
+  },
+  {
+    "source": "resultat/logger/kommandoer.jsonl",
+    "copy": "evidence/original-command-register.jsonl",
+    "sha256": "b7d45bca2a17624b4a05c8fc133b515684644e4000f18870331e22c3d4731aae",
+    "bytes": 19784
+  },
+  {
+    "source": "resultat/english/figurer/03_workflow.mmd",
+    "copy": "figures/aisha-workflow.mmd",
+    "sha256": "6d512dd13757f4cb6bcc2049883173080142fd6a9f1830d2837e351539a5bdc8",
+    "bytes": 666
+  },
+  {
+    "source": "resultat/english/figurer/01_model_response_times.png",
+    "copy": "figures/model-response-times.png",
+    "sha256": "df3834a1afbe883b1d492e3267fdfa715f0e6d50ec722f11b063d2759007d051",
+    "bytes": 41530
+  },
+  {
+    "source": "output/aisha-heading-encoding-fixed-browser-20261023/browser-check.txt",
+    "copy": "evidence/aisha-browser.txt",
+    "sha256": "4aafbe6eedc58bbc8a58727b798964e72d67680ee141ab106f752621f6c1ce04",
+    "bytes": 10922
+  }
+]

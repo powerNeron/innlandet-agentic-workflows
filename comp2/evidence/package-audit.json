@@ -1,0 +1,50 @@
+{
+  "audit_utc": "2026-10-23T12:26:33.106092+00:00",
+  "checks": {
+    "original_resultat_manifest": true,
+    "selected_copies_byte_identical": true,
+    "bilingual_results_values_dates_sources_identical": true,
+    "bilingual_performance_numbers_identical": true,
+    "archived_saved_positive_outputs_17": true,
+    "ollama_23_expected_outcomes": true,
+    "current_aisha_three_viewports": true,
+    "browser_no_console_or_http_errors": true,
+    "new_cli_runs_exit_zero": true,
+    "walking-skeleton-synthetic.json_exact_claim_support": true,
+    "walking-skeleton-real.json_exact_claim_support": true,
+    "neurips_preprint_declaration": true,
+    "no_neurips_checklist": true,
+    "ten_main_sections": true,
+    "figures_and_table_inputs_exist": true,
+    "only_comp2_changes": true,
+    "no_staged_changes": true,
+    "no_detected_home_paths_emails_or_key_patterns_in_text": true
+  },
+  "checked_original_resultat_files": 190,
+  "new_cli_results": [
+    {
+      "file": "walking-skeleton-synthetic.json",
+      "claims": 2,
+      "provider": "mock",
+      "source_id": "synthetic-water-demo"
+    },
+    {
+      "file": "walking-skeleton-real.json",
+      "claims": 1,
+      "provider": "ollama:llama3.2:3b",
+      "source_id": "hamar-byggesak"
+    }
+  ],
+  "sensitive_pattern_candidates": [],
+  "latex_tools_found": [],
+  "submission_critical_blockers": [
+    "Supplied NeurIPS 2025 template is unavailable; no compiled formatting verification.",
+    "No LaTeX compiler found; report.pdf and 3-4 main-page / <=2 prompt-page checks are missing.",
+    "Demonstration and submission dates are not confirmed; milestone schedule is relative only.",
+    "Genuine participant-confirmed meeting reports are unavailable.",
+    "Historical raw-HTML handling remains an unresolved assignment privacy-compliance issue."
+  ],
+  "technical_checks_passed": true,
+  "submission_ready": false,
+  "commit_and_push_permitted": false
+}

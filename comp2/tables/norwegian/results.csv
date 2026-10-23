@@ -1,0 +1,9 @@
+ID,Mål,Observert,Nevner,Enhet,Dato,Kilde,Begrensning
+O1,Frakoblet regresjon,282,282,tester,2026-10-23,evidence/offline.txt,Ingen feil; ikke et mål på faktisk korrekthet.
+M1,Reelle Ollama-tilfeller,23,23,tilfeller,2026-10-23,evidence/ollama-summary.json,Inkluderer forventede avvisninger; ikke 23 genererte svar.
+C1,Lagrede positive svar,17,17,svar,2026-10-23,../docs/reports/evidence-2026-10-23.json,Eksakt støtte i godkjent utdrag; gjentatt svar uten egen fil er utelatt.
+B1,Responsive Chrome-oppsett,3,3,visningsstørrelser,2026-10-23,evidence/aisha-browser.txt,"Desktop 1440x1100, nettbrett 820x1180, mobil 390x844; ingen menneskelig tilgjengelighetsstudie."
+R1,Avvisninger ved utilstrekkelig evidens,4,4,tilfeller,2026-10-23,evidence/ollama-summary.json,Forventede avvisninger i serien med 23 tilfeller; ikke et ekstra uavhengig utvalg.
+P1,Tillatelses- og promptgrenser,10,10,kontroller,2026-10-23,../resultat/logger/fault-injection.json,Kun syntetiske kontroller; global nødstopp og samlet kostnadsbudsjett er ikke håndhevet.
+G1,Godkjennings- og endepunktporter,15,15,kontroller,2026-10-23,../resultat/logger/approval-gates.json,Angitt rolle er ikke autentisert identitet.
+M2,Fullførte ytelseskall,14,20,planlagte kall,2026-10-23,evidence/model-measurements.json,"Fullføring, ikke nevner for beståttandel; termisk stopp."

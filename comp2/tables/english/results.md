@@ -1,0 +1,10 @@
+| ID | Measure | Observed | Denominator | Unit | Date | Source | Limitation |
+|---|---|---|---|---|---|---|---|
+| O1 | Offline regression | 282 | 282 | tests | 2026-10-23 | evidence/offline.txt | No failures or errors; not a factual-accuracy estimate. |
+| M1 | Real Ollama cases | 23 | 23 | cases | 2026-10-23 | evidence/ollama-summary.json | Includes expected refusals; not 23 generated answers. |
+| C1 | Saved positive outputs | 17 | 17 | outputs | 2026-10-23 | ../docs/reports/evidence-2026-10-23.json | Exact approved-excerpt support; excludes repeated answer without its own output file. |
+| B1 | Responsive Chrome layouts | 3 | 3 | viewports | 2026-10-23 | evidence/aisha-browser.txt | Desktop 1440x1100, tablet 820x1180, mobile 390x844; no human accessibility study. |
+| R1 | Insufficient-evidence refusals | 4 | 4 | cases | 2026-10-23 | evidence/ollama-summary.json | Expected refusals in the 23-case suite; not an additional independent sample. |
+| P1 | Permission and prompt boundaries | 10 | 10 | checks | 2026-10-23 | ../resultat/logger/fault-injection.json | Synthetic controls only; global kill switch and aggregate cost budget are not enforced. |
+| G1 | Approval and endpoint gates | 15 | 15 | checks | 2026-10-23 | ../resultat/logger/approval-gates.json | Role assertion is not authenticated identity. |
+| M2 | Completed performance calls | 14 | 20 | planned calls | 2026-10-23 | evidence/model-measurements.json | Completion count, not a pass-rate denominator; thermal stop. |

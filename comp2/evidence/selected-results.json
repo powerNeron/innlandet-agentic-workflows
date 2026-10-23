@@ -1,0 +1,126 @@
+{
+  "test_date": "2026-10-23",
+  "rows": [
+    {
+      "id": "O1",
+      "en": "Offline regression",
+      "no": "Frakoblet regresjon",
+      "observed": "282",
+      "denominator": "282",
+      "unit_en": "tests",
+      "unit_no": "tester",
+      "source": "evidence/offline.txt",
+      "limit_en": "No failures or errors; not a factual-accuracy estimate.",
+      "limit_no": "Ingen feil; ikke et mål på faktisk korrekthet."
+    },
+    {
+      "id": "M1",
+      "en": "Real Ollama cases",
+      "no": "Reelle Ollama-tilfeller",
+      "observed": "23",
+      "denominator": "23",
+      "unit_en": "cases",
+      "unit_no": "tilfeller",
+      "source": "evidence/ollama-summary.json",
+      "limit_en": "Includes expected refusals; not 23 generated answers.",
+      "limit_no": "Inkluderer forventede avvisninger; ikke 23 genererte svar."
+    },
+    {
+      "id": "C1",
+      "en": "Saved positive outputs",
+      "no": "Lagrede positive svar",
+      "observed": "17",
+      "denominator": "17",
+      "unit_en": "outputs",
+      "unit_no": "svar",
+      "source": "../docs/reports/evidence-2026-10-23.json",
+      "limit_en": "Exact approved-excerpt support; excludes repeated answer without its own output file.",
+      "limit_no": "Eksakt støtte i godkjent utdrag; gjentatt svar uten egen fil er utelatt."
+    },
+    {
+      "id": "B1",
+      "en": "Responsive Chrome layouts",
+      "no": "Responsive Chrome-oppsett",
+      "observed": "3",
+      "denominator": "3",
+      "unit_en": "viewports",
+      "unit_no": "visningsstørrelser",
+      "source": "evidence/aisha-browser.txt",
+      "limit_en": "Desktop 1440x1100, tablet 820x1180, mobile 390x844; no human accessibility study.",
+      "limit_no": "Desktop 1440x1100, nettbrett 820x1180, mobil 390x844; ingen menneskelig tilgjengelighetsstudie."
+    },
+    {
+      "id": "R1",
+      "en": "Insufficient-evidence refusals",
+      "no": "Avvisninger ved utilstrekkelig evidens",
+      "observed": "4",
+      "denominator": "4",
+      "unit_en": "cases",
+      "unit_no": "tilfeller",
+      "source": "evidence/ollama-summary.json",
+      "limit_en": "Expected refusals in the 23-case suite; not an additional independent sample.",
+      "limit_no": "Forventede avvisninger i serien med 23 tilfeller; ikke et ekstra uavhengig utvalg."
+    },
+    {
+      "id": "P1",
+      "en": "Permission and prompt boundaries",
+      "no": "Tillatelses- og promptgrenser",
+      "observed": "10",
+      "denominator": "10",
+      "unit_en": "checks",
+      "unit_no": "kontroller",
+      "source": "../resultat/logger/fault-injection.json",
+      "limit_en": "Synthetic controls only; global kill switch and aggregate cost budget are not enforced.",
+      "limit_no": "Kun syntetiske kontroller; global nødstopp og samlet kostnadsbudsjett er ikke håndhevet."
+    },
+    {
+      "id": "G1",
+      "en": "Approval and endpoint gates",
+      "no": "Godkjennings- og endepunktporter",
+      "observed": "15",
+      "denominator": "15",
+      "unit_en": "checks",
+      "unit_no": "kontroller",
+      "source": "../resultat/logger/approval-gates.json",
+      "limit_en": "Role assertion is not authenticated identity.",
+      "limit_no": "Angitt rolle er ikke autentisert identitet."
+    },
+    {
+      "id": "M2",
+      "en": "Completed performance calls",
+      "no": "Fullførte ytelseskall",
+      "observed": "14",
+      "denominator": "20",
+      "unit_en": "planned calls",
+      "unit_no": "planlagte kall",
+      "source": "evidence/model-measurements.json",
+      "limit_en": "Completion count, not a pass-rate denominator; thermal stop.",
+      "limit_no": "Fullføring, ikke nevner for beståttandel; termisk stopp."
+    }
+  ],
+  "performance": {
+    "smoke_tests": 23,
+    "smoke_passed": 23,
+    "measurements_completed": 14,
+    "measurements_planned": 20,
+    "input_tokens": 4120,
+    "output_tokens": 1716,
+    "stop": "GPU safety threshold reached",
+    "latency_by_batch": {
+      "sequential": {
+        "n": 12,
+        "median_ms": 1511.1545,
+        "p95_nearest_rank_ms": 2103.674,
+        "min_ms": 1155.707,
+        "max_ms": 2103.674
+      },
+      "concurrency-2": {
+        "n": 2,
+        "median_ms": 2299.8905,
+        "p95_nearest_rank_ms": 3066.538,
+        "min_ms": 1533.243,
+        "max_ms": 3066.538
+      }
+    }
+  }
+}

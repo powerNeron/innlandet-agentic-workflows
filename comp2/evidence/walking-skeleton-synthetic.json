@@ -1,0 +1,69 @@
+{
+  "source": {
+    "id": "synthetic-water-demo",
+    "title": "SYNTHETIC EXAMPLE — fictional water service, not Hamar facts",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "I dette oppdiktede eksempelet leveres vann fra Eksempelsjøen."
+      },
+      {
+        "id": "p2",
+        "text": "Den fiktive hardheten er 3 °dH; tallet beskriver ikke vannet i Hamar."
+      }
+    ],
+    "synthetic": true,
+    "url": null
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "I dette oppdiktede eksempelet leveres vann fra Eksempelsjøen.",
+      "paragraph_id": "p1",
+      "evidence_quote": "I dette oppdiktede eksempelet leveres vann fra Eksempelsjøen.",
+      "evidence_status": "exact_match"
+    },
+    {
+      "id": "c2",
+      "text": "Den fiktive hardheten er 3 °dH; tallet beskriver ikke vannet i Hamar.",
+      "paragraph_id": "p2",
+      "evidence_quote": "Den fiktive hardheten er 3 °dH; tallet beskriver ikke vannet i Hamar.",
+      "evidence_status": "exact_match"
+    }
+  ],
+  "provider": "mock",
+  "schema_version": "1.0",
+  "warnings": [
+    "Synthetic demonstration; not municipal information.",
+    "Evidence matching is not semantic fact-checking or a guarantee of truth."
+  ],
+  "workflow_version": "1.0",
+  "verification": {
+    "claims": [
+      {
+        "id": "c1",
+        "text": "I dette oppdiktede eksempelet leveres vann fra Eksempelsjøen.",
+        "paragraph_id": "p1",
+        "evidence_quote": "I dette oppdiktede eksempelet leveres vann fra Eksempelsjøen.",
+        "evidence_status": "exact_match"
+      },
+      {
+        "id": "c2",
+        "text": "Den fiktive hardheten er 3 °dH; tallet beskriver ikke vannet i Hamar.",
+        "paragraph_id": "p2",
+        "evidence_quote": "Den fiktive hardheten er 3 °dH; tallet beskriver ikke vannet i Hamar.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "findings": []
+  },
+  "correction": {
+    "status": "not_needed",
+    "attempts": 0,
+    "initial_claims": [],
+    "initial_findings": [],
+    "warnings": [],
+    "provider": null,
+    "provider_findings": []
+  }
+}

@@ -1,0 +1,39 @@
+[
+  {
+    "command": [
+      "python",
+      "-X",
+      "utf8",
+      "-m",
+      "hamar_agent",
+      "--fixture",
+      "fixtures/water-synthetic.json"
+    ],
+    "started_utc": "2026-10-23T12:24:02.501864+00:00",
+    "finished_utc": "2026-10-23T12:24:02.940185+00:00",
+    "exit_code": 0,
+    "python": "3.12.10",
+    "output": "comp2/evidence/walking-skeleton-synthetic.json"
+  },
+  {
+    "command": [
+      "python",
+      "-X",
+      "utf8",
+      "-m",
+      "hamar_agent",
+      "--real-sources",
+      "--source",
+      "hamar-byggesak",
+      "--model",
+      "llama3.2:3b",
+      "--ollama-timeout",
+      "90"
+    ],
+    "started_utc": "2026-10-23T12:24:02.941199+00:00",
+    "finished_utc": "2026-10-23T12:24:14.939349+00:00",
+    "exit_code": 0,
+    "python": "3.12.10",
+    "output": "comp2/evidence/walking-skeleton-real.json"
+  }
+]
