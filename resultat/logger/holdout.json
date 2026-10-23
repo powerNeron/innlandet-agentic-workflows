@@ -1,0 +1,13 @@
+{
+  "case_id": "heldout-synthetic-water-search-01",
+  "synthetic": true,
+  "provider": "mock",
+  "passed": true,
+  "top_source_id": "heldout-water-service",
+  "answer_status": "demo",
+  "citation_paragraph_ids": [
+    "heldout-water-service:p1"
+  ],
+  "unsupported_status": "insufficient_evidence",
+  "limitation": "One reserved synthetic search-and-citation case; not an LLM quality, semantic accuracy, or municipal coverage measure."
+}

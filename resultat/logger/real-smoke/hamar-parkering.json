@@ -1,0 +1,136 @@
+{
+  "source": {
+    "id": "hamar-parkering",
+    "title": "Transport og parkering: plasser og betaling",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "I Hamar har vi både kommunale og private parkeringsplasser. Det er forskjell på langtidsplasser og korttidsplasser, og noen steder er det begrenset parkeringstid. Derfor er det viktig å se på skiltene før du parkerer."
+      },
+      {
+        "id": "p2",
+        "text": "Alle kommunale parkeringsplasser har et sonenummer. Dette finner du på automaten, på skiltet og i parkeringsappen vår (Appen heter Hamar kommune og kan lastes ned fra App Store og Google Play.) Forsikre deg alltid om at du står i samme sone som du betaler for."
+      },
+      {
+        "id": "p3",
+        "text": "Du kan betale på automat eller i appen \"Hamar kommune\". Du kan også betale med appen \"Easypark\", men da legges det på et servicetillegg. I parkeringshusene Østre torg og Vestre torg er det automatisk skiltavlesning."
+      },
+      {
+        "id": "p4",
+        "text": "Her parkerer du gratis første timen mot billett eller registrering av parkering via app, og kan stå totalt i 3 timer mot avgift. Husk å trekke lapp i automaten eller starte parkering i appen \"Hamar kommune\" for å ha gyldig parkeringsbillett."
+      },
+      {
+        "id": "p5",
+        "text": "Her kan du parkere i begrenset tid, inntil 3 timer mot avgift. Hvis du skal stå parkert lenger enn 3 timer må du parkere i langtidssonen."
+      }
+    ],
+    "synthetic": false,
+    "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/"
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "I Hamar har vi både kommunale og private parkeringsplasser. Det er forskjell på langtidsplasser og korttidsplasser, og noen steder er det begrenset parkeringstid. Derfor er det viktig å se på skiltene før du parkerer.",
+      "paragraph_id": "p1",
+      "evidence_quote": "I Hamar har vi både kommunale og private parkeringsplasser. Det er forskjell på langtidsplasser og korttidsplasser, og noen steder er det begrenset parkeringstid. Derfor er det viktig å se på skiltene før du parkerer.",
+      "evidence_status": "exact_match"
+    }
+  ],
+  "provider": "ollama:llama3.2:3b",
+  "schema_version": "1.0",
+  "warnings": [
+    "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+    "Limited source coverage. Consult the official page for context and current conditions."
+  ],
+  "workflow_version": "1.0",
+  "verification": {
+    "claims": [
+      {
+        "id": "c1",
+        "text": "I Hamar har vi både kommunale og private parkeringsplasser. Det er forskjell på langtidsplasser og korttidsplasser, og noen steder er det begrenset parkeringstid. Derfor er det viktig å se på skiltene før du parkerer.",
+        "paragraph_id": "p1",
+        "evidence_quote": "I Hamar har vi både kommunale og private parkeringsplasser. Det er forskjell på langtidsplasser og korttidsplasser, og noen steder er det begrenset parkeringstid. Derfor er det viktig å se på skiltene før du parkerer.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "findings": []
+  },
+  "correction": {
+    "status": "not_needed",
+    "attempts": 0,
+    "initial_claims": [],
+    "initial_findings": [],
+    "warnings": [],
+    "provider": null,
+    "provider_findings": []
+  },
+  "source_provenance": [
+    {
+      "paragraph_id": "p1",
+      "source_id": "hamar-parkering",
+      "title": "Transport og parkering: plasser og betaling",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+      "indexed_at": "2026-10-21T13:04:22.349606+00:00",
+      "text_sha256": "18c2123b6cba53d81673012a8d526401cd27992b38600379ad6a4fce0e4deef0",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "3b397522409ca3a4fd4228960278f4c3f642461d423859be6168e3f8af0aa114"
+    },
+    {
+      "paragraph_id": "p2",
+      "source_id": "hamar-parkering",
+      "title": "Transport og parkering: plasser og betaling",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+      "indexed_at": "2026-10-21T13:04:22.349606+00:00",
+      "text_sha256": "18c2123b6cba53d81673012a8d526401cd27992b38600379ad6a4fce0e4deef0",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "3b397522409ca3a4fd4228960278f4c3f642461d423859be6168e3f8af0aa114"
+    },
+    {
+      "paragraph_id": "p3",
+      "source_id": "hamar-parkering",
+      "title": "Transport og parkering: plasser og betaling",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+      "indexed_at": "2026-10-21T13:04:22.349606+00:00",
+      "text_sha256": "18c2123b6cba53d81673012a8d526401cd27992b38600379ad6a4fce0e4deef0",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "3b397522409ca3a4fd4228960278f4c3f642461d423859be6168e3f8af0aa114"
+    },
+    {
+      "paragraph_id": "p4",
+      "source_id": "hamar-parkering",
+      "title": "Transport og parkering: plasser og betaling",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+      "indexed_at": "2026-10-21T13:04:22.349606+00:00",
+      "text_sha256": "18c2123b6cba53d81673012a8d526401cd27992b38600379ad6a4fce0e4deef0",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "3b397522409ca3a4fd4228960278f4c3f642461d423859be6168e3f8af0aa114"
+    },
+    {
+      "paragraph_id": "p5",
+      "source_id": "hamar-parkering",
+      "title": "Transport og parkering: plasser og betaling",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+      "indexed_at": "2026-10-21T13:04:22.349606+00:00",
+      "text_sha256": "18c2123b6cba53d81673012a8d526401cd27992b38600379ad6a4fce0e4deef0",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "3b397522409ca3a4fd4228960278f4c3f642461d423859be6168e3f8af0aa114"
+    }
+  ],
+  "evidence_policy": "whole_reviewed_paragraph_verbatim",
+  "provider_latency_ms": 2201
+}

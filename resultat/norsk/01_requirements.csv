@@ -1,0 +1,37 @@
+ID,Omfang,Plassering,Krav,Evidensbehov,Status,Neste handling,Sporing
+A01,felles,Abstract; §1,Tilbakevendende behov i Innlandet,Problem og mottakere,VERIFIED,Studentene vurderer formuleringen,../kravmatrise.csv#A01
+A02,felles,Abstract,Arbeid i par,Ekte samarbeid og ansvar,PARTIAL,Studentene bekrefter bidrag og samarbeid,../kravmatrise.csv#A02
+A03,felles,§1 Constraints,Ingen identifiserende persondata behandles,Datagrense og faktisk etterlevelse,PARTIAL,Avklar historisk HTML og institusjonell personverngodkjenning,../kravmatrise.csv#A03
+A04,felles,§1 Constraints,Respekter kilder; begrens republisering,Eksakte URL-er og innhentingsgrenser,VERIFIED,Ingen ny innhenting; reell vurdering ved utløp,../kravmatrise.csv#A04
+A05,felles,§1 Constraints,Norsk lokalkontekst og offisielle institusjoner,Kildelenker og lokalt relevante svar,VERIFIED,Menneskelig relevansvurdering anbefales,../kravmatrise.csv#A05
+T01,Compulsory 2,§2 Technical minimum,Input og kontrollerbart output,Kjørbar observerbar sti,VERIFIED,Bevar begrensningene i rapporten,../kravmatrise.csv#T01
+T02,Compulsory 2,§2 Technical minimum,Mer enn ett trinn,Kjørbar observerbar sti,VERIFIED,Bevar begrensningene i rapporten,../kravmatrise.csv#T02
+T03,Compulsory 2,§2 Technical minimum,Verktøy/filer/eksterne data,Kjørbar observerbar sti,VERIFIED,Bevar begrensningene i rapporten,../kravmatrise.csv#T03
+T04,Compulsory 2,§2 Technical minimum,Minst ett automatisk ledd,Kjørbar observerbar sti,VERIFIED,Bevar begrensningene i rapporten,../kravmatrise.csv#T04
+C01,Compulsory 2,§2 Submission,Både rapport og walking skeleton,Ferdig rapport og kjørbar kode,PARTIAL,Skriv og bygg innleveringsrapport,../kravmatrise.csv#C01
+C02,Compulsory 2,§2 The report,"Problem, behov, målgruppe og output",Innhold i faktisk innlevering,PARTIAL,Overfør verifisert innhold til engelsk rapport,../kravmatrise.csv#C02
+C03,Compulsory 2,§2 The report,Suksess og kontroll av korrekthet,Innhold i faktisk innlevering,PARTIAL,Overfør verifisert innhold til engelsk rapport,../kravmatrise.csv#C03
+C04,Compulsory 2,§2 The report,"Arkitektur, kontekst, trinn og automatisering",Innhold i faktisk innlevering,PARTIAL,Overfør verifisert innhold til engelsk rapport,../kravmatrise.csv#C04
+C06,Compulsory 2,§2 The report,Risikovurdering og tiltak,Innhold i faktisk innlevering,PARTIAL,Overfør verifisert innhold til engelsk rapport,../kravmatrise.csv#C06
+C07,Compulsory 2,§2 The report,Repository-lenke i rapporten,Innhold i faktisk innlevering,PARTIAL,Overfør verifisert innhold til engelsk rapport,../kravmatrise.csv#C07
+C05,Compulsory 2,§2 The report: schedule,Baklengs milepæler fra demonstrasjonsdato,Bekreftet D-dato og plan,PARTIAL,Oppgi dato og godkjenn milepæler,../kravmatrise.csv#C05
+C08,Compulsory 2,§2 Walking skeleton,En ende-til-ende-sti,Reelt input til etterprøvbart output,VERIFIED,Ingen,../kravmatrise.csv#C08
+C09,Compulsory 2,§2 Walking skeleton,README muliggjør reproduksjon,Alle nødvendige inndata tilgjengelige,PARTIAL,Avtal lovlig overføring av katalog; test fra ren kopi,../kravmatrise.csv#C09
+C10,Compulsory 2,§2 Walking skeleton,Kontekstfiler i repo,Instruksjoner og fixtures,VERIFIED,Ingen,../kravmatrise.csv#C10
+C11,Compulsory 2,§2 Report format,Utdelt LaTeX-mal,Original mal og rapportkilde,MISSING,Tilgjengeliggjør utdelt mal,../kravmatrise.csv#C11
+C12,Compulsory 2,§2 Report format,NeurIPS preprint; fjern checklist,Kilde og bygget PDF,MISSING,Bruk neurips_2025 med preprint; kontroller PDF,../kravmatrise.csv#C12
+C13,Compulsory 2,§2 Report format,3–4 sider hovedtekst,Kompilert rapport og sidetall,MISSING,Bygg og kontroller sider ekskl. vedlegg/referanser,../kravmatrise.csv#C13
+C14,Compulsory 2,§2 Report format,Rapport på engelsk,Ferdig engelsk hovedtekst,MISSING,Skriv engelsk innleveringsrapport,../kravmatrise.csv#C14
+C15,Compulsory 2,§2 Appendices,Vedlegg inkludert,Ferdig vedlegg,PARTIAL,Sett sammen og bygg vedlegg,../kravmatrise.csv#C15
+C16,Compulsory 2,§2 Appendices,"Representative promptutdrag, maks to sider",Faktiske utdrag og sidetall,PARTIAL,Velg utdrag og kontroller maks to PDF-sider,../kravmatrise.csv#C16
+C17,Compulsory 2,§2 Appendices,Møter viser iterativ resonnering og revisjon,Ekte hendelser bekreftet av deltakerne,PARTIAL,Bekreft hvilke dokumenter som gjelder faktiske møter,../kravmatrise.csv#C17
+A06,felles,Abstract,"Systematisk testing, stress og validering før demo",Kjøringer og demonstrasjonsbekreftelse,PARTIAL,Bekreft demonstrasjon; fullfør temperaturtrygg plan om nødvendig,../kravmatrise.csv#A06
+E01,sluttartikkel,Full offisiell sluttoppgave mangler,Sluttartikkelens vurderingskriterier,Komplett autoritativ tekst,MISSING,Oppgi full offisiell sluttoppgave,../kravmatrise.csv#E01
+E02,sluttartikkel,Brukerens tillegg; offisiell klasseoversikt mangler,"Minst to av fire navngitte feilklasser med feil, årsak, reparasjon og regresjon",Klassenavn og komplette forsøkskjeder,PARTIAL,Koble til offisielle klasser og avklar reparasjonskrav; godkjenn nødvendige appendringer separat,../kravmatrise.csv#E02
+E03,sluttartikkel,Brukerens tillegg,Global kill switch håndheves,Pågående arbeid stoppes,MISSING,Godkjenn separat design og implementering av reell nødstopp,../kravmatrise.csv#E03
+E04,sluttartikkel,Brukerens tillegg,Token- og kostnadsbudsjetter håndheves,Per-kall og aggregert budsjett,PARTIAL,Godkjenn globalt øktbudsjett; mål kostnad/energi hvis relevant,../kravmatrise.csv#E04
+E05,sluttartikkel,Brukerens tillegg,Tillatelser og menneskelige porter håndheves,Avslag på forbudte handlinger,PARTIAL,Avklar autentisering av reell godkjenner; OS-kontroller er ikke en appport,../kravmatrise.csv#E05
+E06,sluttartikkel,Brukerens tillegg; ikke i lokal §2,Minst åtte genuine møtereferater,Åtte faktiske møter med bekreftede beslutninger,PARTIAL,Studentene dokumenterer åtte reelle hendelser; ikke tilbakedater eller oppfinn,../kravmatrise.csv#E06
+E07,sluttartikkel,Brukerens tillegg,Representativ Codex-logg,Reelle representative interaksjoner,PARTIAL,Studentene velger og bekrefter representativitet,../kravmatrise.csv#E07
+W40,undervisningskontekst,W40_KIUA_2003 ikke funnet,Sammenhold med faktisk W40-materiale,Original undervisningsfil,MISSING,Oppgi filsti; ingen eksterne kriterier gjettes,../kravmatrise.csv#W40
+U01,tilleggsanbefaling,Frivillig survey i brukeroppgaven,Brukervurdering,Anonyme frivillige svar,PARTIAL,Studentene gjennomfører frivillig og godkjent undersøkelse,../kravmatrise.csv#U01

@@ -1,0 +1,3501 @@
+{
+  "date": "2026-10-23T10:33:38.891123+00:00",
+  "synthetic_only": true,
+  "actual_model_calls": 0,
+  "workers": 8,
+  "port": "ephemeral-loopback",
+  "rows": [
+    {
+      "index": 0,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 122.544
+    },
+    {
+      "index": 1,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 111.019
+    },
+    {
+      "index": 2,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 155.762
+    },
+    {
+      "index": 3,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.896
+    },
+    {
+      "index": 4,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.716
+    },
+    {
+      "index": 5,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 139.532
+    },
+    {
+      "index": 6,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.338
+    },
+    {
+      "index": 7,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.394
+    },
+    {
+      "index": 8,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 145.027
+    },
+    {
+      "index": 9,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 105.501
+    },
+    {
+      "index": 10,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 105.328
+    },
+    {
+      "index": 11,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 130.47
+    },
+    {
+      "index": 12,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.451
+    },
+    {
+      "index": 13,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.49
+    },
+    {
+      "index": 14,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 115.43
+    },
+    {
+      "index": 15,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 131.375
+    },
+    {
+      "index": 16,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.235
+    },
+    {
+      "index": 17,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.603
+    },
+    {
+      "index": 18,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.995
+    },
+    {
+      "index": 19,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 120.611
+    },
+    {
+      "index": 20,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 106.427
+    },
+    {
+      "index": 21,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.262
+    },
+    {
+      "index": 22,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 107.599
+    },
+    {
+      "index": 23,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.725
+    },
+    {
+      "index": 24,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 135.326
+    },
+    {
+      "index": 25,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.895
+    },
+    {
+      "index": 26,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 574.92
+    },
+    {
+      "index": 27,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.943
+    },
+    {
+      "index": 28,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.264
+    },
+    {
+      "index": 29,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.672
+    },
+    {
+      "index": 30,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.313
+    },
+    {
+      "index": 31,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 106.349
+    },
+    {
+      "index": 32,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 90.234
+    },
+    {
+      "index": 33,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.499
+    },
+    {
+      "index": 34,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.007
+    },
+    {
+      "index": 35,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 88.034
+    },
+    {
+      "index": 36,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.519
+    },
+    {
+      "index": 37,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.297
+    },
+    {
+      "index": 38,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.871
+    },
+    {
+      "index": 39,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.706
+    },
+    {
+      "index": 40,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.687
+    },
+    {
+      "index": 41,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.425
+    },
+    {
+      "index": 42,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.397
+    },
+    {
+      "index": 43,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 535.501
+    },
+    {
+      "index": 44,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 80.186
+    },
+    {
+      "index": 45,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 80.484
+    },
+    {
+      "index": 46,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 79.087
+    },
+    {
+      "index": 47,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 79.525
+    },
+    {
+      "index": 48,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 79.123
+    },
+    {
+      "index": 49,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 93.057
+    },
+    {
+      "index": 50,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 85.608
+    },
+    {
+      "index": 51,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 72.423
+    },
+    {
+      "index": 52,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 88.634
+    },
+    {
+      "index": 53,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 87.197
+    },
+    {
+      "index": 54,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 91.588
+    },
+    {
+      "index": 55,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 77.691
+    },
+    {
+      "index": 56,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 90.236
+    },
+    {
+      "index": 57,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 90.477
+    },
+    {
+      "index": 58,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 88.423
+    },
+    {
+      "index": 59,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 75.36
+    },
+    {
+      "index": 60,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 59.289
+    },
+    {
+      "index": 61,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 59.306
+    },
+    {
+      "index": 62,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 30.513
+    },
+    {
+      "index": 63,
+      "phase": "baseline",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 30.447
+    },
+    {
+      "index": 0,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 131.841
+    },
+    {
+      "index": 1,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 130.806
+    },
+    {
+      "index": 2,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 147.14
+    },
+    {
+      "index": 3,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 117.449
+    },
+    {
+      "index": 4,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 148.12
+    },
+    {
+      "index": 5,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.444
+    },
+    {
+      "index": 6,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 163.238
+    },
+    {
+      "index": 7,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 120.488
+    },
+    {
+      "index": 8,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.069
+    },
+    {
+      "index": 9,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 136.593
+    },
+    {
+      "index": 10,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 141.532
+    },
+    {
+      "index": 11,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 626.931
+    },
+    {
+      "index": 12,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 96.865
+    },
+    {
+      "index": 13,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 95.561
+    },
+    {
+      "index": 14,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.947
+    },
+    {
+      "index": 15,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 93.227
+    },
+    {
+      "index": 16,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 92.664
+    },
+    {
+      "index": 17,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.756
+    },
+    {
+      "index": 18,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 99.641
+    },
+    {
+      "index": 19,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 112.542
+    },
+    {
+      "index": 20,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.748
+    },
+    {
+      "index": 21,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 124.97
+    },
+    {
+      "index": 22,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 90.541
+    },
+    {
+      "index": 23,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 99.274
+    },
+    {
+      "index": 24,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.345
+    },
+    {
+      "index": 25,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 85.976
+    },
+    {
+      "index": 26,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 109.284
+    },
+    {
+      "index": 27,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 85.559
+    },
+    {
+      "index": 28,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.639
+    },
+    {
+      "index": 29,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.628
+    },
+    {
+      "index": 30,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 91.017
+    },
+    {
+      "index": 31,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.14
+    },
+    {
+      "index": 32,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 89.63
+    },
+    {
+      "index": 33,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.31
+    },
+    {
+      "index": 34,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 107.663
+    },
+    {
+      "index": 35,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.741
+    },
+    {
+      "index": 36,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.674
+    },
+    {
+      "index": 37,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.895
+    },
+    {
+      "index": 38,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 86.687
+    },
+    {
+      "index": 39,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.849
+    },
+    {
+      "index": 40,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 87.714
+    },
+    {
+      "index": 41,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.041
+    },
+    {
+      "index": 42,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 89.605
+    },
+    {
+      "index": 43,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.476
+    },
+    {
+      "index": 44,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 77.426
+    },
+    {
+      "index": 45,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 134.413
+    },
+    {
+      "index": 46,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 141.832
+    },
+    {
+      "index": 47,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 124.937
+    },
+    {
+      "index": 48,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 141.513
+    },
+    {
+      "index": 49,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 158.419
+    },
+    {
+      "index": 50,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 144.635
+    },
+    {
+      "index": 51,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 139.453
+    },
+    {
+      "index": 52,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 137.997
+    },
+    {
+      "index": 53,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 115.722
+    },
+    {
+      "index": 54,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.619
+    },
+    {
+      "index": 55,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.724
+    },
+    {
+      "index": 56,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.069
+    },
+    {
+      "index": 57,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.141
+    },
+    {
+      "index": 58,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.86
+    },
+    {
+      "index": 59,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.817
+    },
+    {
+      "index": 60,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.653
+    },
+    {
+      "index": 61,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 131.752
+    },
+    {
+      "index": 62,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.49
+    },
+    {
+      "index": 63,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 126.666
+    },
+    {
+      "index": 64,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 114.22
+    },
+    {
+      "index": 65,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 657.816
+    },
+    {
+      "index": 66,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.894
+    },
+    {
+      "index": 67,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 94.706
+    },
+    {
+      "index": 68,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.275
+    },
+    {
+      "index": 69,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.151
+    },
+    {
+      "index": 70,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.922
+    },
+    {
+      "index": 71,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 99.347
+    },
+    {
+      "index": 72,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 82.756
+    },
+    {
+      "index": 73,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 82.189
+    },
+    {
+      "index": 74,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.049
+    },
+    {
+      "index": 75,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 94.456
+    },
+    {
+      "index": 76,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 94.192
+    },
+    {
+      "index": 77,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 94.675
+    },
+    {
+      "index": 78,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 123.281
+    },
+    {
+      "index": 79,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 94.644
+    },
+    {
+      "index": 80,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 107.628
+    },
+    {
+      "index": 81,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.412
+    },
+    {
+      "index": 82,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 88.089
+    },
+    {
+      "index": 83,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.583
+    },
+    {
+      "index": 84,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.147
+    },
+    {
+      "index": 85,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.566
+    },
+    {
+      "index": 86,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 90.114
+    },
+    {
+      "index": 87,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.988
+    },
+    {
+      "index": 88,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 93.495
+    },
+    {
+      "index": 89,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 86.392
+    },
+    {
+      "index": 90,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 96.773
+    },
+    {
+      "index": 91,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.76
+    },
+    {
+      "index": 92,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.908
+    },
+    {
+      "index": 93,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 85.233
+    },
+    {
+      "index": 94,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 107.059
+    },
+    {
+      "index": 95,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.168
+    },
+    {
+      "index": 96,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 87.1
+    },
+    {
+      "index": 97,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 111.476
+    },
+    {
+      "index": 98,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 76.388
+    },
+    {
+      "index": 99,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 95.911
+    },
+    {
+      "index": 100,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 109.553
+    },
+    {
+      "index": 101,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 85.072
+    },
+    {
+      "index": 102,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.513
+    },
+    {
+      "index": 103,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.095
+    },
+    {
+      "index": 104,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 613.367
+    },
+    {
+      "index": 105,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 81.901
+    },
+    {
+      "index": 106,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.91
+    },
+    {
+      "index": 107,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.066
+    },
+    {
+      "index": 108,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.503
+    },
+    {
+      "index": 109,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 88.342
+    },
+    {
+      "index": 110,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.645
+    },
+    {
+      "index": 111,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.866
+    },
+    {
+      "index": 112,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 114.418
+    },
+    {
+      "index": 113,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.863
+    },
+    {
+      "index": 114,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.418
+    },
+    {
+      "index": 115,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.946
+    },
+    {
+      "index": 116,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 112.856
+    },
+    {
+      "index": 117,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 637.711
+    },
+    {
+      "index": 118,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 87.434
+    },
+    {
+      "index": 119,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 88.272
+    },
+    {
+      "index": 120,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 83.354
+    },
+    {
+      "index": 121,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 83.061
+    },
+    {
+      "index": 122,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 86.784
+    },
+    {
+      "index": 123,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 91.469
+    },
+    {
+      "index": 124,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.559
+    },
+    {
+      "index": 125,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.515
+    },
+    {
+      "index": 126,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 111.726
+    },
+    {
+      "index": 127,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 127.975
+    },
+    {
+      "index": 128,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 109.41
+    },
+    {
+      "index": 129,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 73.683
+    },
+    {
+      "index": 130,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 133.062
+    },
+    {
+      "index": 131,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 138.622
+    },
+    {
+      "index": 132,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 140.188
+    },
+    {
+      "index": 133,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 127.185
+    },
+    {
+      "index": 134,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 141.2
+    },
+    {
+      "index": 135,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 156.536
+    },
+    {
+      "index": 136,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.92
+    },
+    {
+      "index": 137,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.981
+    },
+    {
+      "index": 138,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 134.162
+    },
+    {
+      "index": 139,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 105.365
+    },
+    {
+      "index": 140,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.496
+    },
+    {
+      "index": 141,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 130.802
+    },
+    {
+      "index": 142,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 129.272
+    },
+    {
+      "index": 143,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 132.115
+    },
+    {
+      "index": 144,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 146.889
+    },
+    {
+      "index": 145,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 105.006
+    },
+    {
+      "index": 146,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 153.455
+    },
+    {
+      "index": 147,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 138.688
+    },
+    {
+      "index": 148,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 127.855
+    },
+    {
+      "index": 149,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 141.394
+    },
+    {
+      "index": 150,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 120.648
+    },
+    {
+      "index": 151,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 133.439
+    },
+    {
+      "index": 152,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 103.659
+    },
+    {
+      "index": 153,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.491
+    },
+    {
+      "index": 154,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 108.025
+    },
+    {
+      "index": 155,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 647.346
+    },
+    {
+      "index": 156,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 110.439
+    },
+    {
+      "index": 157,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 112.606
+    },
+    {
+      "index": 158,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 110.474
+    },
+    {
+      "index": 159,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.091
+    },
+    {
+      "index": 160,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 128.199
+    },
+    {
+      "index": 161,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 138.452
+    },
+    {
+      "index": 162,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.287
+    },
+    {
+      "index": 163,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.025
+    },
+    {
+      "index": 164,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 150.397
+    },
+    {
+      "index": 165,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 124.128
+    },
+    {
+      "index": 166,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 138.681
+    },
+    {
+      "index": 167,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 130.784
+    },
+    {
+      "index": 168,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 150.971
+    },
+    {
+      "index": 169,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 126.589
+    },
+    {
+      "index": 170,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.668
+    },
+    {
+      "index": 171,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 126.992
+    },
+    {
+      "index": 172,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 130.949
+    },
+    {
+      "index": 173,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 137.994
+    },
+    {
+      "index": 174,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.857
+    },
+    {
+      "index": 175,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.13
+    },
+    {
+      "index": 176,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 96.73
+    },
+    {
+      "index": 177,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 142.728
+    },
+    {
+      "index": 178,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 111.72
+    },
+    {
+      "index": 179,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.62
+    },
+    {
+      "index": 180,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 115.54
+    },
+    {
+      "index": 181,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.832
+    },
+    {
+      "index": 182,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 151.673
+    },
+    {
+      "index": 183,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 131.66
+    },
+    {
+      "index": 184,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.277
+    },
+    {
+      "index": 185,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 147.719
+    },
+    {
+      "index": 186,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 127.868
+    },
+    {
+      "index": 187,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 142.545
+    },
+    {
+      "index": 188,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 128.322
+    },
+    {
+      "index": 189,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 145.506
+    },
+    {
+      "index": 190,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 126.696
+    },
+    {
+      "index": 191,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 162.422
+    },
+    {
+      "index": 192,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 122.611
+    },
+    {
+      "index": 193,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 136.709
+    },
+    {
+      "index": 194,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 150.414
+    },
+    {
+      "index": 195,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 139.57
+    },
+    {
+      "index": 196,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 137.916
+    },
+    {
+      "index": 197,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 151.157
+    },
+    {
+      "index": 198,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 134.583
+    },
+    {
+      "index": 199,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 129.483
+    },
+    {
+      "index": 200,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 145.172
+    },
+    {
+      "index": 201,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 127.31
+    },
+    {
+      "index": 202,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.802
+    },
+    {
+      "index": 203,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.704
+    },
+    {
+      "index": 204,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 133.869
+    },
+    {
+      "index": 205,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 602.604
+    },
+    {
+      "index": 206,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 110.365
+    },
+    {
+      "index": 207,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 112.541
+    },
+    {
+      "index": 208,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 96.889
+    },
+    {
+      "index": 209,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 105.48
+    },
+    {
+      "index": 210,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 112.542
+    },
+    {
+      "index": 211,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 126.758
+    },
+    {
+      "index": 212,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 83.834
+    },
+    {
+      "index": 213,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.706
+    },
+    {
+      "index": 214,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.293
+    },
+    {
+      "index": 215,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.745
+    },
+    {
+      "index": 216,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 105.132
+    },
+    {
+      "index": 217,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.331
+    },
+    {
+      "index": 218,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.611
+    },
+    {
+      "index": 219,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 99.051
+    },
+    {
+      "index": 220,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.875
+    },
+    {
+      "index": 221,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 85.485
+    },
+    {
+      "index": 222,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 99.492
+    },
+    {
+      "index": 223,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.779
+    },
+    {
+      "index": 224,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 106.408
+    },
+    {
+      "index": 225,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.48
+    },
+    {
+      "index": 226,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 109.847
+    },
+    {
+      "index": 227,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 136.97
+    },
+    {
+      "index": 228,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 108.347
+    },
+    {
+      "index": 229,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 96.241
+    },
+    {
+      "index": 230,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 113.345
+    },
+    {
+      "index": 231,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 121.744
+    },
+    {
+      "index": 232,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 106.686
+    },
+    {
+      "index": 233,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 91.031
+    },
+    {
+      "index": 234,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 102.901
+    },
+    {
+      "index": 235,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.756
+    },
+    {
+      "index": 236,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 89.019
+    },
+    {
+      "index": 237,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 97.223
+    },
+    {
+      "index": 238,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.26
+    },
+    {
+      "index": 239,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 122.423
+    },
+    {
+      "index": 240,
+      "phase": "perturbation",
+      "injected_bad_origin": true,
+      "expected_http": 403,
+      "http": 403,
+      "pass": true,
+      "wall_ms": 530.382
+    },
+    {
+      "index": 241,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 112.083
+    },
+    {
+      "index": 242,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.765
+    },
+    {
+      "index": 243,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 98.0
+    },
+    {
+      "index": 244,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 120.316
+    },
+    {
+      "index": 245,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 115.581
+    },
+    {
+      "index": 246,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.004
+    },
+    {
+      "index": 247,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 119.123
+    },
+    {
+      "index": 248,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.557
+    },
+    {
+      "index": 249,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.424
+    },
+    {
+      "index": 250,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 133.384
+    },
+    {
+      "index": 251,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 84.827
+    },
+    {
+      "index": 252,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 71.46
+    },
+    {
+      "index": 253,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 71.639
+    },
+    {
+      "index": 254,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 35.252
+    },
+    {
+      "index": 255,
+      "phase": "perturbation",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 18.574
+    },
+    {
+      "index": 0,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 101.122
+    },
+    {
+      "index": 1,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 147.393
+    },
+    {
+      "index": 2,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.01
+    },
+    {
+      "index": 3,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.076
+    },
+    {
+      "index": 4,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.511
+    },
+    {
+      "index": 5,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 117.1
+    },
+    {
+      "index": 6,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 139.037
+    },
+    {
+      "index": 7,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 89.846
+    },
+    {
+      "index": 8,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 181.013
+    },
+    {
+      "index": 9,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 111.653
+    },
+    {
+      "index": 10,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 157.938
+    },
+    {
+      "index": 11,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 170.404
+    },
+    {
+      "index": 12,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 168.949
+    },
+    {
+      "index": 13,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 171.311
+    },
+    {
+      "index": 14,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 638.155
+    },
+    {
+      "index": 15,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 165.828
+    },
+    {
+      "index": 16,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 130.344
+    },
+    {
+      "index": 17,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 122.758
+    },
+    {
+      "index": 18,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.101
+    },
+    {
+      "index": 19,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 91.725
+    },
+    {
+      "index": 20,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.478
+    },
+    {
+      "index": 21,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 110.096
+    },
+    {
+      "index": 22,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 96.775
+    },
+    {
+      "index": 23,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 108.982
+    },
+    {
+      "index": 24,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 112.282
+    },
+    {
+      "index": 25,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 99.658
+    },
+    {
+      "index": 26,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.125
+    },
+    {
+      "index": 27,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 116.679
+    },
+    {
+      "index": 28,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 122.36
+    },
+    {
+      "index": 29,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 111.896
+    },
+    {
+      "index": 30,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 115.578
+    },
+    {
+      "index": 31,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 128.222
+    },
+    {
+      "index": 32,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 96.412
+    },
+    {
+      "index": 33,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 117.962
+    },
+    {
+      "index": 34,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 100.223
+    },
+    {
+      "index": 35,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 104.346
+    },
+    {
+      "index": 36,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 118.544
+    },
+    {
+      "index": 37,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 96.794
+    },
+    {
+      "index": 38,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 130.355
+    },
+    {
+      "index": 39,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.359
+    },
+    {
+      "index": 40,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 107.506
+    },
+    {
+      "index": 41,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 114.388
+    },
+    {
+      "index": 42,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 140.012
+    },
+    {
+      "index": 43,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 147.082
+    },
+    {
+      "index": 44,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 143.954
+    },
+    {
+      "index": 45,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 141.447
+    },
+    {
+      "index": 46,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 159.973
+    },
+    {
+      "index": 47,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 159.307
+    },
+    {
+      "index": 48,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 132.85
+    },
+    {
+      "index": 49,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 139.131
+    },
+    {
+      "index": 50,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 138.22
+    },
+    {
+      "index": 51,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 141.318
+    },
+    {
+      "index": 52,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 157.226
+    },
+    {
+      "index": 53,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 145.684
+    },
+    {
+      "index": 54,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 159.705
+    },
+    {
+      "index": 55,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 109.84
+    },
+    {
+      "index": 56,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 158.807
+    },
+    {
+      "index": 57,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 125.705
+    },
+    {
+      "index": 58,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 126.622
+    },
+    {
+      "index": 59,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 96.919
+    },
+    {
+      "index": 60,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 79.22
+    },
+    {
+      "index": 61,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 62.732
+    },
+    {
+      "index": 62,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 55.523
+    },
+    {
+      "index": 63,
+      "phase": "recovery",
+      "injected_bad_origin": false,
+      "expected_http": 200,
+      "http": 200,
+      "pass": true,
+      "wall_ms": 24.928
+    }
+  ],
+  "phases": {
+    "baseline": {
+      "n": 64,
+      "median_ms": 102.975,
+      "p95_nearest_rank_ms": 145.027,
+      "min_ms": 30.447,
+      "max_ms": 574.92,
+      "elapsed_s": 1.16331,
+      "requests_per_s": 55.015,
+      "expected_rejections": 0,
+      "unexpected_outcomes": 0
+    },
+    "perturbation": {
+      "n": 256,
+      "median_ms": 112.574,
+      "p95_nearest_rank_ms": 151.673,
+      "min_ms": 18.574,
+      "max_ms": 657.816,
+      "elapsed_s": 4.314269,
+      "requests_per_s": 59.338,
+      "expected_rejections": 16,
+      "unexpected_outcomes": 0
+    },
+    "recovery": {
+      "n": 64,
+      "median_ms": 120.452,
+      "p95_nearest_rank_ms": 170.404,
+      "min_ms": 24.928,
+      "max_ms": 638.155,
+      "elapsed_s": 1.099028,
+      "requests_per_s": 58.233,
+      "expected_rejections": 0,
+      "unexpected_outcomes": 0
+    }
+  },
+  "limitation": "Search only; concurrent HTTP rejection is not LLM throughput or token-budget enforcement"
+}

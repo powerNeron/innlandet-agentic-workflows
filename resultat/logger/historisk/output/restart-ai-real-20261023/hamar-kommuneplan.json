@@ -1,0 +1,136 @@
+{
+  "source": {
+    "id": "hamar-kommuneplan",
+    "title": "Politikk og planer: kommuneplanens samfunnsdel",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "Kommuneplanens samfunnsdel med langsiktig arealdel 2026-2049 ble vedtatt 17. desember 2025."
+      },
+      {
+        "id": "p2",
+        "text": "Kommuneplanen er kommunens øverste strategiske styringsverktøy. Den består av en samfunnsdel med langsiktig arealstrategi og en arealdel. Samfunnsdelen inneholder overordnede mål og strategier for utviklingen av Hamar – både som lokalsamfunn og som organisasjon."
+      },
+      {
+        "id": "p3",
+        "text": "Arealdelen viser hvordan kommunen ønsker å bruke arealene i kommunen til ulike formål for å nå målene i samfunnsdelen. Den langsiktige arealstrategien fungerer som en bro mellom samfunnsdelen og arealdelen og beskriver sentrale prinsipper for arealbruk i kommunen."
+      },
+      {
+        "id": "p4",
+        "text": "Kommuneplanen gir retning for politikkutforming, samfunnsutvikling og arealdisponering. Planens langsiktige perspektiv skaper forutsigbarhet, samtidig som det gir rom for ambisiøs utvikling. Perspektivet strekker seg frem mot 2049, da Hamar by fyller 200 år – en milepæl for langsiktig planlegging. Selv med et langt tidsperspektiv må samfunnsdelen revideres underveis."
+      },
+      {
+        "id": "p5",
+        "text": "Føringene i kommuneplanen konkretiseres i delplaner og gjennom den årlige handlings- og økonomiplanen. Handlings- og økonomiplanen utgjør kommuneplanens formelle handlingsdel."
+      }
+    ],
+    "synthetic": false,
+    "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/"
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "Kommuneplanens samfunnsdel med langsiktig arealdel 2026-2049 ble vedtatt 17. desember 2025.",
+      "paragraph_id": "p1",
+      "evidence_quote": "Kommuneplanens samfunnsdel med langsiktig arealdel 2026-2049 ble vedtatt 17. desember 2025.",
+      "evidence_status": "exact_match"
+    }
+  ],
+  "provider": "ollama:llama3.2:3b",
+  "schema_version": "1.0",
+  "warnings": [
+    "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+    "Limited source coverage. Consult the official page for context and current conditions."
+  ],
+  "workflow_version": "1.0",
+  "verification": {
+    "claims": [
+      {
+        "id": "c1",
+        "text": "Kommuneplanens samfunnsdel med langsiktig arealdel 2026-2049 ble vedtatt 17. desember 2025.",
+        "paragraph_id": "p1",
+        "evidence_quote": "Kommuneplanens samfunnsdel med langsiktig arealdel 2026-2049 ble vedtatt 17. desember 2025.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "findings": []
+  },
+  "correction": {
+    "status": "not_needed",
+    "attempts": 0,
+    "initial_claims": [],
+    "initial_findings": [],
+    "warnings": [],
+    "provider": null,
+    "provider_findings": []
+  },
+  "source_provenance": [
+    {
+      "paragraph_id": "p1",
+      "source_id": "hamar-kommuneplan",
+      "title": "Politikk og planer: kommuneplanens samfunnsdel",
+      "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/",
+      "retrieved_at": "2026-10-21T13:04:12.403827+00:00",
+      "indexed_at": "2026-10-21T13:04:12.443621+00:00",
+      "text_sha256": "18210b5e5f183a173f4ff5a6aee834b83feffac9fe43fe6246d05e67a62e289c",
+      "synthetic": false,
+      "category": "politikk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "f144b637fd8267e83816a48fbadb53100adca902bb7153733d426e3cabeb6d3f"
+    },
+    {
+      "paragraph_id": "p2",
+      "source_id": "hamar-kommuneplan",
+      "title": "Politikk og planer: kommuneplanens samfunnsdel",
+      "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/",
+      "retrieved_at": "2026-10-21T13:04:12.403827+00:00",
+      "indexed_at": "2026-10-21T13:04:12.443621+00:00",
+      "text_sha256": "18210b5e5f183a173f4ff5a6aee834b83feffac9fe43fe6246d05e67a62e289c",
+      "synthetic": false,
+      "category": "politikk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "f144b637fd8267e83816a48fbadb53100adca902bb7153733d426e3cabeb6d3f"
+    },
+    {
+      "paragraph_id": "p3",
+      "source_id": "hamar-kommuneplan",
+      "title": "Politikk og planer: kommuneplanens samfunnsdel",
+      "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/",
+      "retrieved_at": "2026-10-21T13:04:12.403827+00:00",
+      "indexed_at": "2026-10-21T13:04:12.443621+00:00",
+      "text_sha256": "18210b5e5f183a173f4ff5a6aee834b83feffac9fe43fe6246d05e67a62e289c",
+      "synthetic": false,
+      "category": "politikk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "f144b637fd8267e83816a48fbadb53100adca902bb7153733d426e3cabeb6d3f"
+    },
+    {
+      "paragraph_id": "p4",
+      "source_id": "hamar-kommuneplan",
+      "title": "Politikk og planer: kommuneplanens samfunnsdel",
+      "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/",
+      "retrieved_at": "2026-10-21T13:04:12.403827+00:00",
+      "indexed_at": "2026-10-21T13:04:12.443621+00:00",
+      "text_sha256": "18210b5e5f183a173f4ff5a6aee834b83feffac9fe43fe6246d05e67a62e289c",
+      "synthetic": false,
+      "category": "politikk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "f144b637fd8267e83816a48fbadb53100adca902bb7153733d426e3cabeb6d3f"
+    },
+    {
+      "paragraph_id": "p5",
+      "source_id": "hamar-kommuneplan",
+      "title": "Politikk og planer: kommuneplanens samfunnsdel",
+      "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/",
+      "retrieved_at": "2026-10-21T13:04:12.403827+00:00",
+      "indexed_at": "2026-10-21T13:04:12.443621+00:00",
+      "text_sha256": "18210b5e5f183a173f4ff5a6aee834b83feffac9fe43fe6246d05e67a62e289c",
+      "synthetic": false,
+      "category": "politikk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "f144b637fd8267e83816a48fbadb53100adca902bb7153733d426e3cabeb6d3f"
+    }
+  ],
+  "evidence_policy": "whole_reviewed_paragraph_verbatim",
+  "provider_latency_ms": 1328
+}

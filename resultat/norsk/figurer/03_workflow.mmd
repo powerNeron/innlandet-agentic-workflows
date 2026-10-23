@@ -1,0 +1,15 @@
+flowchart TD
+    A[Bruker: generelt tjenestespørsmål] --> B[Personvern og temaavgrensning]
+    B --> C[Lokal godkjent katalog: søk og gyldighet]
+    C --> D{Tilstrekkelig kildegrunnlag?}
+    D -->|Nei| E[Avslag og offisiell veiledning]
+    D -->|Ja| F[Ollama velger helt godkjent avsnitt]
+    F --> G[Verifikasjon og eksakt avsnittssamsvar]
+    G --> H{Funn?}
+    H -->|Nei| I[Svar med offisiell kilde]
+    H -->|Ja| J[Høyst én korreksjon]
+    J --> K[Obligatorisk ny verifikasjon]
+    K -->|Uløst eller feil| E
+    K -->|Ingen funn| I
+    L[Menneskelig kildevurdering: før opptak] -.-> C
+    M[Levende HTML-innhenting sperret] -.-> E

@@ -1,0 +1,136 @@
+{
+  "source": {
+    "id": "hamar-byggesak",
+    "title": "Bolig og byggesak: bygge uten å søke?",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "Hvis du planlegger et lite tilbygg på huset dit; en terrasse eller en veranda, er det ikke sikkert at du trenger å søke."
+      },
+      {
+        "id": "p2",
+        "text": "Det er heller ikke sikkert du trenger å søke hvis du skal bygge en garasje, bod eller en annen frittstående bygning på eiendommen din."
+      },
+      {
+        "id": "p3",
+        "text": "Regjeringen har gjort det enklere for boligeiere å gjennomføre enkelte energisparende tiltak uten å søke om byggetillatelse. Dette gjelder imidlertid ikke alle bygninger."
+      },
+      {
+        "id": "p4",
+        "text": "Dersom eiendommen din er SEFRAK-registrert, har kulturhistorisk verdi eller ligger i et område med vern eller særlige kulturmiljøhensyn, kan tiltaket fortsatt være søknadspliktig."
+      },
+      {
+        "id": "p5",
+        "text": "Fasadeendringer kan omfatte både tak og yttervegger. Om et tiltak regnes som en fasadeendring, og om det krever søknad, vurderes i hvert enkelt tilfelle. Hamar kommune har mange områder og bygninger med sterke vernehensyn. Derfor vil tiltak på fasader i mange tilfeller fortsatt være søknadspliktige, selv etter at endringene i byggesaksforskriften § 4-3 trådte i kraft 1. juli 2026."
+      }
+    ],
+    "synthetic": false,
+    "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/"
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "Hvis du planlegger et lite tilbygg på huset dit; en terrasse eller en veranda, er det ikke sikkert at du trenger å søke.",
+      "paragraph_id": "p1",
+      "evidence_quote": "Hvis du planlegger et lite tilbygg på huset dit; en terrasse eller en veranda, er det ikke sikkert at du trenger å søke.",
+      "evidence_status": "exact_match"
+    }
+  ],
+  "provider": "ollama:llama3.2:3b",
+  "schema_version": "1.0",
+  "warnings": [
+    "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+    "Limited source coverage. Consult the official page for context and current conditions."
+  ],
+  "workflow_version": "1.0",
+  "verification": {
+    "claims": [
+      {
+        "id": "c1",
+        "text": "Hvis du planlegger et lite tilbygg på huset dit; en terrasse eller en veranda, er det ikke sikkert at du trenger å søke.",
+        "paragraph_id": "p1",
+        "evidence_quote": "Hvis du planlegger et lite tilbygg på huset dit; en terrasse eller en veranda, er det ikke sikkert at du trenger å søke.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "findings": []
+  },
+  "correction": {
+    "status": "not_needed",
+    "attempts": 0,
+    "initial_claims": [],
+    "initial_findings": [],
+    "warnings": [],
+    "provider": null,
+    "provider_findings": []
+  },
+  "source_provenance": [
+    {
+      "paragraph_id": "p1",
+      "source_id": "hamar-byggesak",
+      "title": "Bolig og byggesak: bygge uten å søke?",
+      "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/",
+      "retrieved_at": "2026-10-21T13:03:57.400233+00:00",
+      "indexed_at": "2026-10-21T13:03:57.425864+00:00",
+      "text_sha256": "22d6c6fde0906c5afff3d941a4d5273b45a0d1ca42efc31eeb297645bd7d1938",
+      "synthetic": false,
+      "category": "bolig",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "147025615dad642a404cc0c808dc32b2774c4e524556af007df716a44127f90b"
+    },
+    {
+      "paragraph_id": "p2",
+      "source_id": "hamar-byggesak",
+      "title": "Bolig og byggesak: bygge uten å søke?",
+      "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/",
+      "retrieved_at": "2026-10-21T13:03:57.400233+00:00",
+      "indexed_at": "2026-10-21T13:03:57.425864+00:00",
+      "text_sha256": "22d6c6fde0906c5afff3d941a4d5273b45a0d1ca42efc31eeb297645bd7d1938",
+      "synthetic": false,
+      "category": "bolig",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "147025615dad642a404cc0c808dc32b2774c4e524556af007df716a44127f90b"
+    },
+    {
+      "paragraph_id": "p3",
+      "source_id": "hamar-byggesak",
+      "title": "Bolig og byggesak: bygge uten å søke?",
+      "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/",
+      "retrieved_at": "2026-10-21T13:03:57.400233+00:00",
+      "indexed_at": "2026-10-21T13:03:57.425864+00:00",
+      "text_sha256": "22d6c6fde0906c5afff3d941a4d5273b45a0d1ca42efc31eeb297645bd7d1938",
+      "synthetic": false,
+      "category": "bolig",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "147025615dad642a404cc0c808dc32b2774c4e524556af007df716a44127f90b"
+    },
+    {
+      "paragraph_id": "p4",
+      "source_id": "hamar-byggesak",
+      "title": "Bolig og byggesak: bygge uten å søke?",
+      "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/",
+      "retrieved_at": "2026-10-21T13:03:57.400233+00:00",
+      "indexed_at": "2026-10-21T13:03:57.425864+00:00",
+      "text_sha256": "22d6c6fde0906c5afff3d941a4d5273b45a0d1ca42efc31eeb297645bd7d1938",
+      "synthetic": false,
+      "category": "bolig",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "147025615dad642a404cc0c808dc32b2774c4e524556af007df716a44127f90b"
+    },
+    {
+      "paragraph_id": "p5",
+      "source_id": "hamar-byggesak",
+      "title": "Bolig og byggesak: bygge uten å søke?",
+      "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/",
+      "retrieved_at": "2026-10-21T13:03:57.400233+00:00",
+      "indexed_at": "2026-10-21T13:03:57.425864+00:00",
+      "text_sha256": "22d6c6fde0906c5afff3d941a4d5273b45a0d1ca42efc31eeb297645bd7d1938",
+      "synthetic": false,
+      "category": "bolig",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "147025615dad642a404cc0c808dc32b2774c4e524556af007df716a44127f90b"
+    }
+  ],
+  "evidence_policy": "whole_reviewed_paragraph_verbatim",
+  "provider_latency_ms": 1347
+}

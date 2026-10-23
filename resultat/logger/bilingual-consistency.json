@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-23T10:50:41.058098+00:00",
+  "pass": true,
+  "shared_data_sha256": "342938bb77c0f6d8593e4c6ea0e3d211035df1b7346c4a8f0f637e674c19a675",
+  "same_numeric_payload": true,
+  "same_measurement_cells_and_references": true,
+  "same_figure_input_arrays": true,
+  "same_caption_numbers": true,
+  "limitations": "Human review of translation is still recommended; equality is not factual validity",
+  "historical_results_reused_from_shared_data": true
+}

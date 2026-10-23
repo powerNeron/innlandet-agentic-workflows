@@ -1,0 +1,136 @@
+{
+  "source": {
+    "id": "hamar-luftkvalitet",
+    "title": "Miljø og klima: luftkvalitet i Hamar",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "Luftforurensning oppleves ofte som et problem i store norske byer vinterstid. Kald, stillestående luft, mye biltrafikk med piggdekk, samt vedfyring, er en uheldig kombinasjon når det gjelder luftkvalitet."
+      },
+      {
+        "id": "p2",
+        "text": "Fra biltrafikken virvles partikler opp fra asfalt som slites av piggdekk, samt at nitrogendioksid slippes ut gjennom eksos. Vedfyring og oljefyring er også en viktig kilde til partikkelutslipp (28 % på landsbasis). Partikkelutslipp fra lokal industrivirksomhet kan også være en viktig kilde (23 % på landsbasis), men omfanget av dette har vi ikke oversikt over i Hamar."
+      },
+      {
+        "id": "p3",
+        "text": "I og med at fjernvarme har erstattet oljefyring i Hamar, anses biltrafikken å være den største bidragsyteren i Hamar. (Jfr. Klima og miljøplanen)."
+      },
+      {
+        "id": "p4",
+        "text": "Den enkelte husstand med vedfyring kan bidra til renere luft med utskifting til rentbrennende ovner, hvis det ikke allerede er gjort."
+      },
+      {
+        "id": "p5",
+        "text": "Statens vegvesen har i samarbeid med kommunen etablert en mobil målestasjon for luftforurensning i Vangsvegen. Denne måleren registrerer mengde nitrogendioksid (fra eksos) og svevestøv."
+      }
+    ],
+    "synthetic": false,
+    "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/"
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "Luftforurensning oppleves ofte som et problem i store norske byer vinterstid. Kald, stillestående luft, mye biltrafikk med piggdekk, samt vedfyring, er en uheldig kombinasjon når det gjelder luftkvalitet.",
+      "paragraph_id": "p1",
+      "evidence_quote": "Luftforurensning oppleves ofte som et problem i store norske byer vinterstid. Kald, stillestående luft, mye biltrafikk med piggdekk, samt vedfyring, er en uheldig kombinasjon når det gjelder luftkvalitet.",
+      "evidence_status": "exact_match"
+    }
+  ],
+  "provider": "ollama:llama3.2:3b",
+  "schema_version": "1.0",
+  "warnings": [
+    "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+    "Limited source coverage. Consult the official page for context and current conditions."
+  ],
+  "workflow_version": "1.0",
+  "verification": {
+    "claims": [
+      {
+        "id": "c1",
+        "text": "Luftforurensning oppleves ofte som et problem i store norske byer vinterstid. Kald, stillestående luft, mye biltrafikk med piggdekk, samt vedfyring, er en uheldig kombinasjon når det gjelder luftkvalitet.",
+        "paragraph_id": "p1",
+        "evidence_quote": "Luftforurensning oppleves ofte som et problem i store norske byer vinterstid. Kald, stillestående luft, mye biltrafikk med piggdekk, samt vedfyring, er en uheldig kombinasjon når det gjelder luftkvalitet.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "findings": []
+  },
+  "correction": {
+    "status": "not_needed",
+    "attempts": 0,
+    "initial_claims": [],
+    "initial_findings": [],
+    "warnings": [],
+    "provider": null,
+    "provider_findings": []
+  },
+  "source_provenance": [
+    {
+      "paragraph_id": "p1",
+      "source_id": "hamar-luftkvalitet",
+      "title": "Miljø og klima: luftkvalitet i Hamar",
+      "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/",
+      "retrieved_at": "2026-10-21T13:04:27.308298+00:00",
+      "indexed_at": "2026-10-21T13:04:27.333472+00:00",
+      "text_sha256": "431bf1e3263fe736d823ae310b0ffa8212f2cbf3241f90300e31ec852e370f8a",
+      "synthetic": false,
+      "category": "miljo",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "abd8096e0087098d5c8f8a127ed47cb686ce659870e0778bc8ae59d9bfdbd5f9"
+    },
+    {
+      "paragraph_id": "p2",
+      "source_id": "hamar-luftkvalitet",
+      "title": "Miljø og klima: luftkvalitet i Hamar",
+      "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/",
+      "retrieved_at": "2026-10-21T13:04:27.308298+00:00",
+      "indexed_at": "2026-10-21T13:04:27.333472+00:00",
+      "text_sha256": "431bf1e3263fe736d823ae310b0ffa8212f2cbf3241f90300e31ec852e370f8a",
+      "synthetic": false,
+      "category": "miljo",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "abd8096e0087098d5c8f8a127ed47cb686ce659870e0778bc8ae59d9bfdbd5f9"
+    },
+    {
+      "paragraph_id": "p3",
+      "source_id": "hamar-luftkvalitet",
+      "title": "Miljø og klima: luftkvalitet i Hamar",
+      "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/",
+      "retrieved_at": "2026-10-21T13:04:27.308298+00:00",
+      "indexed_at": "2026-10-21T13:04:27.333472+00:00",
+      "text_sha256": "431bf1e3263fe736d823ae310b0ffa8212f2cbf3241f90300e31ec852e370f8a",
+      "synthetic": false,
+      "category": "miljo",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "abd8096e0087098d5c8f8a127ed47cb686ce659870e0778bc8ae59d9bfdbd5f9"
+    },
+    {
+      "paragraph_id": "p4",
+      "source_id": "hamar-luftkvalitet",
+      "title": "Miljø og klima: luftkvalitet i Hamar",
+      "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/",
+      "retrieved_at": "2026-10-21T13:04:27.308298+00:00",
+      "indexed_at": "2026-10-21T13:04:27.333472+00:00",
+      "text_sha256": "431bf1e3263fe736d823ae310b0ffa8212f2cbf3241f90300e31ec852e370f8a",
+      "synthetic": false,
+      "category": "miljo",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "abd8096e0087098d5c8f8a127ed47cb686ce659870e0778bc8ae59d9bfdbd5f9"
+    },
+    {
+      "paragraph_id": "p5",
+      "source_id": "hamar-luftkvalitet",
+      "title": "Miljø og klima: luftkvalitet i Hamar",
+      "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/",
+      "retrieved_at": "2026-10-21T13:04:27.308298+00:00",
+      "indexed_at": "2026-10-21T13:04:27.333472+00:00",
+      "text_sha256": "431bf1e3263fe736d823ae310b0ffa8212f2cbf3241f90300e31ec852e370f8a",
+      "synthetic": false,
+      "category": "miljo",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "abd8096e0087098d5c8f8a127ed47cb686ce659870e0778bc8ae59d9bfdbd5f9"
+    }
+  ],
+  "evidence_policy": "whole_reviewed_paragraph_verbatim",
+  "provider_latency_ms": 2393
+}

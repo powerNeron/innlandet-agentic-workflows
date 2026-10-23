@@ -1,0 +1,15 @@
+flowchart TD
+    A[User: general service question] --> B[Privacy and topic constraints]
+    B --> C[Approved local catalog: retrieval and validity]
+    C --> D{Sufficient source evidence?}
+    D -->|No| E[Refusal and official guidance]
+    D -->|Yes| F[Ollama selects complete approved paragraph]
+    F --> G[Verification and exact paragraph match]
+    G --> H{Findings?}
+    H -->|No| I[Answer with official source]
+    H -->|Yes| J[At most one correction]
+    J --> K[Mandatory re-verification]
+    K -->|Unresolved or failed| E
+    K -->|No findings| I
+    L[Human source review before admission] -.-> C
+    M[Live HTML acquisition blocked] -.-> E

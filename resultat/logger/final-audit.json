@@ -1,0 +1,141 @@
+{
+  "date": "2026-10-23T11:24:00.622541+00:00",
+  "pass": true,
+  "same_numeric_dataset": true,
+  "csv_checks": [
+    {
+      "file": "02_test_results.csv",
+      "identical_measurement_cells": true,
+      "rows": 12
+    },
+    {
+      "file": "04_response_times.csv",
+      "identical_measurement_cells": true,
+      "rows": 416
+    },
+    {
+      "file": "19_token_usage.csv",
+      "identical_measurement_cells": true,
+      "rows": 14
+    },
+    {
+      "file": "01_requirements.csv",
+      "identical_numeric_cells_and_source_references": true,
+      "rows": 36
+    },
+    {
+      "file": "01_full_requirements.csv",
+      "identical_numeric_cells_and_source_references": true,
+      "rows": 36
+    }
+  ],
+  "same_markdown_source_references": true,
+  "measured_outputs_within_requested_cap": true,
+  "full_text_numeric_checks": [
+    {
+      "file": "00_READ_ME.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "01_full_requirements.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "01_requirements.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "02_test_results.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "03_methodology.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "04_performance_summary.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "05_sources_privacy_security.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "06_stress_failures_regression.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "07_user_survey.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "08_architecture.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "09_agent_changes_meetings.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "10_figures_and_tables.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "11_limitations.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "12_coverage_gaps.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "13_final_exam_readiness.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "14_risks_schedule.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "15_reproduction.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "16_experiment_protocol.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "17_prompt_excerpts.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "18_meeting_confirmation_template.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "20_historical_evidence.md",
+      "same_numeric_tokens_in_order": true
+    },
+    {
+      "file": "21_browser_evidence.md",
+      "same_numeric_tokens_in_order": true
+    }
+  ],
+  "all_full_text_numeric_checks_pass": true,
+  "broken_markdown_links": [],
+  "historical_hashes_verified": 43,
+  "local_catalog_not_published": true,
+  "unavailable_local_catalog_checks": [],
+  "code_context_newline_normalization_only": [],
+  "protected_code_and_source_files_unchanged": 34,
+  "tracked_application_changes": false,
+  "browser_screenshot_and_plots_visually_inspected": true,
+  "visually_inspected_files": [
+    "english/figurer/01_model_response_times.png",
+    "english/figurer/02_http_latency_distribution.png",
+    "logger/browser/mobile-ai.png"
+  ],
+  "numeric_equality_is_not_factual_accuracy": true,
+  "global_kill_switch_verified": false,
+  "final_submission_ready": false
+}

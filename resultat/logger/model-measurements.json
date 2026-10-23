@@ -1,0 +1,428 @@
+{
+  "date": "2026-10-23T10:33:43.512781+00:00",
+  "ollama_version": "0.40.8",
+  "model": "llama3.2:3b",
+  "planned_requests": 20,
+  "completed": 14,
+  "stopped_reason": "GPU safety threshold reached",
+  "rows": [
+    {
+      "index": 0,
+      "query_case": 0,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1580,
+      "wall_ms": 1582.165
+    },
+    {
+      "index": 1,
+      "query_case": 1,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1545,
+      "wall_ms": 1546.486
+    },
+    {
+      "index": 2,
+      "query_case": 2,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 2102,
+      "wall_ms": 2103.674
+    },
+    {
+      "index": 3,
+      "query_case": 3,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1218,
+      "wall_ms": 1219.61
+    },
+    {
+      "index": 4,
+      "query_case": 0,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1534,
+      "wall_ms": 1537.644
+    },
+    {
+      "index": 5,
+      "query_case": 1,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1458,
+      "wall_ms": 1458.408
+    },
+    {
+      "index": 6,
+      "query_case": 2,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 2058,
+      "wall_ms": 2058.532
+    },
+    {
+      "index": 7,
+      "query_case": 3,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1155,
+      "wall_ms": 1155.707
+    },
+    {
+      "index": 8,
+      "query_case": 0,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1484,
+      "wall_ms": 1484.665
+    },
+    {
+      "index": 9,
+      "query_case": 1,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1400,
+      "wall_ms": 1400.911
+    },
+    {
+      "index": 10,
+      "query_case": 2,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1981,
+      "wall_ms": 1981.342
+    },
+    {
+      "index": 11,
+      "query_case": 3,
+      "batch": "sequential",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1179,
+      "wall_ms": 1182.085
+    },
+    {
+      "index": 12,
+      "query_case": 0,
+      "batch": "concurrency-2",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 3065,
+      "wall_ms": 3066.538
+    },
+    {
+      "index": 13,
+      "query_case": 1,
+      "batch": "concurrency-2",
+      "pass": true,
+      "claims": 1,
+      "status": "evidence_checked",
+      "workflow_ms": 1533,
+      "wall_ms": 1533.243
+    }
+  ],
+  "model_call_metrics": [
+    {
+      "prompt_eval_count": 303,
+      "eval_count": 121,
+      "load_duration": 14504500,
+      "prompt_eval_duration": 27329000,
+      "eval_duration": 1477186000,
+      "total_duration": 1532567900,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 268,
+      "eval_count": 113,
+      "load_duration": 10605300,
+      "prompt_eval_duration": 34329000,
+      "eval_duration": 1396696000,
+      "total_duration": 1499411100,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 346,
+      "eval_count": 168,
+      "load_duration": 6572700,
+      "prompt_eval_duration": 39632000,
+      "eval_duration": 1973368000,
+      "total_duration": 2070489600,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 266,
+      "eval_count": 92,
+      "load_duration": 8759300,
+      "prompt_eval_duration": 36334000,
+      "eval_duration": 1097999000,
+      "total_duration": 1187881600,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 303,
+      "eval_count": 121,
+      "load_duration": 9011000,
+      "prompt_eval_duration": 23916000,
+      "eval_duration": 1429624000,
+      "total_duration": 1499504300,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 268,
+      "eval_count": 113,
+      "load_duration": 10365000,
+      "prompt_eval_duration": 24333000,
+      "eval_duration": 1348839000,
+      "total_duration": 1421823600,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 346,
+      "eval_count": 168,
+      "load_duration": 8963700,
+      "prompt_eval_duration": 26368000,
+      "eval_duration": 1955065000,
+      "total_duration": 2030081000,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 266,
+      "eval_count": 92,
+      "load_duration": 7993400,
+      "prompt_eval_duration": 32174000,
+      "eval_duration": 1047310000,
+      "total_duration": 1134545400,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 303,
+      "eval_count": 121,
+      "load_duration": 11091500,
+      "prompt_eval_duration": 22930000,
+      "eval_duration": 1370964000,
+      "total_duration": 1444276900,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 268,
+      "eval_count": 113,
+      "load_duration": 10384900,
+      "prompt_eval_duration": 23666000,
+      "eval_duration": 1311018000,
+      "total_duration": 1380350300,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 346,
+      "eval_count": 168,
+      "load_duration": 8816900,
+      "prompt_eval_duration": 22964000,
+      "eval_duration": 1890824000,
+      "total_duration": 1963232200,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 266,
+      "eval_count": 92,
+      "load_duration": 5713200,
+      "prompt_eval_duration": 27496000,
+      "eval_duration": 1081090000,
+      "total_duration": 1155540600,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "MainThread"
+    },
+    {
+      "prompt_eval_count": 268,
+      "eval_count": 113,
+      "load_duration": 7667000,
+      "prompt_eval_duration": 23170000,
+      "eval_duration": 1431062000,
+      "total_duration": 1496586600,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "ThreadPoolExecutor-0_1"
+    },
+    {
+      "prompt_eval_count": 303,
+      "eval_count": 121,
+      "load_duration": 7146800,
+      "prompt_eval_duration": 22418000,
+      "eval_duration": 1474091000,
+      "total_duration": 3027418800,
+      "done": true,
+      "done_reason": "stop",
+      "requested_output_limit": 700,
+      "thread": "ThreadPoolExecutor-0_0"
+    }
+  ],
+  "gpu_boundary_samples": [
+    {
+      "phase": "sequential",
+      "temperature_c": 75,
+      "memory_mib": 3110,
+      "utilization_percent": 87
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 71,
+      "memory_mib": 3110,
+      "utilization_percent": 91
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 75,
+      "memory_mib": 3110,
+      "utilization_percent": 92
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 67,
+      "memory_mib": 3110,
+      "utilization_percent": 93
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 71,
+      "memory_mib": 3110,
+      "utilization_percent": 93
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 74,
+      "memory_mib": 3110,
+      "utilization_percent": 89
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 69,
+      "memory_mib": 3110,
+      "utilization_percent": 46
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 72,
+      "memory_mib": 3110,
+      "utilization_percent": 93
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 72,
+      "memory_mib": 3110,
+      "utilization_percent": 83
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 71,
+      "memory_mib": 3110,
+      "utilization_percent": 91
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 73,
+      "memory_mib": 3110,
+      "utilization_percent": 93
+    },
+    {
+      "phase": "sequential",
+      "temperature_c": 74,
+      "memory_mib": 3110,
+      "utilization_percent": 93
+    },
+    {
+      "phase": "concurrency-2",
+      "temperature_c": 74,
+      "memory_mib": 3110,
+      "utilization_percent": 93
+    },
+    {
+      "phase": "concurrency-2",
+      "temperature_c": 80,
+      "memory_mib": 3110,
+      "utilization_percent": 87
+    }
+  ],
+  "latency_by_batch": {
+    "sequential": {
+      "n": 12,
+      "median_ms": 1511.1545,
+      "p95_nearest_rank_ms": 2103.674,
+      "min_ms": 1155.707,
+      "max_ms": 2103.674
+    },
+    "concurrency-2": {
+      "n": 2,
+      "median_ms": 2299.8905,
+      "p95_nearest_rank_ms": 3066.538,
+      "min_ms": 1533.243,
+      "max_ms": 3066.538
+    }
+  },
+  "limitations": [
+    "Repeated service cases, not independent users",
+    "No enforced global token/cost budget in the application",
+    "GPU sampling only between waves, not continuous",
+    "Evaluation safety stop is not an application kill switch"
+  ]
+}

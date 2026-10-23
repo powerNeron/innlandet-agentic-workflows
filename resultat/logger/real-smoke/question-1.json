@@ -1,0 +1,121 @@
+{
+  "query": "",
+  "answer_status": "evidence_checked",
+  "result": {
+    "source": {
+      "id": "portal-search-context",
+      "title": "Godkjente kommunale tjenesteutdrag",
+      "paragraphs": [
+        {
+          "id": "hamar-sfo:p1",
+          "text": "Alle barn på 1. til 3. trinn har tilbud om gratis 12 timer i SFO etter skoletid. De betaler bare tur- og kostpenger."
+        },
+        {
+          "id": "hamar-sfo:p2",
+          "text": "Hamar kommune tilbyr 12 timer gratis oppholdstid etter skoletid, fordelt på alle ukedager."
+        }
+      ],
+      "synthetic": false,
+      "url": null
+    },
+    "claims": [
+      {
+        "id": "c1",
+        "text": "Alle barn på 1. til 3. trinn har tilbud om gratis 12 timer i SFO etter skoletid. De betaler bare tur- og kostpenger.",
+        "paragraph_id": "hamar-sfo:p1",
+        "evidence_quote": "Alle barn på 1. til 3. trinn har tilbud om gratis 12 timer i SFO etter skoletid. De betaler bare tur- og kostpenger.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "provider": "ollama:llama3.2:3b",
+    "schema_version": "1.0",
+    "warnings": [
+      "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+      "Limited source coverage. Consult the official page for context and current conditions."
+    ],
+    "workflow_version": "1.0",
+    "verification": {
+      "claims": [
+        {
+          "id": "c1",
+          "text": "Alle barn på 1. til 3. trinn har tilbud om gratis 12 timer i SFO etter skoletid. De betaler bare tur- og kostpenger.",
+          "paragraph_id": "hamar-sfo:p1",
+          "evidence_quote": "Alle barn på 1. til 3. trinn har tilbud om gratis 12 timer i SFO etter skoletid. De betaler bare tur- og kostpenger.",
+          "evidence_status": "exact_match"
+        }
+      ],
+      "findings": []
+    },
+    "correction": {
+      "status": "not_needed",
+      "attempts": 0,
+      "initial_claims": [],
+      "initial_findings": [],
+      "warnings": [],
+      "provider": null,
+      "provider_findings": []
+    },
+    "source_provenance": [
+      {
+        "paragraph_id": "hamar-sfo:p1",
+        "source_id": "hamar-sfo",
+        "title": "Skole og SFO: 12 timer gratis for 1.-3. trinn",
+        "url": "https://www.hamar.kommune.no/skolefritidsordning/12-timer-gratis-sfo-for-1-3-trinn/",
+        "retrieved_at": "2026-10-21T13:03:52.312125+00:00",
+        "indexed_at": "2026-10-21T13:03:52.340400+00:00",
+        "text_sha256": "4b5f4200956357f69e6679b344f8cefe2fdb29028f5da27d4c8a0f3dd42dfdf5",
+        "synthetic": false,
+        "category": "oppvekst",
+        "approval_expires": "2026-10-28",
+        "raw_sha256": "67a567b742a45bcaa4d30beabe012af7d38c24efd4edbd16692ccea56a212b25"
+      },
+      {
+        "paragraph_id": "hamar-sfo:p2",
+        "source_id": "hamar-sfo",
+        "title": "Skole og SFO: 12 timer gratis for 1.-3. trinn",
+        "url": "https://www.hamar.kommune.no/skolefritidsordning/12-timer-gratis-sfo-for-1-3-trinn/",
+        "retrieved_at": "2026-10-21T13:03:52.312125+00:00",
+        "indexed_at": "2026-10-21T13:03:52.340400+00:00",
+        "text_sha256": "4b5f4200956357f69e6679b344f8cefe2fdb29028f5da27d4c8a0f3dd42dfdf5",
+        "synthetic": false,
+        "category": "oppvekst",
+        "approval_expires": "2026-10-28",
+        "raw_sha256": "67a567b742a45bcaa4d30beabe012af7d38c24efd4edbd16692ccea56a212b25"
+      }
+    ],
+    "evidence_policy": "whole_reviewed_paragraph_verbatim",
+    "provider_latency_ms": 1581
+  },
+  "citations": [
+    {
+      "paragraph_id": "hamar-sfo:p1",
+      "source_id": "hamar-sfo",
+      "title": "Skole og SFO: 12 timer gratis for 1.-3. trinn",
+      "url": "https://www.hamar.kommune.no/skolefritidsordning/12-timer-gratis-sfo-for-1-3-trinn/",
+      "retrieved_at": "2026-10-21T13:03:52.312125+00:00",
+      "indexed_at": "2026-10-21T13:03:52.340400+00:00",
+      "text_sha256": "4b5f4200956357f69e6679b344f8cefe2fdb29028f5da27d4c8a0f3dd42dfdf5",
+      "synthetic": false,
+      "category": "oppvekst",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "67a567b742a45bcaa4d30beabe012af7d38c24efd4edbd16692ccea56a212b25"
+    },
+    {
+      "paragraph_id": "hamar-sfo:p2",
+      "source_id": "hamar-sfo",
+      "title": "Skole og SFO: 12 timer gratis for 1.-3. trinn",
+      "url": "https://www.hamar.kommune.no/skolefritidsordning/12-timer-gratis-sfo-for-1-3-trinn/",
+      "retrieved_at": "2026-10-21T13:03:52.312125+00:00",
+      "indexed_at": "2026-10-21T13:03:52.340400+00:00",
+      "text_sha256": "4b5f4200956357f69e6679b344f8cefe2fdb29028f5da27d4c8a0f3dd42dfdf5",
+      "synthetic": false,
+      "category": "oppvekst",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "67a567b742a45bcaa4d30beabe012af7d38c24efd4edbd16692ccea56a212b25"
+    }
+  ],
+  "is_follow_up": false,
+  "provider_latency_ms": 1581,
+  "message": "Kildebasert svar; vurder funn og kildene før bruk.",
+  "coverage": "Kun individuelt gjennomgåtte, indekserte kilder. Ikke fullstendig kommunal dekning."
+}

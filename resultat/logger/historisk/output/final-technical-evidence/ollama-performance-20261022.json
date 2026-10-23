@@ -1,0 +1,210 @@
+{
+  "date": "2026-10-22T13:31:22.860115+00:00",
+  "model": "llama3.2:3b",
+  "source_id": "hamar-sfo",
+  "live_network_or_html": false,
+  "sequential_planned": 4,
+  "concurrent_planned": 8,
+  "max_concurrency": 2,
+  "requests_completed": 12,
+  "all_verified_no_errors": true,
+  "latency_seconds": {
+    "p50": 2.391,
+    "p95": 2.547,
+    "p99": 2.547,
+    "max": 2.563
+  },
+  "requests": [
+    {
+      "index": 0,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 1.593,
+      "batch": "sequential"
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 1.329,
+      "batch": "sequential"
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 1.437,
+      "batch": "sequential"
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 1.406,
+      "batch": "sequential"
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 1.328,
+      "batch": "concurrent-2"
+    },
+    {
+      "index": 5,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 2.547,
+      "batch": "concurrent-2"
+    },
+    {
+      "index": 6,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 2.391,
+      "batch": "concurrent-2"
+    },
+    {
+      "index": 7,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 2.469,
+      "batch": "concurrent-2"
+    },
+    {
+      "index": 8,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 2.531,
+      "batch": "concurrent-2"
+    },
+    {
+      "index": 9,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 2.453,
+      "batch": "concurrent-2"
+    },
+    {
+      "index": 10,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 2.532,
+      "batch": "concurrent-2"
+    },
+    {
+      "index": 11,
+      "ok": true,
+      "kind": "verified",
+      "seconds": 2.563,
+      "batch": "concurrent-2"
+    }
+  ],
+  "resource_samples": [
+    {
+      "timestamp": "2026-10-22T13:31:05.886416+00:00",
+      "cpu_percent": 0.0,
+      "ram_used_mib": 20787,
+      "ram_available_mib": 11466,
+      "gpu_utilization_pct": 4,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 49,
+      "ollama_process_rss_mib": 118
+    },
+    {
+      "timestamp": "2026-10-22T13:31:07.803806+00:00",
+      "cpu_percent": 16.5,
+      "ram_used_mib": 20739,
+      "ram_available_mib": 11514,
+      "gpu_utilization_pct": 93,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 68,
+      "ollama_process_rss_mib": 118
+    },
+    {
+      "timestamp": "2026-10-22T13:31:09.863124+00:00",
+      "cpu_percent": 19.5,
+      "ram_used_mib": 20814,
+      "ram_available_mib": 11438,
+      "gpu_utilization_pct": 8,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 69,
+      "ollama_process_rss_mib": 118
+    },
+    {
+      "timestamp": "2026-10-22T13:31:11.834738+00:00",
+      "cpu_percent": 20.0,
+      "ram_used_mib": 20903,
+      "ram_available_mib": 11350,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 70,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T13:31:13.714165+00:00",
+      "cpu_percent": 17.6,
+      "ram_used_mib": 20898,
+      "ram_available_mib": 11355,
+      "gpu_utilization_pct": 63,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 70,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T13:31:15.578307+00:00",
+      "cpu_percent": 17.7,
+      "ram_used_mib": 20901,
+      "ram_available_mib": 11352,
+      "gpu_utilization_pct": 93,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 69,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T13:31:17.549366+00:00",
+      "cpu_percent": 20.0,
+      "ram_used_mib": 20896,
+      "ram_available_mib": 11357,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 72,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T13:31:19.515517+00:00",
+      "cpu_percent": 21.0,
+      "ram_used_mib": 20907,
+      "ram_available_mib": 11346,
+      "gpu_utilization_pct": 93,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 73,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T13:31:21.441096+00:00",
+      "cpu_percent": 19.8,
+      "ram_used_mib": 20901,
+      "ram_available_mib": 11352,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_used_mib": 3058,
+      "gpu_temperature_c": 73,
+      "ollama_process_rss_mib": 119
+    }
+  ],
+  "resource_summary": {
+    "sample_count": 9,
+    "peak_cpu_pct": 21.0,
+    "peak_ram_used_mib": 20907,
+    "min_ram_available_mib": 11346,
+    "peak_gpu_utilization_pct": 95,
+    "peak_gpu_vram_mib": 3058,
+    "peak_gpu_temperature_c": 73,
+    "peak_ollama_process_rss_mib": 119
+  },
+  "limitations": [
+    "Small 12-request sample; p95/p99 are descriptive only.",
+    "Shared NVIDIA activity may include unrelated local processes.",
+    "A request in flight is allowed to finish if a safety bound is crossed; no further requests are submitted."
+  ]
+}

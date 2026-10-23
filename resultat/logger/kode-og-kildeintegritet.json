@@ -1,0 +1,142 @@
+{
+  "files": [
+    {
+      "path": "hamar_agent/__init__.py",
+      "sha256": "f6b1a38565f4cc0e2c312fd71cba61549d78e1cf816ee734739e86f64a803c71"
+    },
+    {
+      "path": "hamar_agent/__main__.py",
+      "sha256": "1d540b90cca32ed343ff5c8f765f0c02b0021d9d1fe76cac844ca0667f2f2d00"
+    },
+    {
+      "path": "hamar_agent/application.py",
+      "sha256": "2f1b0da41d6752e0a209f41721f9bf94760abd71b9a3e1ff3aa3a43f806ebacf"
+    },
+    {
+      "path": "hamar_agent/categories.py",
+      "sha256": "01a8e764f5d83c0dcb66417e0b70cd07b2f4d02d2ea4255e3a391b87fcec1f1d"
+    },
+    {
+      "path": "hamar_agent/correction.py",
+      "sha256": "0229a65e663fdaaf8a7c1da47f13c3f8d9f557da0b0f2b7227e3bfc9b6063ea8"
+    },
+    {
+      "path": "hamar_agent/html_extract.py",
+      "sha256": "b5112b53ef1da66785b034865ca063edd4fc72f58f5499986fb3f1fdcbea2100"
+    },
+    {
+      "path": "hamar_agent/municipal_import.py",
+      "sha256": "4e27039823597dbe42d53227e55b01dfcbcfc54ada27d8f6d1000ff9930ec72f"
+    },
+    {
+      "path": "hamar_agent/ollama_provider.py",
+      "sha256": "52a6954778418c46749ab09ef866bccc66512fd14ca20dacde2f3296dad30f31"
+    },
+    {
+      "path": "hamar_agent/openai_provider.py",
+      "sha256": "b55d2a8bb99cc7b0b1113506fe7988de757adb2074e82b46babbe40d4684ae5b"
+    },
+    {
+      "path": "hamar_agent/portal.py",
+      "sha256": "599038abb38a7bc884d2f1732e5894e93f9a5150c0968269235d58d6d887c835"
+    },
+    {
+      "path": "hamar_agent/portal_sources.py",
+      "sha256": "84fd017718b8f187a50c29386428732cf578542b8d6c233a6879520402a88a55"
+    },
+    {
+      "path": "hamar_agent/provider_registry.py",
+      "sha256": "c27c2fa0c0121fe2fe7ab3a4f53c15a4a7d8724c656aa865cc90c888db92382d"
+    },
+    {
+      "path": "hamar_agent/real_sources.py",
+      "sha256": "82685fa088f87783edc109995da9201d880cbe7a335a3e1ca38600e05a99e616"
+    },
+    {
+      "path": "hamar_agent/retrieval.py",
+      "sha256": "b075a92cd28af987b3fecdbec52de10110b90a470fe7aa51c232d5c37704302f"
+    },
+    {
+      "path": "hamar_agent/revision.py",
+      "sha256": "887b05bdd9f3bc3d20127724c50134fa2c56594cce2ee18b4d1f6bc53bc2d261"
+    },
+    {
+      "path": "hamar_agent/robots_policy.py",
+      "sha256": "1446ad7fdb31e5d94b74be793cc785655ef29d34ff027de253909c15f34980a0"
+    },
+    {
+      "path": "hamar_agent/runtime.py",
+      "sha256": "ea2278db6dcd6fe4feada57bc3c3dfb983cbb7eb4264f6cf8d6f830bff6a9b36"
+    },
+    {
+      "path": "hamar_agent/schemas.py",
+      "sha256": "7e80e5ada64e212a4d11a870059de14cc8dde817ddf0c3b826efd02f1a9709ac"
+    },
+    {
+      "path": "hamar_agent/search.py",
+      "sha256": "4c5759087d6c788b6ab9d6876b77b61aa5fcfdab5f6bdd241afdc96ea37f144e"
+    },
+    {
+      "path": "hamar_agent/source_admin.py",
+      "sha256": "ee0355093012c0601f9d5d277c7378183ab2e938f516e2d10d168c5b771ea079"
+    },
+    {
+      "path": "hamar_agent/source_updates.py",
+      "sha256": "7b9efda54f6896d45b42f85551a75de73d38ee35fc40efe3a73defdf2dfe4d44"
+    },
+    {
+      "path": "hamar_agent/sources.py",
+      "sha256": "2e6f1cd7ee13ce63b8b1e800f8ec8d01a2d370b3fd460144569cc400c2718e39"
+    },
+    {
+      "path": "hamar_agent/storage.py",
+      "sha256": "f2903bfd0abed8a8b894285e032c7de550e0fb9c04e6d30c8a9b2903f60fdff8"
+    },
+    {
+      "path": "hamar_agent/summarize.py",
+      "sha256": "07a2d20474425969f529c7b8f7a8e722a761889755f69e2510a64524a91600a0"
+    },
+    {
+      "path": "hamar_agent/verify.py",
+      "sha256": "3799cc1c45de94ee508d391bff99e864f7319d83cb667825679c1e6e8162c3c5"
+    },
+    {
+      "path": "hamar_agent/web.py",
+      "sha256": "8c0e729c1e39d8460049c50afd5d3c914e037544ba1bbd8a53dd4a81aa53a21b"
+    },
+    {
+      "path": "hamar_agent/workflow.py",
+      "sha256": "f054367e331a158df54ed3cb41b0831948da42e87a1156b0520ee0c9b32621a7"
+    },
+    {
+      "path": "hamar_agent/web_assets/app.js",
+      "sha256": "4c03f1932ccfa2a3be3088ddf68d97e48d2e44e5228e1ebb696a53b4c8148a1c"
+    },
+    {
+      "path": "hamar_agent/web_assets/favicon.ico",
+      "sha256": "df80f0b4fc8aab89de7796a0ae35247ff6ded7ee7bee3043a3b908136e235c6e"
+    },
+    {
+      "path": "hamar_agent/web_assets/hamar-background.png",
+      "sha256": "f87040eceeb4e9be60bc1c4ef517fd40d5bb44b166700e1922289029d01a4242"
+    },
+    {
+      "path": "hamar_agent/web_assets/index.html",
+      "sha256": "2f6097f6e5928a73eebe0fb7b3ba561e74739bc1beb0ba5f66c285e3defe2e85"
+    },
+    {
+      "path": "hamar_agent/web_assets/style.css",
+      "sha256": "273fe7ada9c9ce5d6a107fe9a2fc3e4f1d40db2f21e744f1da97b8e6d652ee8f"
+    },
+    {
+      "path": "docs/approved-service-pages.json",
+      "sha256": "6a8a4aeaece6fa42e6afbd8bbfe5c92ec8d929c8b2785fd33a896076d35247d2"
+    },
+    {
+      "path": "docs/reviewed-service-selection.json",
+      "sha256": "5ec22cbe97282098452ea284e8d0ac4724fc03ef6303c808260297332fb30f6b"
+    }
+  ],
+  "approved_catalog_unchanged": true,
+  "baseline_catalog_hash": "3d220e3371e853646f36c4a1eb6fd0f490bbf1dbdfbcb181ddcb8ec559f8c438"
+}

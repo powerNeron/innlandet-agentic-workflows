@@ -1,0 +1,13 @@
+id,type,dato,antall,bestatt,ikke_bestatt,tolkning,logg
+O1,offline,2026-10-23,282,282,0,Regresjon; ikke modellkvalitet,logger/offline.txt
+O2,syntetisk_holdout,2026-10-23,1,1,0,Ett kjent separat lagret mock-tilfelle,logger/holdout.json
+O3,syntetisk_verifier,2026-10-23,8,8,0,Forventede funnkoder; ikke semantisk sannhet,logger/verifier-scorecard.json
+M1,reell_modell,2026-10-23,23,23,0,18 positive tilfeller og fem tilsiktede avslag,logger/real-smoke/summary.json
+M2,reell_maling,2026-10-23,14,14,0,"Temperaturstopp; planlagt 20, ikke fullfort",logger/model-measurements.json
+F,syntetisk_feilinjeksjon,2026-10-23,11,11,0,Baseline-feil-gjenoppretting / eksisterende korreksjon,logger/fault-injection.json
+P,grensekontroller,2026-10-23,10,10,0,Tillatelser og promptgrense,logger/fault-injection.json
+G,godkjenningsporter,2026-10-23,15,15,0,Flagg og sjekklister; ikke identitetsautentisering,logger/approval-gates.json
+S,syntetisk_http_belastning,2026-10-23,384,384,0,Inkluderer 16 forventede HTTP403; ingen modellkall,logger/http-stress.json
+B,ekte_Chrome,2026-10-23,13,13,0,Forventede svar og avslag; desktop/nettbrett/mobil,logger/browser/browser-check.txt
+KILL,negativ_sikkerhetsprobe,2026-10-23,1,0,1,Global beregningsavbrytelse mangler; reset gir409,logger/fault-injection.json
+SEM,semantisk_moteksempel,2026-10-23,1,0,1,Ordrett instruksjonsavsnitt passerer; ikke semantisk immunitet,logger/fault-injection.json

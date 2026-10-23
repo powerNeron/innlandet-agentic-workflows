@@ -1,0 +1,256 @@
+{
+  "date": "2026-10-23T10:31:54.630487+00:00",
+  "synthetic_only": true,
+  "classes_are_researcher_defined_not_official": true,
+  "cases": [
+    {
+      "id": "F01",
+      "class": "dependency",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "timeout",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 1,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.529,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F02",
+      "class": "dependency",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "connection refused",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 1,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.065,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F03",
+      "class": "format",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "truncated JSON",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 1,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.071,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F04",
+      "class": "format",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "missing response field",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 1,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.059,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F05",
+      "class": "budget",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "oversize response",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 1,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.172,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F06",
+      "class": "evidence",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "wrong fee persists",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 2,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 1.027,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F07",
+      "class": "evidence",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "forged paragraph persists",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 2,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.239,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F08",
+      "class": "evidence",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "condition removed",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 2,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.177,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F09",
+      "class": "verifier",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "verifier unavailable",
+      "baseline_http": 200,
+      "expected_http": 422,
+      "observed_http": 422,
+      "model_calls_under_fault": 1,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.096,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F10",
+      "class": "approval",
+      "hypothesis": "Failure must not publish a new result; restored dependency must recover",
+      "perturbation": "expired synthetic approval",
+      "baseline_http": 200,
+      "expected_http": 400,
+      "observed_http": 400,
+      "model_calls_under_fault": 0,
+      "no_new_result": true,
+      "recovery_http": 200,
+      "elapsed_ms": 0.019,
+      "pass": true,
+      "repair": "No application repair; injected fault removed in isolated instance"
+    },
+    {
+      "id": "F11",
+      "class": "evidence",
+      "perturbation": "wrong fee followed by valid correction",
+      "observed_http": 200,
+      "model_calls": 2,
+      "correction_attempts": 1,
+      "pass": true,
+      "repair": "Existing correction path, no new application change"
+    }
+  ],
+  "control_cases": [
+    {
+      "id": "P01",
+      "expected_http": 403,
+      "observed_http": 403,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "P02",
+      "expected_http": 403,
+      "observed_http": 403,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "P03",
+      "expected_http": 403,
+      "observed_http": 403,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "P04",
+      "expected_http": 400,
+      "observed_http": 400,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "P05",
+      "expected_http": 400,
+      "observed_http": 400,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "P06",
+      "expected_http": 413,
+      "observed_http": 413,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "P07",
+      "expected_http": 400,
+      "observed_http": 400,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "P08",
+      "expected_http": 400,
+      "observed_http": 400,
+      "provider_calls": 0,
+      "pass": true
+    },
+    {
+      "id": "B24000",
+      "total_prompt_chars": 24000,
+      "accepted": true,
+      "provider_calls": 1,
+      "pass": true
+    },
+    {
+      "id": "B24001",
+      "total_prompt_chars": 24001,
+      "accepted": false,
+      "provider_calls": 0,
+      "pass": true
+    }
+  ],
+  "kill_switch_probe": {
+    "reset_http": 200,
+    "stale_response_http": 409,
+    "no_published_result": true,
+    "inference_continued_after_reset": true,
+    "transport_completed": true,
+    "stale_publication_guard_pass": true,
+    "global_kill_switch_verified": false,
+    "finding": "Reset suppresses stale publication but does not terminate model computation"
+  },
+  "semantic_counterexample": {
+    "synthetic_fixture": true,
+    "findings": 0,
+    "exact_quote_accepted": true,
+    "semantic_injection_immunity_verified": false,
+    "finding": "Verbatim matching trusts paragraph eligibility; it is not a semantic instruction classifier"
+  }
+}

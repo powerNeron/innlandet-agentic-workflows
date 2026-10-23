@@ -1,0 +1,257 @@
+{
+  "provider": "ollama:llama3.2:3b",
+  "real_model": true,
+  "tests": 23,
+  "passing": 23,
+  "grounded_claims": 14,
+  "citation_checks_passed": 23,
+  "insufficient_evidence_refusals": 4,
+  "consistency_cases": 1,
+  "provider_latency_ms": {
+    "n": 18,
+    "median": 1359.0,
+    "p95_nearest_rank": 2181,
+    "min": 1016,
+    "max": 2181
+  },
+  "limitations": [
+    "This measures exact excerpt grounding and one repeated SFO answer, not semantic factual accuracy or human-rated relevance.",
+    "Small sequential sample; no concurrent Ollama load or accuracy confidence interval."
+  ],
+  "rows": [
+    {
+      "case": "source:hamar-sfo",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 1661,
+      "seconds": 1.672
+    },
+    {
+      "case": "source:hamar-byggesak",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 1347,
+      "seconds": 1.344
+    },
+    {
+      "case": "source:hamar-folkehelse",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 1016,
+      "seconds": 1.015
+    },
+    {
+      "case": "source:hamar-bibliotek",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 1052,
+      "seconds": 1.063
+    },
+    {
+      "case": "source:hamar-kommuneplan",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 1328,
+      "seconds": 1.328
+    },
+    {
+      "case": "source:hamar-drikkevann",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 1237,
+      "seconds": 1.234
+    },
+    {
+      "case": "source:hamar-parkering",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 1979,
+      "seconds": 1.985
+    },
+    {
+      "case": "source:hamar-luftkvalitet",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "corrections": 0,
+      "provider_latency_ms": 2107,
+      "seconds": 2.109
+    },
+    {
+      "case": "search:vanntrykk",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1311,
+      "seconds": 1.312
+    },
+    {
+      "case": "search:parkering",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 2038,
+      "seconds": 2.032
+    },
+    {
+      "case": "search:SFO",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1464,
+      "seconds": 1.468
+    },
+    {
+      "case": "search:bibliotek",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1129,
+      "seconds": 1.141
+    },
+    {
+      "case": "search:luftkvalitet",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 2181,
+      "seconds": 2.188
+    },
+    {
+      "case": "consistency:SFO-repeat",
+      "pass": true,
+      "claims": 1,
+      "grounded_claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1397,
+      "seconds": 1.39
+    },
+    {
+      "case": "required-question:1",
+      "pass": true,
+      "expected_status": "evidence_checked",
+      "answer_status": "evidence_checked",
+      "source_id": "hamar-sfo",
+      "ollama_invoked": true,
+      "claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1358,
+      "seconds": 1.36
+    },
+    {
+      "case": "required-question:2",
+      "pass": true,
+      "expected_status": "evidence_checked",
+      "answer_status": "evidence_checked",
+      "source_id": "hamar-sfo",
+      "ollama_invoked": true,
+      "claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1317,
+      "seconds": 1.312
+    },
+    {
+      "case": "required-question:3",
+      "pass": true,
+      "expected_status": "insufficient_evidence",
+      "answer_status": "insufficient_evidence",
+      "source_id": "hamar-sfo",
+      "ollama_invoked": false,
+      "claims": 0,
+      "citations_valid": true,
+      "provider_latency_ms": null,
+      "seconds": 0.016
+    },
+    {
+      "case": "required-question:4",
+      "pass": true,
+      "expected_status": "evidence_checked",
+      "answer_status": "evidence_checked",
+      "source_id": "hamar-byggesak",
+      "ollama_invoked": true,
+      "claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1391,
+      "seconds": 1.39
+    },
+    {
+      "case": "required-question:5",
+      "pass": true,
+      "expected_status": "evidence_checked",
+      "answer_status": "evidence_checked",
+      "source_id": "hamar-byggesak",
+      "ollama_invoked": true,
+      "claims": 1,
+      "citations_valid": true,
+      "provider_latency_ms": 1360,
+      "seconds": 1.36
+    },
+    {
+      "case": "required-question:6",
+      "pass": true,
+      "expected_status": "insufficient_evidence",
+      "answer_status": "insufficient_evidence",
+      "source_id": "hamar-byggesak",
+      "ollama_invoked": false,
+      "claims": 0,
+      "citations_valid": true,
+      "provider_latency_ms": null,
+      "seconds": 0.0
+    },
+    {
+      "case": "required-question:7",
+      "pass": true,
+      "expected_status": "insufficient_evidence",
+      "answer_status": "insufficient_evidence",
+      "source_id": "hamar-parkering",
+      "ollama_invoked": false,
+      "claims": 0,
+      "citations_valid": true,
+      "provider_latency_ms": null,
+      "seconds": 0.0
+    },
+    {
+      "case": "privacy:synthetic-personal-input",
+      "pass": true,
+      "answer_status": "input_rejected",
+      "ollama_invoked": false,
+      "citations_valid": true,
+      "seconds": 0.0
+    },
+    {
+      "case": "refusal:insufficient-evidence",
+      "pass": true,
+      "answer_status": "insufficient_evidence",
+      "claims": 0,
+      "citations_valid": true,
+      "seconds": 0.0
+    }
+  ]
+}

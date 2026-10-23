@@ -1,0 +1,48 @@
+{
+  "source_id": "synthetic-verification-demo",
+  "known_issue_cases": 8,
+  "expected_issue_detection_rate": 1.0,
+  "cases": [
+    {
+      "scenario": "missing_citation",
+      "expected_finding": "missing_citation",
+      "detected": true
+    },
+    {
+      "scenario": "invalid_paragraph",
+      "expected_finding": "invalid_paragraph_id",
+      "detected": true
+    },
+    {
+      "scenario": "fabricated_quote",
+      "expected_finding": "fabricated_evidence",
+      "detected": true
+    },
+    {
+      "scenario": "changed_number",
+      "expected_finding": "unsupported_number",
+      "detected": true
+    },
+    {
+      "scenario": "unsupported_statement",
+      "expected_finding": "potentially_unsupported",
+      "detected": true
+    },
+    {
+      "scenario": "uncertain_claim",
+      "expected_finding": "uncertain_claim",
+      "detected": true
+    },
+    {
+      "scenario": "conflicting_claims",
+      "expected_finding": "conflicting_claims",
+      "detected": true
+    },
+    {
+      "scenario": "malformed_output",
+      "expected_finding": "malformed_output",
+      "detected": true
+    }
+  ],
+  "limitation": "Synthetic injected-error detection only; not a measure of model quality, semantic entailment, or truth."
+}

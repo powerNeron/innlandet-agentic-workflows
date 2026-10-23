@@ -1,0 +1,195 @@
+{
+  "policy": "Only tracked code/context text may differ by CRLF versus LF. Historical measurement logs remain byte-identical.",
+  "files": {
+    "docs/approved-service-pages.json": {
+      "original_sha256": "6a8a4aeaece6fa42e6afbd8bbfe5c92ec8d929c8b2785fd33a896076d35247d2",
+      "lf_sha256": "7e1025d302368d9547c1f2871aa6ac9ec6498671168e8d2785ef047ff917fab8",
+      "tested_git_blob_sha256": "7e1025d302368d9547c1f2871aa6ac9ec6498671168e8d2785ef047ff917fab8"
+    },
+    "docs/reviewed-service-selection.json": {
+      "original_sha256": "5ec22cbe97282098452ea284e8d0ac4724fc03ef6303c808260297332fb30f6b",
+      "lf_sha256": "6a48f6949a0a3c5017ec0276259ac048ab2808d6611ab0303c6eaea6e8d562ce",
+      "tested_git_blob_sha256": "6a48f6949a0a3c5017ec0276259ac048ab2808d6611ab0303c6eaea6e8d562ce"
+    },
+    "hamar_agent/__init__.py": {
+      "original_sha256": "f6b1a38565f4cc0e2c312fd71cba61549d78e1cf816ee734739e86f64a803c71",
+      "lf_sha256": "c3cd63e035d784a5c9ac1b785d2a4070623a3db0ca121c4aaddf873210449d4b",
+      "tested_git_blob_sha256": "c3cd63e035d784a5c9ac1b785d2a4070623a3db0ca121c4aaddf873210449d4b"
+    },
+    "hamar_agent/__main__.py": {
+      "original_sha256": "1d540b90cca32ed343ff5c8f765f0c02b0021d9d1fe76cac844ca0667f2f2d00",
+      "lf_sha256": "702b3ec89723d53ee121e5518c72ce6732e9be58f36e97beb0cc9d5cffa96e30",
+      "tested_git_blob_sha256": "702b3ec89723d53ee121e5518c72ce6732e9be58f36e97beb0cc9d5cffa96e30"
+    },
+    "hamar_agent/application.py": {
+      "original_sha256": "2f1b0da41d6752e0a209f41721f9bf94760abd71b9a3e1ff3aa3a43f806ebacf",
+      "lf_sha256": "3530cacf01e15039ad874c0ba9ed3a41d0218e8cd06cb1db3ab22d971f5448f9",
+      "tested_git_blob_sha256": "3530cacf01e15039ad874c0ba9ed3a41d0218e8cd06cb1db3ab22d971f5448f9"
+    },
+    "hamar_agent/categories.py": {
+      "original_sha256": "01a8e764f5d83c0dcb66417e0b70cd07b2f4d02d2ea4255e3a391b87fcec1f1d",
+      "lf_sha256": "4328d3e04e0efb95bb992598caf6bd20354628faf0483e4a29c72c1e80e4e2ab",
+      "tested_git_blob_sha256": "4328d3e04e0efb95bb992598caf6bd20354628faf0483e4a29c72c1e80e4e2ab"
+    },
+    "hamar_agent/correction.py": {
+      "original_sha256": "0229a65e663fdaaf8a7c1da47f13c3f8d9f557da0b0f2b7227e3bfc9b6063ea8",
+      "lf_sha256": "9a11867ec628bc7be0341e7d49f5bfbcf717a3b996a2a8a6f6db48502a34ca49",
+      "tested_git_blob_sha256": "9a11867ec628bc7be0341e7d49f5bfbcf717a3b996a2a8a6f6db48502a34ca49"
+    },
+    "hamar_agent/html_extract.py": {
+      "original_sha256": "b5112b53ef1da66785b034865ca063edd4fc72f58f5499986fb3f1fdcbea2100",
+      "lf_sha256": "5786d7562ad1c286d58a133ad93f1459abb92752c25604c08246096d7bb9e305",
+      "tested_git_blob_sha256": "5786d7562ad1c286d58a133ad93f1459abb92752c25604c08246096d7bb9e305"
+    },
+    "hamar_agent/municipal_import.py": {
+      "original_sha256": "4e27039823597dbe42d53227e55b01dfcbcfc54ada27d8f6d1000ff9930ec72f",
+      "lf_sha256": "e229498865f1b30edfdb9adadfc2417e5d79cbbc029d036c45ceecf05e5f0a19",
+      "tested_git_blob_sha256": "e229498865f1b30edfdb9adadfc2417e5d79cbbc029d036c45ceecf05e5f0a19"
+    },
+    "hamar_agent/ollama_provider.py": {
+      "original_sha256": "52a6954778418c46749ab09ef866bccc66512fd14ca20dacde2f3296dad30f31",
+      "lf_sha256": "402d4f91e4ea336e47d5d149bc21081bafc2a5bc046fa8212bcf23371a671c11",
+      "tested_git_blob_sha256": "402d4f91e4ea336e47d5d149bc21081bafc2a5bc046fa8212bcf23371a671c11"
+    },
+    "hamar_agent/openai_provider.py": {
+      "original_sha256": "b55d2a8bb99cc7b0b1113506fe7988de757adb2074e82b46babbe40d4684ae5b",
+      "lf_sha256": "683381171dd30fff43c39ba4d46b93cf94370deb7b437adb823a965807a65411",
+      "tested_git_blob_sha256": "683381171dd30fff43c39ba4d46b93cf94370deb7b437adb823a965807a65411"
+    },
+    "hamar_agent/portal.py": {
+      "original_sha256": "599038abb38a7bc884d2f1732e5894e93f9a5150c0968269235d58d6d887c835",
+      "lf_sha256": "396cecab912848b9ea624bcac9d5a5a6863c58da64f71c0d4400a8016f750f7b",
+      "tested_git_blob_sha256": "396cecab912848b9ea624bcac9d5a5a6863c58da64f71c0d4400a8016f750f7b"
+    },
+    "hamar_agent/portal_sources.py": {
+      "original_sha256": "84fd017718b8f187a50c29386428732cf578542b8d6c233a6879520402a88a55",
+      "lf_sha256": "f20938f422fdc04e581d8d240a8efffafa414655a6275e9cefd999da32082086",
+      "tested_git_blob_sha256": "f20938f422fdc04e581d8d240a8efffafa414655a6275e9cefd999da32082086"
+    },
+    "hamar_agent/provider_registry.py": {
+      "original_sha256": "c27c2fa0c0121fe2fe7ab3a4f53c15a4a7d8724c656aa865cc90c888db92382d",
+      "lf_sha256": "487c189ab927d038eb14b36275a7c9cc2c0f9eda0308393bbf0830e8c061199f",
+      "tested_git_blob_sha256": "487c189ab927d038eb14b36275a7c9cc2c0f9eda0308393bbf0830e8c061199f"
+    },
+    "hamar_agent/real_sources.py": {
+      "original_sha256": "82685fa088f87783edc109995da9201d880cbe7a335a3e1ca38600e05a99e616",
+      "lf_sha256": "7a8199bf6228dd97b6d14fb2527ce8134b341d641eab3882602630a0e2a9d7ff",
+      "tested_git_blob_sha256": "7a8199bf6228dd97b6d14fb2527ce8134b341d641eab3882602630a0e2a9d7ff"
+    },
+    "hamar_agent/retrieval.py": {
+      "original_sha256": "b075a92cd28af987b3fecdbec52de10110b90a470fe7aa51c232d5c37704302f",
+      "lf_sha256": "7fe3426c9fcd056f644ae88d7f888e15b0710f2ed7def67808e06c6f5cf653a2",
+      "tested_git_blob_sha256": "7fe3426c9fcd056f644ae88d7f888e15b0710f2ed7def67808e06c6f5cf653a2"
+    },
+    "hamar_agent/revision.py": {
+      "original_sha256": "887b05bdd9f3bc3d20127724c50134fa2c56594cce2ee18b4d1f6bc53bc2d261",
+      "lf_sha256": "c50cd3678555d7abdc96d1006e3b554f77d6286e9c367a328e8919799fe18296",
+      "tested_git_blob_sha256": "c50cd3678555d7abdc96d1006e3b554f77d6286e9c367a328e8919799fe18296"
+    },
+    "hamar_agent/robots_policy.py": {
+      "original_sha256": "1446ad7fdb31e5d94b74be793cc785655ef29d34ff027de253909c15f34980a0",
+      "lf_sha256": "f17153edc0a4438859566f914b6249da93dbbd4fcfafbd43e29e04b777f613fa",
+      "tested_git_blob_sha256": "f17153edc0a4438859566f914b6249da93dbbd4fcfafbd43e29e04b777f613fa"
+    },
+    "hamar_agent/runtime.py": {
+      "original_sha256": "ea2278db6dcd6fe4feada57bc3c3dfb983cbb7eb4264f6cf8d6f830bff6a9b36",
+      "lf_sha256": "bb3b921752b5fdcc84d154b3aea2c93b78c879c0b4adb865d84c8ffb71f6324b",
+      "tested_git_blob_sha256": "bb3b921752b5fdcc84d154b3aea2c93b78c879c0b4adb865d84c8ffb71f6324b"
+    },
+    "hamar_agent/schemas.py": {
+      "original_sha256": "7e80e5ada64e212a4d11a870059de14cc8dde817ddf0c3b826efd02f1a9709ac",
+      "lf_sha256": "c3d55dbf120a944d4387c348c5d554c344ea10a28b343d846ed2d28466f03f48",
+      "tested_git_blob_sha256": "c3d55dbf120a944d4387c348c5d554c344ea10a28b343d846ed2d28466f03f48"
+    },
+    "hamar_agent/search.py": {
+      "original_sha256": "4c5759087d6c788b6ab9d6876b77b61aa5fcfdab5f6bdd241afdc96ea37f144e",
+      "lf_sha256": "79235ac6cecdfad23d69871f5e5baf5611983e530cc277cd1abb154ae65630f3",
+      "tested_git_blob_sha256": "79235ac6cecdfad23d69871f5e5baf5611983e530cc277cd1abb154ae65630f3"
+    },
+    "hamar_agent/source_admin.py": {
+      "original_sha256": "ee0355093012c0601f9d5d277c7378183ab2e938f516e2d10d168c5b771ea079",
+      "lf_sha256": "e8ff6b3157334a0dc2de0d6f513efbb55530a19a025fc5e1dbe025c7b271da80",
+      "tested_git_blob_sha256": "e8ff6b3157334a0dc2de0d6f513efbb55530a19a025fc5e1dbe025c7b271da80"
+    },
+    "hamar_agent/source_updates.py": {
+      "original_sha256": "7b9efda54f6896d45b42f85551a75de73d38ee35fc40efe3a73defdf2dfe4d44",
+      "lf_sha256": "4365a8df2b815b793eeda11f9ab554abed18f276f3919fd8ff5778f358b7a9c6",
+      "tested_git_blob_sha256": "4365a8df2b815b793eeda11f9ab554abed18f276f3919fd8ff5778f358b7a9c6"
+    },
+    "hamar_agent/sources.py": {
+      "original_sha256": "2e6f1cd7ee13ce63b8b1e800f8ec8d01a2d370b3fd460144569cc400c2718e39",
+      "lf_sha256": "b588ad993117434a2cf97a0c25c040b755a75e702bbdd1358f2393d452b64787",
+      "tested_git_blob_sha256": "b588ad993117434a2cf97a0c25c040b755a75e702bbdd1358f2393d452b64787"
+    },
+    "hamar_agent/storage.py": {
+      "original_sha256": "f2903bfd0abed8a8b894285e032c7de550e0fb9c04e6d30c8a9b2903f60fdff8",
+      "lf_sha256": "2aef5fcf9d0037285ef06ca28fc94fd8d360bed27d1e361b5bcd965d88dacbae",
+      "tested_git_blob_sha256": "2aef5fcf9d0037285ef06ca28fc94fd8d360bed27d1e361b5bcd965d88dacbae"
+    },
+    "hamar_agent/summarize.py": {
+      "original_sha256": "07a2d20474425969f529c7b8f7a8e722a761889755f69e2510a64524a91600a0",
+      "lf_sha256": "9663188209db42983371a384ddecc53b1608eeb9f26bda532aed8dfbbfd62914",
+      "tested_git_blob_sha256": "9663188209db42983371a384ddecc53b1608eeb9f26bda532aed8dfbbfd62914"
+    },
+    "hamar_agent/verify.py": {
+      "original_sha256": "3799cc1c45de94ee508d391bff99e864f7319d83cb667825679c1e6e8162c3c5",
+      "lf_sha256": "8b615c285975e4ba2987b898273a85a721a6f6658e5a6c053a61019301630a3e",
+      "tested_git_blob_sha256": "8b615c285975e4ba2987b898273a85a721a6f6658e5a6c053a61019301630a3e"
+    },
+    "hamar_agent/web.py": {
+      "original_sha256": "8c0e729c1e39d8460049c50afd5d3c914e037544ba1bbd8a53dd4a81aa53a21b",
+      "lf_sha256": "eb16e4f1e99b8637a3d645066144831bbc5534e78f86c6da2e368b51489937c1",
+      "tested_git_blob_sha256": "eb16e4f1e99b8637a3d645066144831bbc5534e78f86c6da2e368b51489937c1"
+    },
+    "hamar_agent/web_assets/app.js": {
+      "original_sha256": "4c03f1932ccfa2a3be3088ddf68d97e48d2e44e5228e1ebb696a53b4c8148a1c",
+      "lf_sha256": "a804b02061fb789a2625dbfd3ea3a9c43c84592076a568ea0e52803a55a8ad71",
+      "tested_git_blob_sha256": "a804b02061fb789a2625dbfd3ea3a9c43c84592076a568ea0e52803a55a8ad71"
+    },
+    "hamar_agent/web_assets/favicon.ico": {
+      "original_sha256": "df80f0b4fc8aab89de7796a0ae35247ff6ded7ee7bee3043a3b908136e235c6e",
+      "lf_sha256": "df80f0b4fc8aab89de7796a0ae35247ff6ded7ee7bee3043a3b908136e235c6e",
+      "tested_git_blob_sha256": "df80f0b4fc8aab89de7796a0ae35247ff6ded7ee7bee3043a3b908136e235c6e"
+    },
+    "hamar_agent/web_assets/hamar-background.png": {
+      "original_sha256": "f87040eceeb4e9be60bc1c4ef517fd40d5bb44b166700e1922289029d01a4242",
+      "lf_sha256": "f87040eceeb4e9be60bc1c4ef517fd40d5bb44b166700e1922289029d01a4242",
+      "tested_git_blob_sha256": "f87040eceeb4e9be60bc1c4ef517fd40d5bb44b166700e1922289029d01a4242"
+    },
+    "hamar_agent/web_assets/index.html": {
+      "original_sha256": "2f6097f6e5928a73eebe0fb7b3ba561e74739bc1beb0ba5f66c285e3defe2e85",
+      "lf_sha256": "0f1194e8e8461d1b393eca9df91774e81247749bb9742998680befb90cccbca3",
+      "tested_git_blob_sha256": "0f1194e8e8461d1b393eca9df91774e81247749bb9742998680befb90cccbca3"
+    },
+    "hamar_agent/web_assets/style.css": {
+      "original_sha256": "273fe7ada9c9ce5d6a107fe9a2fc3e4f1d40db2f21e744f1da97b8e6d652ee8f",
+      "lf_sha256": "69df879748f99e5e985d1e590dace99ca06a95eafdb6630fc220459f8e2c40a0",
+      "tested_git_blob_sha256": "69df879748f99e5e985d1e590dace99ca06a95eafdb6630fc220459f8e2c40a0"
+    },
+    "hamar_agent/workflow.py": {
+      "original_sha256": "f054367e331a158df54ed3cb41b0831948da42e87a1156b0520ee0c9b32621a7",
+      "lf_sha256": "b2c19bb87556d5542597b14e35519f43b73c7c1c82577d11faecef167f1de114",
+      "tested_git_blob_sha256": "b2c19bb87556d5542597b14e35519f43b73c7c1c82577d11faecef167f1de114"
+    },
+    "harness/browser_smoke.cjs": {
+      "original_sha256": "ce07305783fc3a0cf2dadf0ec5c9041d72e814d1c102da5dfb3cbffe6ba8d182",
+      "lf_sha256": "0a2d4b212d0f73d880fd48763050ec0493a68a9f51547cf0e1760056b46e36ed",
+      "tested_git_blob_sha256": "0a2d4b212d0f73d880fd48763050ec0493a68a9f51547cf0e1760056b46e36ed"
+    },
+    "harness/browser_smoke.py": {
+      "original_sha256": "f9ba1193f15eacf5076f17e0c39fca0c990fa48c492b54cda17e15e058b00d47",
+      "lf_sha256": "042b38104ec36751088c67bc0be365158e47b7514c6361cddea9d2817b3ace3c",
+      "tested_git_blob_sha256": "042b38104ec36751088c67bc0be365158e47b7514c6361cddea9d2817b3ace3c"
+    },
+    "harness/offline_tests.py": {
+      "original_sha256": "d71c8023e32906b27e6e4970e4850e5ecb643526295fa990039df3c9a3121604",
+      "lf_sha256": "25e11352a506e70eb1c6950722ae3f084b921ff8e16c81dcc8fa00d2f99df554",
+      "tested_git_blob_sha256": "25e11352a506e70eb1c6950722ae3f084b921ff8e16c81dcc8fa00d2f99df554"
+    },
+    "harness/real_source_smoke.py": {
+      "original_sha256": "18797adf877b0c60d73b1fb4621ce4ae0b4daa416bb9e8f01e4a08d6b0b6c4a6",
+      "lf_sha256": "8f9a9176e04745f1ddfedf612ce807cb7ce95f8bc0b329e001440a6b1f030871",
+      "tested_git_blob_sha256": "8f9a9176e04745f1ddfedf612ce807cb7ce95f8bc0b329e001440a6b1f030871"
+    }
+  }
+}

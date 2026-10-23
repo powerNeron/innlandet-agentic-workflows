@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-22",
+  "tests": [
+    {
+      "name": "focused ingestion/privacy tests",
+      "command": "python -X utf8 -m unittest eval.test_privacy_ingestion eval.test_portal_sources -v",
+      "status": "PASS",
+      "count": 17,
+      "output": "offline-tests-20261022-final2.txt"
+    },
+    {
+      "name": "full offline suite",
+      "command": "python -X utf8 -m harness.offline_tests --output output/final-technical-evidence/offline-tests-20261022-final2.txt",
+      "status": "PASS",
+      "count": 229,
+      "failures": 0,
+      "errors": 0,
+      "real_network": "blocked socket.socket and socket.getaddrinfo",
+      "output": "offline-tests-20261022-final2.txt"
+    },
+    {
+      "name": "real-source Ollama smoke",
+      "command": "python -X utf8 -m harness.real_source_smoke --enable-local-llm --output output/final-technical-evidence/ollama-smoke-20261022",
+      "status": "PASS",
+      "count": 13,
+      "passing": 13,
+      "cases": "8 approved source runs + 5 search answers",
+      "model": "ollama:llama3.2:3b",
+      "output": "ollama-smoke-20261022/summary.json"
+    },
+    {
+      "name": "actual Ollama correction and re-verification",
+      "command": "PowerShell here-string piped to python - (details summarized in ollama-correction-20261022.json)",
+      "status": "PASS",
+      "count": 1,
+      "correction_attempts": 1,
+      "final_findings": 0,
+      "output": "ollama-correction-20261022.json"
+    },
+    {
+      "name": "desktop/tablet/mobile browser smoke",
+      "command": "python -X utf8 -m harness.browser_smoke --enable-local-llm --output output/final-technical-evidence/browser-smoke-20261022",
+      "status": "PASS",
+      "viewports": "1440x1100, 820x1180, 390x844",
+      "assertions": "8 category searches, Mj?sa image, citations, two JSON downloads, public name scan, keyboard focus",
+      "output": "browser-smoke-20261022/browser-check.txt"
+    },
+    {
+      "name": "loopback search API stress/performance",
+      "command": "PowerShell here-string piped to python - (summary in local-http-search-stress-20261022.json)",
+      "status": "PASS",
+      "count": 800,
+      "workers": 8,
+      "failures": 0,
+      "output": "local-http-search-stress-20261022.json"
+    }
+  ],
+  "stress_metrics": {
+    "status": "PASS",
+    "requests": 800,
+    "workers": 8,
+    "failures": 0,
+    "elapsed_seconds": 12.4467,
+    "requests_per_second": 64.27,
+    "latency_ms": {
+      "median": 107.271,
+      "p95": 137.554,
+      "p99": 631.919,
+      "max": 1131.055
+    },
+    "environment": {
+      "python": "3.12.10",
+      "os": "Windows-11-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+      "cpu_count": 22
+    },
+    "scope": "Loopback HTTP /api/search, 8 approved local documents, no Ollama generation; socket connections restricted to 127.0.0.1; 800 requests / 8 workers.",
+    "queries": [
+      "skole",
+      "byggesak",
+      "helse",
+      "vann",
+      "miljo",
+      "parkering",
+      "kultur",
+      "planer"
+    ],
+    "commit": "71c29755da8ad2054cfd6a357ed5cf1fb3c9d0c3"
+  },
+  "real_model_latency": {
+    "model": "ollama:llama3.2:3b",
+    "cases": 13,
+    "passing": 13,
+    "latency_seconds": {
+      "min": 0.984,
+      "median": 1.344,
+      "mean": 1.651,
+      "max": 3.953
+    },
+    "correction_smoke": {
+      "status": "PASS",
+      "model": "llama3.2:3b",
+      "provider": "ollama:llama3.2:3b",
+      "case": "injected unsupported initial claim, actual Ollama correction, mandatory re-verification",
+      "correction_attempts": 1,
+      "initial_findings_present": true,
+      "final_findings": 0,
+      "final_claim_count": 1,
+      "injected_text_retained": false,
+      "elapsed_seconds": 1.376,
+      "network_scope": "127.0.0.1:11434 only; no paid API or municipal fetch",
+      "source_id": "hamar-drikkevann",
+      "commit": "71c29755da8ad2054cfd6a357ed5cf1fb3c9d0c3"
+    },
+    "source_runs": 8,
+    "search_answer_runs": 5,
+    "limitations": [
+      "Extractive whole-paragraph contract, not semantic truth measurement",
+      "No production-scale latency SLA measured"
+    ]
+  },
+  "evidence_policy": "No raw municipal HTML, personal data, prompts or secrets were copied into the index or summaries.",
+  "publication_note": "Derived allowlisted extract; account, author, runtime-path and GitHub metadata omitted. Original log unchanged.",
+  "original_sha256": "9b835c497c8f25566153f42dfd1df86c6e961cc9a48190d031478cf5cc3dea9e"
+}

@@ -1,0 +1,102 @@
+{
+  "commit": "e8987cfe9ec87bbf6baa01138ae37d18e5025536",
+  "offline": {
+    "n": 282,
+    "passed": 282,
+    "seconds": 1.927
+  },
+  "model": {
+    "smoke_tests": 23,
+    "smoke_passed": 23,
+    "measurements_completed": 14,
+    "measurements_planned": 20,
+    "input_tokens": 4120,
+    "output_tokens": 1716,
+    "stop": "GPU safety threshold reached",
+    "latency_by_batch": {
+      "sequential": {
+        "n": 12,
+        "median_ms": 1511.1545,
+        "p95_nearest_rank_ms": 2103.674,
+        "min_ms": 1155.707,
+        "max_ms": 2103.674
+      },
+      "concurrency-2": {
+        "n": 2,
+        "median_ms": 2299.8905,
+        "p95_nearest_rank_ms": 3066.538,
+        "min_ms": 1533.243,
+        "max_ms": 3066.538
+      }
+    }
+  },
+  "faults": {
+    "n": 11,
+    "passed": 11
+  },
+  "controls": {
+    "n": 10,
+    "passed": 10
+  },
+  "gates": {
+    "n": 15,
+    "passed": 15
+  },
+  "http": {
+    "n": 384,
+    "expected_outcomes": 384,
+    "phases": {
+      "baseline": {
+        "n": 64,
+        "median_ms": 102.975,
+        "p95_nearest_rank_ms": 145.027,
+        "min_ms": 30.447,
+        "max_ms": 574.92,
+        "elapsed_s": 1.16331,
+        "requests_per_s": 55.015,
+        "expected_rejections": 0,
+        "unexpected_outcomes": 0
+      },
+      "perturbation": {
+        "n": 256,
+        "median_ms": 112.574,
+        "p95_nearest_rank_ms": 151.673,
+        "min_ms": 18.574,
+        "max_ms": 657.816,
+        "elapsed_s": 4.314269,
+        "requests_per_s": 59.338,
+        "expected_rejections": 16,
+        "unexpected_outcomes": 0
+      },
+      "recovery": {
+        "n": 64,
+        "median_ms": 120.452,
+        "p95_nearest_rank_ms": 170.404,
+        "min_ms": 24.928,
+        "max_ms": 638.155,
+        "elapsed_s": 1.099028,
+        "requests_per_s": 58.233,
+        "expected_rejections": 0,
+        "unexpected_outcomes": 0
+      }
+    }
+  },
+  "browser": {
+    "title": "Informasjon Agent for Hamar",
+    "service_searches": 8,
+    "answer_claims": 1,
+    "backend_exports": 1,
+    "responsive": [
+      "desktop",
+      "tablet",
+      "mobile"
+    ],
+    "keyboard_focus": "BUTTON"
+  },
+  "coverage": {
+    "VERIFIED": 9,
+    "PARTIAL": 20,
+    "MISSING": 7,
+    "NOT APPLICABLE": 0
+  }
+}

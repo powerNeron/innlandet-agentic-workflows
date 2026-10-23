@@ -1,0 +1,146 @@
+{
+  "date": "2026-10-23T10:36:15.936230+00:00",
+  "cases": [
+    {
+      "id": "CLOUD-00",
+      "enabled": false,
+      "privacy_authorized": false,
+      "allowed": false,
+      "pass": true,
+      "network_calls": 0
+    },
+    {
+      "id": "CLOUD-01",
+      "enabled": false,
+      "privacy_authorized": true,
+      "allowed": false,
+      "pass": true,
+      "network_calls": 0
+    },
+    {
+      "id": "CLOUD-10",
+      "enabled": true,
+      "privacy_authorized": false,
+      "allowed": false,
+      "pass": true,
+      "network_calls": 0
+    },
+    {
+      "id": "CLOUD-11",
+      "enabled": true,
+      "privacy_authorized": true,
+      "allowed": true,
+      "pass": true,
+      "network_calls": 0
+    },
+    {
+      "id": "REVIEW-000",
+      "checks": [
+        false,
+        false,
+        false
+      ],
+      "decision_record_allowed": false,
+      "activation_blocked": null,
+      "pass": true
+    },
+    {
+      "id": "REVIEW-001",
+      "checks": [
+        false,
+        false,
+        true
+      ],
+      "decision_record_allowed": false,
+      "activation_blocked": null,
+      "pass": true
+    },
+    {
+      "id": "REVIEW-010",
+      "checks": [
+        false,
+        true,
+        false
+      ],
+      "decision_record_allowed": false,
+      "activation_blocked": null,
+      "pass": true
+    },
+    {
+      "id": "REVIEW-011",
+      "checks": [
+        false,
+        true,
+        true
+      ],
+      "decision_record_allowed": false,
+      "activation_blocked": null,
+      "pass": true
+    },
+    {
+      "id": "REVIEW-100",
+      "checks": [
+        true,
+        false,
+        false
+      ],
+      "decision_record_allowed": false,
+      "activation_blocked": null,
+      "pass": true
+    },
+    {
+      "id": "REVIEW-101",
+      "checks": [
+        true,
+        false,
+        true
+      ],
+      "decision_record_allowed": false,
+      "activation_blocked": null,
+      "pass": true
+    },
+    {
+      "id": "REVIEW-110",
+      "checks": [
+        true,
+        true,
+        false
+      ],
+      "decision_record_allowed": false,
+      "activation_blocked": null,
+      "pass": true
+    },
+    {
+      "id": "REVIEW-111",
+      "checks": [
+        true,
+        true,
+        true
+      ],
+      "decision_record_allowed": true,
+      "activation_blocked": true,
+      "pass": true
+    },
+    {
+      "id": "ENDPOINT-12",
+      "url": "https://127.0.0.1:11434",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "id": "ENDPOINT-13",
+      "url": "http://external.invalid:11434",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "id": "ENDPOINT-14",
+      "url": "http://127.0.0.1:9999",
+      "rejected": true,
+      "pass": true
+    }
+  ],
+  "human_identity_authenticated": false,
+  "limitation": "Flags and self-attested review roles are enforced; real reviewer identity is not authenticated",
+  "global_token_or_cost_counter_found": false
+}

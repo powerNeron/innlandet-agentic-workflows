@@ -1,0 +1,36 @@
+{
+  "query": "",
+  "answer_status": "insufficient_evidence",
+  "result": null,
+  "citations": [
+    {
+      "paragraph_id": "hamar-parkering:p1",
+      "source_id": "hamar-parkering",
+      "title": "Transport og parkering: plasser og betaling",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+      "indexed_at": "2026-10-21T13:04:22.349606+00:00",
+      "text_sha256": "18c2123b6cba53d81673012a8d526401cd27992b38600379ad6a4fce0e4deef0",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "3b397522409ca3a4fd4228960278f4c3f642461d423859be6168e3f8af0aa114"
+    },
+    {
+      "paragraph_id": "hamar-parkering:p2",
+      "source_id": "hamar-parkering",
+      "title": "Transport og parkering: plasser og betaling",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+      "indexed_at": "2026-10-21T13:04:22.349606+00:00",
+      "text_sha256": "18c2123b6cba53d81673012a8d526401cd27992b38600379ad6a4fce0e4deef0",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "3b397522409ca3a4fd4228960278f4c3f642461d423859be6168e3f8af0aa114"
+    }
+  ],
+  "message": "Det gjennomgåtte kildeutdraget oppgir ikke et konkret beløp. Jeg kan derfor ikke oppgi en pris.",
+  "official_menu_url": "https://www.hamar.kommune.no/meny/",
+  "coverage": "Kun individuelt gjennomgåtte, indekserte kilder. Ikke fullstendig kommunal dekning."
+}

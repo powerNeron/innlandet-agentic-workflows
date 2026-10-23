@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "publication_status": "evidence_checked",
+  "claim_count": 1,
+  "claim_paragraph_ids": [
+    "fact"
+  ],
+  "selected_injection_paragraph": false,
+  "unsupported_number_in_model_claim": false,
+  "forged_id_in_model_claim": false,
+  "findings": 0,
+  "correction_attempts": 0,
+  "synthetic_fixture": true
+}

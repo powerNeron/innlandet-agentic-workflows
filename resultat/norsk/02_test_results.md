@@ -1,0 +1,18 @@
+# Verifiserte resultater
+
+| ID | Dato | n | Bestått | Ikke bestått | Logg | Tolkning |
+|---|---|---|---|---|---|---|
+| O1 | 2026-10-23 | 282 | 282 | 0 | ../logger/offline.txt | Offline-regresjon |
+| O2 | 2026-10-23 | 1 | 1 | 0 | ../logger/holdout.json | Separat lagret syntetisk holdout |
+| O3 | 2026-10-23 | 8 | 8 | 0 | ../logger/verifier-scorecard.json | Syntetisk funnkodedeteksjon |
+| M1 | 2026-10-23 | 23 | 23 | 0 | ../logger/real-smoke/summary.json | Reell modell: svar og tilsiktede avslag |
+| M2 | 2026-10-23 | 14 | 14 | 0 | ../logger/model-measurements.json | Reelle målinger: temperaturavbrutt utvalg |
+| F | 2026-10-23 | 11 | 11 | 0 | ../logger/fault-injection.json | Isolerte feil- og korreksjonsforsøk |
+| P | 2026-10-23 | 10 | 10 | 0 | ../logger/fault-injection.json | Tillatelses- og promptgrenser |
+| G | 2026-10-23 | 15 | 15 | 0 | ../logger/approval-gates.json | Godkjennings- og endepunktporter |
+| S | 2026-10-23 | 384 | 384 | 0 | ../logger/http-stress.json | Syntetisk HTTP-baseline, feil og gjenoppretting |
+| B | 2026-10-23 | 13 | 13 | 0 | ../logger/browser/browser-check.txt | Navngitte spørsmål i ekte Chrome |
+| KILL | 2026-10-23 | 1 | 0 | 1 | ../logger/fault-injection.json | Global beregningsstopp: ikke håndhevet |
+| SEM | 2026-10-23 | 1 | 0 | 1 | ../logger/fault-injection.json | Semantisk injeksjonsimmunitet: ikke etablert |
+
+Radene er forskjellige forsøksenheter og overlapper delvis. De skal ikke summeres til én treffsikkerhet. KILL og SEM er negative sikkerhetsfunn; 0 betyr at den sterkere sikkerhetsegenskapen ikke ble oppfylt. Reelle modelltester inkluderer tilsiktede avslag.

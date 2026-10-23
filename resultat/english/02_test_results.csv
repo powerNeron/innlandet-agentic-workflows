@@ -1,0 +1,13 @@
+ID,Date,n,Passed,Not passed,Log,Interpretation
+O1,2026-10-23,282,282,0,../logger/offline.txt,Offline regression
+O2,2026-10-23,1,1,0,../logger/holdout.json,Separately stored synthetic holdout
+O3,2026-10-23,8,8,0,../logger/verifier-scorecard.json,Synthetic finding-code detection
+M1,2026-10-23,23,23,0,../logger/real-smoke/summary.json,Real model: answers and expected refusals
+M2,2026-10-23,14,14,0,../logger/model-measurements.json,Real measurements: thermally curtailed sample
+F,2026-10-23,11,11,0,../logger/fault-injection.json,Isolated fault and correction experiments
+P,2026-10-23,10,10,0,../logger/fault-injection.json,Permission and prompt boundaries
+G,2026-10-23,15,15,0,../logger/approval-gates.json,Approval and endpoint gates
+S,2026-10-23,384,384,0,../logger/http-stress.json,"Synthetic HTTP baseline, perturbation and recovery"
+B,2026-10-23,13,13,0,../logger/browser/browser-check.txt,Named questions in actual Chrome
+KILL,2026-10-23,1,0,1,../logger/fault-injection.json,Global computation stop: not enforced
+SEM,2026-10-23,1,0,1,../logger/fault-injection.json,Semantic injection immunity: not established

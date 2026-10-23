@@ -1,0 +1,7 @@
+{
+  "started_utc": "2026-10-23T10:35:16.571206+00:00",
+  "finished_utc": "2026-10-23T10:35:50.031760+00:00",
+  "exit_code": 0,
+  "command": "python -X utf8 -m harness.browser_smoke --enable-local-llm --output <ny-midlertidig-mappe>/browser",
+  "profile_retained": false
+}

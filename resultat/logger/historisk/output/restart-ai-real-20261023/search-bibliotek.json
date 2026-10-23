@@ -1,0 +1,121 @@
+{
+  "query": "",
+  "answer_status": "evidence_checked",
+  "result": {
+    "source": {
+      "id": "portal-search-context",
+      "title": "Godkjente kommunale tjenesteutdrag",
+      "paragraphs": [
+        {
+          "id": "hamar-bibliotek:p1",
+          "text": "Her finner du alle åpningstider ved Hamar bibliotek og ved Avdeling Vang."
+        },
+        {
+          "id": "hamar-bibliotek:p2",
+          "text": "Både biblioteket i Hamar og avdeling Vang er selvbetjent hver dag fra kl. 06.00- 22.00."
+        }
+      ],
+      "synthetic": false,
+      "url": null
+    },
+    "claims": [
+      {
+        "id": "c1",
+        "text": "Her finner du alle åpningstider ved Hamar bibliotek og ved Avdeling Vang.",
+        "paragraph_id": "hamar-bibliotek:p1",
+        "evidence_quote": "Her finner du alle åpningstider ved Hamar bibliotek og ved Avdeling Vang.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "provider": "ollama:llama3.2:3b",
+    "schema_version": "1.0",
+    "warnings": [
+      "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+      "Limited source coverage. Consult the official page for context and current conditions."
+    ],
+    "workflow_version": "1.0",
+    "verification": {
+      "claims": [
+        {
+          "id": "c1",
+          "text": "Her finner du alle åpningstider ved Hamar bibliotek og ved Avdeling Vang.",
+          "paragraph_id": "hamar-bibliotek:p1",
+          "evidence_quote": "Her finner du alle åpningstider ved Hamar bibliotek og ved Avdeling Vang.",
+          "evidence_status": "exact_match"
+        }
+      ],
+      "findings": []
+    },
+    "correction": {
+      "status": "not_needed",
+      "attempts": 0,
+      "initial_claims": [],
+      "initial_findings": [],
+      "warnings": [],
+      "provider": null,
+      "provider_findings": []
+    },
+    "source_provenance": [
+      {
+        "paragraph_id": "hamar-bibliotek:p1",
+        "source_id": "hamar-bibliotek",
+        "title": "Kultur: Hamar bibliotek",
+        "url": "https://www.hamar.kommune.no/kultur-og-aktivitet/hamar-bibliotek/",
+        "retrieved_at": "2026-10-21T13:04:07.328096+00:00",
+        "indexed_at": "2026-10-21T13:04:07.359927+00:00",
+        "text_sha256": "60fb81bd1c11c48d4924507c7b16955e7d39f87114d5456fd0d1cf456f3e5849",
+        "synthetic": false,
+        "category": "kultur",
+        "approval_expires": "2026-10-28",
+        "raw_sha256": "d669ac1949e46cfc3a12f4a845bc82b6fa7fac3aa36f727d6435a8fcd8cde5e4"
+      },
+      {
+        "paragraph_id": "hamar-bibliotek:p2",
+        "source_id": "hamar-bibliotek",
+        "title": "Kultur: Hamar bibliotek",
+        "url": "https://www.hamar.kommune.no/kultur-og-aktivitet/hamar-bibliotek/",
+        "retrieved_at": "2026-10-21T13:04:07.328096+00:00",
+        "indexed_at": "2026-10-21T13:04:07.359927+00:00",
+        "text_sha256": "60fb81bd1c11c48d4924507c7b16955e7d39f87114d5456fd0d1cf456f3e5849",
+        "synthetic": false,
+        "category": "kultur",
+        "approval_expires": "2026-10-28",
+        "raw_sha256": "d669ac1949e46cfc3a12f4a845bc82b6fa7fac3aa36f727d6435a8fcd8cde5e4"
+      }
+    ],
+    "evidence_policy": "whole_reviewed_paragraph_verbatim",
+    "provider_latency_ms": 1129
+  },
+  "citations": [
+    {
+      "paragraph_id": "hamar-bibliotek:p1",
+      "source_id": "hamar-bibliotek",
+      "title": "Kultur: Hamar bibliotek",
+      "url": "https://www.hamar.kommune.no/kultur-og-aktivitet/hamar-bibliotek/",
+      "retrieved_at": "2026-10-21T13:04:07.328096+00:00",
+      "indexed_at": "2026-10-21T13:04:07.359927+00:00",
+      "text_sha256": "60fb81bd1c11c48d4924507c7b16955e7d39f87114d5456fd0d1cf456f3e5849",
+      "synthetic": false,
+      "category": "kultur",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "d669ac1949e46cfc3a12f4a845bc82b6fa7fac3aa36f727d6435a8fcd8cde5e4"
+    },
+    {
+      "paragraph_id": "hamar-bibliotek:p2",
+      "source_id": "hamar-bibliotek",
+      "title": "Kultur: Hamar bibliotek",
+      "url": "https://www.hamar.kommune.no/kultur-og-aktivitet/hamar-bibliotek/",
+      "retrieved_at": "2026-10-21T13:04:07.328096+00:00",
+      "indexed_at": "2026-10-21T13:04:07.359927+00:00",
+      "text_sha256": "60fb81bd1c11c48d4924507c7b16955e7d39f87114d5456fd0d1cf456f3e5849",
+      "synthetic": false,
+      "category": "kultur",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "d669ac1949e46cfc3a12f4a845bc82b6fa7fac3aa36f727d6435a8fcd8cde5e4"
+    }
+  ],
+  "is_follow_up": false,
+  "provider_latency_ms": 1129,
+  "message": "Kildebasert svar; vurder funn og kildene før bruk.",
+  "coverage": "Kun individuelt gjennomgåtte, indekserte kilder. Ikke fullstendig kommunal dekning."
+}

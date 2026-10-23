@@ -1,0 +1,748 @@
+{
+  "recorded_at_utc": "2026-10-22T14:12:48.056746+00:00",
+  "criteria": "performance-sustained-criteria-20261022.json",
+  "model": "llama3.2:3b",
+  "source_id": "hamar-sfo",
+  "live_network_or_html": false,
+  "requests_completed": 50,
+  "concurrency_cap": 1,
+  "duration_seconds": 75.453,
+  "sustained_60_seconds": true,
+  "all_60_verified_no_errors": false,
+  "timeouts_or_errors": 0,
+  "latency_seconds": {
+    "p50": 1.438,
+    "p95": 1.516,
+    "p99": 1.531,
+    "max": 3.938
+  },
+  "requests": [
+    {
+      "id": 0,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 3.938
+    },
+    {
+      "id": 1,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.265
+    },
+    {
+      "id": 2,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.297
+    },
+    {
+      "id": 3,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.453
+    },
+    {
+      "id": 4,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.485
+    },
+    {
+      "id": 5,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.453
+    },
+    {
+      "id": 6,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.344
+    },
+    {
+      "id": 7,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.375
+    },
+    {
+      "id": 8,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.5
+    },
+    {
+      "id": 9,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.469
+    },
+    {
+      "id": 10,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.406
+    },
+    {
+      "id": 11,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.328
+    },
+    {
+      "id": 12,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.328
+    },
+    {
+      "id": 13,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.469
+    },
+    {
+      "id": 14,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.5
+    },
+    {
+      "id": 15,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.469
+    },
+    {
+      "id": 16,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.437
+    },
+    {
+      "id": 17,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.344
+    },
+    {
+      "id": 18,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.438
+    },
+    {
+      "id": 19,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.516
+    },
+    {
+      "id": 20,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.485
+    },
+    {
+      "id": 21,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.422
+    },
+    {
+      "id": 22,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.344
+    },
+    {
+      "id": 23,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.312
+    },
+    {
+      "id": 24,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.5
+    },
+    {
+      "id": 25,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.484
+    },
+    {
+      "id": 26,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.421
+    },
+    {
+      "id": 27,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.344
+    },
+    {
+      "id": 28,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.359
+    },
+    {
+      "id": 29,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.531
+    },
+    {
+      "id": 30,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.469
+    },
+    {
+      "id": 31,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.453
+    },
+    {
+      "id": 32,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.344
+    },
+    {
+      "id": 33,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.39
+    },
+    {
+      "id": 34,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.5
+    },
+    {
+      "id": 35,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.437
+    },
+    {
+      "id": 36,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.344
+    },
+    {
+      "id": 37,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.485
+    },
+    {
+      "id": 38,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.453
+    },
+    {
+      "id": 39,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.422
+    },
+    {
+      "id": 40,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.328
+    },
+    {
+      "id": 41,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.344
+    },
+    {
+      "id": 42,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.453
+    },
+    {
+      "id": 43,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.5
+    },
+    {
+      "id": 44,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.438
+    },
+    {
+      "id": 45,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.328
+    },
+    {
+      "id": 46,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.422
+    },
+    {
+      "id": 47,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.485
+    },
+    {
+      "id": 48,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.516
+    },
+    {
+      "id": 49,
+      "ok": true,
+      "outcome": "verified",
+      "seconds": 1.453
+    }
+  ],
+  "resource_sample_count": 41,
+  "resource_samples": [
+    {
+      "timestamp": "2026-10-22T14:11:32.610500+00:00",
+      "cpu_pct": 0.0,
+      "ram_used_mib": 19777,
+      "ram_available_mib": 12476,
+      "gpu_utilization_pct": 31,
+      "gpu_vram_mib": 479,
+      "gpu_temperature_c": 46,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T14:11:34.642414+00:00",
+      "cpu_pct": 17.2,
+      "ram_used_mib": 20432,
+      "ram_available_mib": 11821,
+      "gpu_utilization_pct": 17,
+      "gpu_vram_mib": 2526,
+      "gpu_temperature_c": 48,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T14:11:36.538519+00:00",
+      "cpu_pct": 18.1,
+      "ram_used_mib": 20504,
+      "ram_available_mib": 11749,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 65,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T14:11:38.285709+00:00",
+      "cpu_pct": 16.5,
+      "ram_used_mib": 20507,
+      "ram_available_mib": 11746,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 66,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:40.120864+00:00",
+      "cpu_pct": 15.3,
+      "ram_used_mib": 20494,
+      "ram_available_mib": 11758,
+      "gpu_utilization_pct": 85,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 66,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:41.930514+00:00",
+      "cpu_pct": 16.0,
+      "ram_used_mib": 20490,
+      "ram_available_mib": 11763,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 68,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:43.732216+00:00",
+      "cpu_pct": 15.4,
+      "ram_used_mib": 20486,
+      "ram_available_mib": 11767,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 66,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:45.644855+00:00",
+      "cpu_pct": 17.3,
+      "ram_used_mib": 20475,
+      "ram_available_mib": 11778,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 70,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:47.505236+00:00",
+      "cpu_pct": 16.8,
+      "ram_used_mib": 20474,
+      "ram_available_mib": 11779,
+      "gpu_utilization_pct": 4,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 69,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:49.269036+00:00",
+      "cpu_pct": 16.3,
+      "ram_used_mib": 20406,
+      "ram_available_mib": 11847,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 70,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:51.059865+00:00",
+      "cpu_pct": 15.4,
+      "ram_used_mib": 20409,
+      "ram_available_mib": 11844,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 71,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:52.854969+00:00",
+      "cpu_pct": 19.1,
+      "ram_used_mib": 20405,
+      "ram_available_mib": 11848,
+      "gpu_utilization_pct": 76,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 70,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:54.652109+00:00",
+      "cpu_pct": 16.7,
+      "ram_used_mib": 20406,
+      "ram_available_mib": 11847,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 72,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:56.415412+00:00",
+      "cpu_pct": 19.4,
+      "ram_used_mib": 20409,
+      "ram_available_mib": 11844,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 73,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:11:58.219440+00:00",
+      "cpu_pct": 20.2,
+      "ram_used_mib": 20401,
+      "ram_available_mib": 11852,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 72,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:00.003883+00:00",
+      "cpu_pct": 17.0,
+      "ram_used_mib": 20398,
+      "ram_available_mib": 11855,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 72,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:01.765218+00:00",
+      "cpu_pct": 15.7,
+      "ram_used_mib": 20380,
+      "ram_available_mib": 11873,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 73,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:03.578306+00:00",
+      "cpu_pct": 17.5,
+      "ram_used_mib": 20376,
+      "ram_available_mib": 11876,
+      "gpu_utilization_pct": 6,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 73,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:05.324497+00:00",
+      "cpu_pct": 14.2,
+      "ram_used_mib": 20379,
+      "ram_available_mib": 11874,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 73,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:07.103634+00:00",
+      "cpu_pct": 15.1,
+      "ram_used_mib": 20382,
+      "ram_available_mib": 11871,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 74,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:08.855553+00:00",
+      "cpu_pct": 15.6,
+      "ram_used_mib": 20382,
+      "ram_available_mib": 11871,
+      "gpu_utilization_pct": 81,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 74,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:10.723468+00:00",
+      "cpu_pct": 18.7,
+      "ram_used_mib": 20375,
+      "ram_available_mib": 11878,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 75,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:12.560257+00:00",
+      "cpu_pct": 21.2,
+      "ram_used_mib": 20384,
+      "ram_available_mib": 11869,
+      "gpu_utilization_pct": 83,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 74,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:14.395820+00:00",
+      "cpu_pct": 19.1,
+      "ram_used_mib": 20382,
+      "ram_available_mib": 11871,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 73,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:16.293832+00:00",
+      "cpu_pct": 16.9,
+      "ram_used_mib": 20356,
+      "ram_available_mib": 11897,
+      "gpu_utilization_pct": 18,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 75,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:18.114112+00:00",
+      "cpu_pct": 18.6,
+      "ram_used_mib": 20352,
+      "ram_available_mib": 11901,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 75,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:19.945292+00:00",
+      "cpu_pct": 17.9,
+      "ram_used_mib": 20348,
+      "ram_available_mib": 11905,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 76,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:21.786300+00:00",
+      "cpu_pct": 16.5,
+      "ram_used_mib": 20352,
+      "ram_available_mib": 11901,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 75,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:23.744228+00:00",
+      "cpu_pct": 22.3,
+      "ram_used_mib": 20381,
+      "ram_available_mib": 11872,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 76,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:25.751241+00:00",
+      "cpu_pct": 25.6,
+      "ram_used_mib": 20402,
+      "ram_available_mib": 11851,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 75,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:27.692552+00:00",
+      "cpu_pct": 26.6,
+      "ram_used_mib": 20415,
+      "ram_available_mib": 11838,
+      "gpu_utilization_pct": 47,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 70,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:29.646271+00:00",
+      "cpu_pct": 21.9,
+      "ram_used_mib": 20420,
+      "ram_available_mib": 11833,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 68,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T14:12:31.529813+00:00",
+      "cpu_pct": 17.5,
+      "ram_used_mib": 20412,
+      "ram_available_mib": 11841,
+      "gpu_utilization_pct": 15,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 77,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T14:12:33.367652+00:00",
+      "cpu_pct": 17.3,
+      "ram_used_mib": 20403,
+      "ram_available_mib": 11850,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 78,
+      "ollama_process_rss_mib": 119
+    },
+    {
+      "timestamp": "2026-10-22T14:12:35.220457+00:00",
+      "cpu_pct": 17.4,
+      "ram_used_mib": 20405,
+      "ram_available_mib": 11848,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 79,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:37.081715+00:00",
+      "cpu_pct": 16.8,
+      "ram_used_mib": 20404,
+      "ram_available_mib": 11849,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 78,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:38.913804+00:00",
+      "cpu_pct": 17.2,
+      "ram_used_mib": 20404,
+      "ram_available_mib": 11849,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 79,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:40.810867+00:00",
+      "cpu_pct": 19.0,
+      "ram_used_mib": 20375,
+      "ram_available_mib": 11878,
+      "gpu_utilization_pct": 42,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 76,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:42.677246+00:00",
+      "cpu_pct": 17.0,
+      "ram_used_mib": 20376,
+      "ram_available_mib": 11877,
+      "gpu_utilization_pct": 95,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 79,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:44.535090+00:00",
+      "cpu_pct": 15.4,
+      "ram_used_mib": 20373,
+      "ram_available_mib": 11880,
+      "gpu_utilization_pct": 5,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 79,
+      "ollama_process_rss_mib": 120
+    },
+    {
+      "timestamp": "2026-10-22T14:12:46.388787+00:00",
+      "cpu_pct": 14.9,
+      "ram_used_mib": 20384,
+      "ram_available_mib": 11869,
+      "gpu_utilization_pct": 94,
+      "gpu_vram_mib": 3068,
+      "gpu_temperature_c": 80,
+      "ollama_process_rss_mib": 120
+    }
+  ],
+  "resource_summary": {
+    "peak_cpu_pct": 26.6,
+    "peak_ram_used_mib": 20507,
+    "minimum_ram_available_mib": 11746,
+    "peak_gpu_utilization_pct": 95,
+    "peak_gpu_vram_mib": 3068,
+    "peak_gpu_temperature_c": 80,
+    "peak_ollama_process_rss_mib": 120
+  },
+  "limitations": [
+    "Single host, one approved source, concurrency two and one local model.",
+    "GPU utilization may include unrelated local processes; Ollama process RSS does not include GPU model memory.",
+    "This controlled duration is not a production multi-user capacity guarantee."
+  ]
+}

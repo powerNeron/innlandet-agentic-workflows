@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "requests": 800,
+  "workers": 8,
+  "failures": 0,
+  "elapsed_seconds": 12.4467,
+  "requests_per_second": 64.27,
+  "latency_ms": {
+    "median": 107.271,
+    "p95": 137.554,
+    "p99": 631.919,
+    "max": 1131.055
+  },
+  "environment": {
+    "python": "3.12.10",
+    "os": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 22
+  },
+  "scope": "Loopback HTTP /api/search, 8 approved local documents, no Ollama generation; socket connections restricted to 127.0.0.1; 800 requests / 8 workers.",
+  "queries": [
+    "skole",
+    "byggesak",
+    "helse",
+    "vann",
+    "miljo",
+    "parkering",
+    "kultur",
+    "planer"
+  ],
+  "commit": "71c29755da8ad2054cfd6a357ed5cf1fb3c9d0c3"
+}

@@ -1,0 +1,119 @@
+{
+  "source": {
+    "id": "hamar-folkehelse",
+    "title": "Helse: folkehelse og kunnskapsgrunnlag",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "Dokumentet er vedtatt av kommunestyret i Hamar 21. februar 2024."
+      },
+      {
+        "id": "p2",
+        "text": "Helse skapes der folk lever, bor og arbeider. Folkehelsearbeidet skjer i alle samfunnssektorer og sammenhengen mellom levekår, miljø, helse og livskvalitet er sentral."
+      },
+      {
+        "id": "p3",
+        "text": "Gjennom folkehelsearbeidet skal kommunen tilrettelegge samfunnet slik at alle selv kan ivareta og forbedre sin egen helse og trivsel. Arbeidet kan være reguleringer og rettigheter, som skal gjelde for alle, eller veiledning av den enkelte."
+      },
+      {
+        "id": "p4",
+        "text": "Det viktigste helsefremmende og forebyggende arbeidet gjøres før helseplager oppstår."
+      }
+    ],
+    "synthetic": false,
+    "url": "https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/"
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "Dokumentet er vedtatt av kommunestyret i Hamar 21. februar 2024.",
+      "paragraph_id": "p1",
+      "evidence_quote": "Dokumentet er vedtatt av kommunestyret i Hamar 21. februar 2024.",
+      "evidence_status": "exact_match"
+    }
+  ],
+  "provider": "ollama:llama3.2:3b",
+  "schema_version": "1.0",
+  "warnings": [
+    "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+    "Limited source coverage. Consult the official page for context and current conditions."
+  ],
+  "workflow_version": "1.0",
+  "verification": {
+    "claims": [
+      {
+        "id": "c1",
+        "text": "Dokumentet er vedtatt av kommunestyret i Hamar 21. februar 2024.",
+        "paragraph_id": "p1",
+        "evidence_quote": "Dokumentet er vedtatt av kommunestyret i Hamar 21. februar 2024.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "findings": []
+  },
+  "correction": {
+    "status": "not_needed",
+    "attempts": 0,
+    "initial_claims": [],
+    "initial_findings": [],
+    "warnings": [],
+    "provider": null,
+    "provider_findings": []
+  },
+  "source_provenance": [
+    {
+      "paragraph_id": "p1",
+      "source_id": "hamar-folkehelse",
+      "title": "Helse: folkehelse og kunnskapsgrunnlag",
+      "url": "https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/",
+      "retrieved_at": "2026-10-21T13:04:02.329398+00:00",
+      "indexed_at": "2026-10-21T13:04:02.360965+00:00",
+      "text_sha256": "704ae816d31b7e78577d57b6795905b877ba4df2239dbb4d101e02ed74455a3f",
+      "synthetic": false,
+      "category": "helse",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "e7f10c9f710c70eed2463a0b27ff2102c291edc5df39ea297b63095920ffa185"
+    },
+    {
+      "paragraph_id": "p2",
+      "source_id": "hamar-folkehelse",
+      "title": "Helse: folkehelse og kunnskapsgrunnlag",
+      "url": "https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/",
+      "retrieved_at": "2026-10-21T13:04:02.329398+00:00",
+      "indexed_at": "2026-10-21T13:04:02.360965+00:00",
+      "text_sha256": "704ae816d31b7e78577d57b6795905b877ba4df2239dbb4d101e02ed74455a3f",
+      "synthetic": false,
+      "category": "helse",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "e7f10c9f710c70eed2463a0b27ff2102c291edc5df39ea297b63095920ffa185"
+    },
+    {
+      "paragraph_id": "p3",
+      "source_id": "hamar-folkehelse",
+      "title": "Helse: folkehelse og kunnskapsgrunnlag",
+      "url": "https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/",
+      "retrieved_at": "2026-10-21T13:04:02.329398+00:00",
+      "indexed_at": "2026-10-21T13:04:02.360965+00:00",
+      "text_sha256": "704ae816d31b7e78577d57b6795905b877ba4df2239dbb4d101e02ed74455a3f",
+      "synthetic": false,
+      "category": "helse",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "e7f10c9f710c70eed2463a0b27ff2102c291edc5df39ea297b63095920ffa185"
+    },
+    {
+      "paragraph_id": "p4",
+      "source_id": "hamar-folkehelse",
+      "title": "Helse: folkehelse og kunnskapsgrunnlag",
+      "url": "https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/",
+      "retrieved_at": "2026-10-21T13:04:02.329398+00:00",
+      "indexed_at": "2026-10-21T13:04:02.360965+00:00",
+      "text_sha256": "704ae816d31b7e78577d57b6795905b877ba4df2239dbb4d101e02ed74455a3f",
+      "synthetic": false,
+      "category": "helse",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "e7f10c9f710c70eed2463a0b27ff2102c291edc5df39ea297b63095920ffa185"
+    }
+  ],
+  "evidence_policy": "whole_reviewed_paragraph_verbatim",
+  "provider_latency_ms": 1179
+}

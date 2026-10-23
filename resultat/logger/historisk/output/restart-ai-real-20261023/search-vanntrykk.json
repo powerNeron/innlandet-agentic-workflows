@@ -1,0 +1,121 @@
+{
+  "query": "",
+  "answer_status": "evidence_checked",
+  "result": {
+    "source": {
+      "id": "portal-search-context",
+      "title": "Godkjente kommunale tjenesteutdrag",
+      "paragraphs": [
+        {
+          "id": "hamar-drikkevann:p1",
+          "text": "Du skal normalt ha et vanntrykk i tilknytningspunktet til kommunal ledning på mellom 2 og 9 bar."
+        },
+        {
+          "id": "hamar-drikkevann:p2",
+          "text": "Du skal bli varslet så raskt som mulig dersom det skjer et akutt bortfall av vann."
+        }
+      ],
+      "synthetic": false,
+      "url": null
+    },
+    "claims": [
+      {
+        "id": "c1",
+        "text": "Du skal normalt ha et vanntrykk i tilknytningspunktet til kommunal ledning på mellom 2 og 9 bar.",
+        "paragraph_id": "hamar-drikkevann:p1",
+        "evidence_quote": "Du skal normalt ha et vanntrykk i tilknytningspunktet til kommunal ledning på mellom 2 og 9 bar.",
+        "evidence_status": "exact_match"
+      }
+    ],
+    "provider": "ollama:llama3.2:3b",
+    "schema_version": "1.0",
+    "warnings": [
+      "Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
+      "Limited source coverage. Consult the official page for context and current conditions."
+    ],
+    "workflow_version": "1.0",
+    "verification": {
+      "claims": [
+        {
+          "id": "c1",
+          "text": "Du skal normalt ha et vanntrykk i tilknytningspunktet til kommunal ledning på mellom 2 og 9 bar.",
+          "paragraph_id": "hamar-drikkevann:p1",
+          "evidence_quote": "Du skal normalt ha et vanntrykk i tilknytningspunktet til kommunal ledning på mellom 2 og 9 bar.",
+          "evidence_status": "exact_match"
+        }
+      ],
+      "findings": []
+    },
+    "correction": {
+      "status": "not_needed",
+      "attempts": 0,
+      "initial_claims": [],
+      "initial_findings": [],
+      "warnings": [],
+      "provider": null,
+      "provider_findings": []
+    },
+    "source_provenance": [
+      {
+        "paragraph_id": "hamar-drikkevann:p1",
+        "source_id": "hamar-drikkevann",
+        "title": "Vann: offentlig drikkevann i Hamar",
+        "url": "https://www.hamar.kommune.no/drikkevann/",
+        "retrieved_at": "2026-10-21T13:04:17.303356+00:00",
+        "indexed_at": "2026-10-21T13:04:17.338029+00:00",
+        "text_sha256": "5b96ee224b5f6b4b773ba23b373ebb31de83bcba05c082375a85ab9ed5d42406",
+        "synthetic": false,
+        "category": "teknisk",
+        "approval_expires": "2026-10-28",
+        "raw_sha256": "35ac04c5e061bb29e6b016dcd4520d25f96bda3fc35f78123929a6d7b8572031"
+      },
+      {
+        "paragraph_id": "hamar-drikkevann:p2",
+        "source_id": "hamar-drikkevann",
+        "title": "Vann: offentlig drikkevann i Hamar",
+        "url": "https://www.hamar.kommune.no/drikkevann/",
+        "retrieved_at": "2026-10-21T13:04:17.303356+00:00",
+        "indexed_at": "2026-10-21T13:04:17.338029+00:00",
+        "text_sha256": "5b96ee224b5f6b4b773ba23b373ebb31de83bcba05c082375a85ab9ed5d42406",
+        "synthetic": false,
+        "category": "teknisk",
+        "approval_expires": "2026-10-28",
+        "raw_sha256": "35ac04c5e061bb29e6b016dcd4520d25f96bda3fc35f78123929a6d7b8572031"
+      }
+    ],
+    "evidence_policy": "whole_reviewed_paragraph_verbatim",
+    "provider_latency_ms": 1311
+  },
+  "citations": [
+    {
+      "paragraph_id": "hamar-drikkevann:p1",
+      "source_id": "hamar-drikkevann",
+      "title": "Vann: offentlig drikkevann i Hamar",
+      "url": "https://www.hamar.kommune.no/drikkevann/",
+      "retrieved_at": "2026-10-21T13:04:17.303356+00:00",
+      "indexed_at": "2026-10-21T13:04:17.338029+00:00",
+      "text_sha256": "5b96ee224b5f6b4b773ba23b373ebb31de83bcba05c082375a85ab9ed5d42406",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "35ac04c5e061bb29e6b016dcd4520d25f96bda3fc35f78123929a6d7b8572031"
+    },
+    {
+      "paragraph_id": "hamar-drikkevann:p2",
+      "source_id": "hamar-drikkevann",
+      "title": "Vann: offentlig drikkevann i Hamar",
+      "url": "https://www.hamar.kommune.no/drikkevann/",
+      "retrieved_at": "2026-10-21T13:04:17.303356+00:00",
+      "indexed_at": "2026-10-21T13:04:17.338029+00:00",
+      "text_sha256": "5b96ee224b5f6b4b773ba23b373ebb31de83bcba05c082375a85ab9ed5d42406",
+      "synthetic": false,
+      "category": "teknisk",
+      "approval_expires": "2026-10-28",
+      "raw_sha256": "35ac04c5e061bb29e6b016dcd4520d25f96bda3fc35f78123929a6d7b8572031"
+    }
+  ],
+  "is_follow_up": false,
+  "provider_latency_ms": 1311,
+  "message": "Kildebasert svar; vurder funn og kildene før bruk.",
+  "coverage": "Kun individuelt gjennomgåtte, indekserte kilder. Ikke fullstendig kommunal dekning."
+}
