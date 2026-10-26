@@ -208,3 +208,24 @@ The repository, code and documentation were assisted by OpenAI Codex under stude
 Use separate feature branches and pull requests for shared integration. Cross-review is currently optional under the independent-component agreement. [powerNeron](https://github.com/powerNeron) owns source approval, fetching, orchestration, CLI and JSON output; [JeppeGs](https://github.com/JeppeGs) owns summarization, LLM integration, evidence verification and evaluation. Coordinate shared interfaces and preserve both students' contribution history. Read `AGENTS.md` before coding; record task goals under `tasks/`, sanitized prompts in `docs/prompt-log.md`, and meaningful decisions in `docs/meetings/`.
 
 Earlier implementation and ownership context remains in the [offline workflow](docs/source-workflow.md), [full-system decisions](docs/meetings/full-system-web-decisions.md), [Ollama integration record](docs/meetings/ollama-integration.md) and [historical integration gate](docs/final-integration-gate.md). Remote writes and merging require explicit authorization under the project workflow.
+
+## User Interface Screenshots
+
+The screenshots below show the Aisha Agent application running locally.
+
+### Homepage and Search Interface
+
+![Aisha Agent Homepage](comp2/appendices/UI/UI_.png)
+
+### AI Response with Source Verification
+
+![Aisha Agent Verified Answer](comp2/appendices/UI/UI_2.png)
+
+The second screenshot shows a source-checked response generated
+by the local Ollama llama3.2:3b model. The interface displays
+the exact source quotation and a link to the official Hamar
+municipality website.
+
+Source quotation verification does not guarantee factual accuracy
+or that the information is up to date.
+
