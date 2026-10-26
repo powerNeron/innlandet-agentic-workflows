@@ -29,7 +29,7 @@ Eight URLs, 39 whole reviewed paragraphs, seven backend categories covering eigh
 
 ## Run the existing local application
 
-From C:\Users\LINDA\PycharmProjects\innlandet-agentic-workflows-full-system-web:
+From the repository root:
 
 ```powershell
 python -X utf8 -m hamar_agent.web --real-sources --model llama3.2:3b --ollama-timeout 90 --port 8000
@@ -70,7 +70,7 @@ JeppeGs's ollama_provider.py, correction.py, summarize.py, verify.py, revision.p
 
 The real model selects one whole reviewed paragraph through constrained JSON decoding. This is deliberately an extractive answer, not a free-form paraphrase or an independent fact-check. The transport schema ties text, evidence_quote and paragraph_id to an actual same source paragraph. It never fabricates a response when the model is unavailable. Locally assigned claim record IDs c1... are not evidence IDs; paragraph IDs and evidence text are never normalized or guessed.
 
-After EVERY initial response the application calls Jesper's verifier and independently requires claim text == full quote == actual paragraph text. This preserves numeric roles, dates, fees, deadlines, negations and conditions within that paragraph, instead of trusting a citation ID or checking only that a number occurs somewhere. Unsupported/partial/reordered claims cannot be exported as supported. If findings exist, at most one correction-provider call is allowed, then mandatory independent re-verification runs. Unresolved findings or verifier/provider failures produce no result/download. No unchecked model text or hallucinated personal details are retained in correction history: sanitized findings and attempt counts remain, rejected candidate text is omitted. The source provenance includes exact official URLs, retrieval/index timestamps, raw/text hashes and approval expiry. Real search input is not echoed into exported JSON. No prompt or raw-response logging is enabled.
+After EVERY initial response the application calls JeppeGs's verifier and independently requires claim text == full quote == actual paragraph text. This preserves numeric roles, dates, fees, deadlines, negations and conditions within that paragraph, instead of trusting a citation ID or checking only that a number occurs somewhere. Unsupported/partial/reordered claims cannot be exported as supported. If findings exist, at most one correction-provider call is allowed, then mandatory independent re-verification runs. Unresolved findings or verifier/provider failures produce no result/download. No unchecked model text or hallucinated personal details are retained in correction history: sanitized findings and attempt counts remain, rejected candidate text is omitted. The source provenance includes exact official URLs, retrieval/index timestamps, raw/text hashes and approval expiry. Real search input is not echoed into exported JSON. No prompt or raw-response logging is enabled.
 
 Budget: at most two model calls per answer, each capped by the existing 24000-character prompt guard, num_predict=700 and bounded response body. This bounds generated output to 1400 tokens requested at most; actual usage token counts are not available from the unchanged client and must not be invented. Per-call timeout is bounded (90 seconds in examples); it is a socket timeout, not a proven hard overall wall-clock deadline. No paid API is configured. Each run stops on missing source, failed verification, provider failure or the single unresolved correction.
 
@@ -138,3 +138,11 @@ Existing baseline HEAD remains 81645cb1d8782c7764f7264e54dbf1153cc292d4. No Git 
 - harness/browser_smoke.py
 - harness/offline_tests.py
 - harness/real_source_smoke.py
+
+## Historical verification observation recorded on 2026-10-21
+
+The following observation is preserved verbatim from the former internal preparation note `docs/compulsory-2-report-preparation.md` before its removal. It describes that audit and its worktree, not current verification or the present catalog state:
+
+> On 2026-10-21 this audit reran 229 offline tests successfully; the opt-in synthetic Ollama smoke was attempted but the local model runtime returned HTTP 500. The municipal catalog required by the real-source harness is absent from this worktree, so no new real-source inference result is claimed.
+
+The 229-test audit is a separate historical observation. It must not be combined with the other test suites above or treated as a successful real-model run. No tests or model calls were repeated when this observation was relocated.

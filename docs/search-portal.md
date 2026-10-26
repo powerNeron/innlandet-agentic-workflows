@@ -3,7 +3,7 @@
 ## Start (Python 3.12)
 
 ```powershell
-cd C:\Users\LINDA\PycharmProjects\innlandet-agentic-workflows-full-system-web
+# Run from the repository root.
 python -X utf8 -m hamar_agent.web --port 8000
 ```
 

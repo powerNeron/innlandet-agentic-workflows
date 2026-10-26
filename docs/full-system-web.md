@@ -5,7 +5,7 @@
 Use this feature worktree until the branch is reviewed and merged:
 
 ```powershell
-cd C:\Users\LINDA\PycharmProjects\innlandet-agentic-workflows-full-system-web
+# Run from the repository root.
 python -X utf8 -m hamar_agent.web --port 8000
 ```
 
@@ -30,7 +30,7 @@ output/ must already exist. Exclusive saving never overwrites a file. An interru
 
 CLI/web -> WorkflowService -> approved fixture (or explicitly enabled approved HTTP source) -> existing summarizer interface -> existing verify_claims -> optional one correction callback -> re-verification -> WorkflowResult -> existing JSON serializer/storage or browser download.
 
-The default provider is Jesper/JeppeGs's MockSummarizer, not a real LLM. It echoes synthetic paragraphs. The existing verifier really runs and finds invalid references, absent excerpts, numeric mismatches and narrow numeric conflicts. All original findings and correction outcomes are retained in the report; review warnings are never replaced by a claim of factual truth. The verifier's semantic limitations remain unchanged.
+The default provider is JeppeGs/JeppeGs's MockSummarizer, not a real LLM. It echoes synthetic paragraphs. The existing verifier really runs and finds invalid references, absent excerpts, numeric mismatches and narrow numeric conflicts. All original findings and correction outcomes are retained in the report; review warnings are never replaced by a claim of factual truth. The verifier's semantic limitations remain unchanged.
 
 Malformed initial provider responses produce errors and no result. No correction is attempted without an injected callback. When one is configured, it is called at most once if there are findings; its returned claims are rechecked, and failed or unresolved correction remains visible.
 
