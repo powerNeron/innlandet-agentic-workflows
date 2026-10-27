@@ -370,6 +370,83 @@ class SourceRenewalTests(unittest.TestCase):
         self.assertNotIn("sensitive", error.getvalue())
         self.assertEqual(self.bytes(), self.originals)
 
+    def test_technical_completion_fills_metadata_without_creating_human_reviews(self):
+        draft = renewal.prepare_review(self.owner, self.approvals, self.selection, self.catalog, now=NOW)
+        self.put(self.reviews, draft); before = self.reviews.read_bytes()
+        folder = self.root / "technical"
+        result = renewal.complete_technical_review(self.owner, self.reviews, self.approvals,
+                                                   self.selection, self.catalog, folder, now=NOW)
+        self.assertEqual(result["human_reviews_created"], 0)
+        self.assertEqual(result["technical_sources_verified"], 2)
+        self.assertEqual((folder / "review.before.json").read_bytes(), before)
+        for row in self.get(self.reviews)["sources"]:
+            self.assertEqual(row["decision"], "pending")
+            self.assertIsNone(row["reviewed_at"])
+            self.assertIsNone(row["reviewer"])
+            self.assertFalse(any(row["checks"].values()))
+            self.assertTrue(all(row["technical_verification"]["checks"].values()))
+            evidence_path = self.root / row["provenance_file"]
+            self.assertEqual(renewal.digest(evidence_path.read_bytes()), row["provenance_sha256"])
+            self.assertIsNone(self.get(evidence_path)["observed_at"])
+            self.assertFalse(any(self.get(evidence_path)["checks"].values()))
+        self.assertEqual(len(self.check()["errors"]), 2)
+        self.assertEqual(self.bytes(), self.originals)
+        self.assertEqual(len(self.get(folder / "owner-review-items.json")["sources"]), 2)
+
+    def test_technical_completion_preserves_preexisting_real_review_fields(self):
+        before = self.get(self.reviews)
+        renewal.complete_technical_review(self.owner, self.reviews, self.approvals,
+                                         self.selection, self.catalog, self.root / "technical", now=NOW)
+        after = self.get(self.reviews)
+        for old, new in zip(before["sources"], after["sources"]):
+            for key in ("decision", "reviewer", "reviewer_role", "reviewed_at", "checks",
+                        "provenance_file", "provenance_sha256"):
+                self.assertEqual(old[key], new[key])
+        self.assertEqual(self.check()["activation"], "eligible_not_activated")
+
+    def test_technical_completion_refuses_stale_binding_without_mutation(self):
+        draft = self.get(self.reviews); draft["input_sha256"]["catalog"] = "c" * 64
+        self.put(self.reviews, draft); before = self.reviews.read_bytes()
+        with self.assertRaises(ValueError):
+            renewal.complete_technical_review(self.owner, self.reviews, self.approvals,
+                                             self.selection, self.catalog, self.root / "technical", now=NOW)
+        self.assertEqual(self.reviews.read_bytes(), before)
+        self.assertEqual(self.bytes(), self.originals)
+
+    def test_technical_completion_refuses_changed_provenance_instead_of_rebinding(self):
+        draft = self.get(self.reviews); before = self.reviews.read_bytes()
+        path = self.root / draft["sources"][0]["provenance_file"]
+        evidence = self.get(path); evidence["observed_at"] = "2026-10-27T13:45:00+00:00"
+        self.put(path, evidence)
+        with self.assertRaisesRegex(ValueError, "silently rebind"):
+            renewal.complete_technical_review(self.owner, self.reviews, self.approvals,
+                                             self.selection, self.catalog, self.root / "technical", now=NOW)
+        self.assertEqual(self.reviews.read_bytes(), before)
+
+    def test_technical_completion_write_failure_preserves_draft_and_backup(self):
+        before = self.reviews.read_bytes(); folder = self.root / "technical"
+        with patch.object(renewal, "_replace", side_effect=OSError("synthetic write failure")):
+            with self.assertRaises(OSError):
+                renewal.complete_technical_review(self.owner, self.reviews, self.approvals,
+                                                 self.selection, self.catalog, folder, now=NOW)
+        self.assertEqual(self.reviews.read_bytes(), before)
+        self.assertEqual((folder / "review.before.json").read_bytes(), before)
+        self.assertEqual(self.bytes(), self.originals)
+
+    def test_technical_completion_cli_requires_new_local_evidence_directory(self):
+        common = ["--owner-authorization", str(self.owner), "--approvals", str(self.approvals),
+                  "--selection", str(self.selection), "--catalog", str(self.catalog),
+                  "--reviews", str(self.reviews)]
+        folder = self.root / "technical"
+        with patch.object(renewal, "_now", side_effect=lambda value=None: value or NOW):
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(main(["complete-renewal-technical", *common, "--output-dir", str(folder)]), 0)
+        before = self.reviews.read_bytes()
+        with self.assertRaises(ValueError):
+            renewal.complete_technical_review(self.owner, self.reviews, self.approvals,
+                                             self.selection, self.catalog, folder, now=NOW)
+        self.assertEqual(self.reviews.read_bytes(), before)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -246,6 +246,101 @@ def prepare_review(authorization, approvals, selection, catalog, *, now=None):
                         for s, a in approved.items()]}
 
 
+def complete_technical_review(authorization, reviews, approvals, selection, catalog,
+                              output_dir, *, now=None):
+    """Fill locally verifiable metadata, never human attestations or freshness.
+
+    Preserve the input draft before updating it. Evidence drafts stay explicitly
+    unchecked; a real file digest is not proof of human provenance review.
+    """
+    now = _now(now)
+    review_path = _path(reviews)
+    directory = _path(output_dir)
+    if directory.exists() or directory == review_path.parent or not directory.is_relative_to(review_path.parent):
+        raise RenewalError("Use a new technical-evidence directory beneath the review directory")
+    lock = review_path.with_name(review_path.name + ".technical.lock")
+    _exclusive(lock, b"technical-review\n")
+    try:
+        original = _read(review_path, 512 * 1024)
+        review = _decode(original)
+        fresh = prepare_review(authorization, approvals, selection, catalog, now=now)
+        for key in ("record_type", "record_version", "authorization_sha256", "input_sha256", "target_expiry"):
+            if review.get(key) != fresh[key]:
+                raise RenewalError("Technical completion refuses stale authorization, inputs or expiry")
+        paths, originals, _, approved, documents = _state(approvals, selection, catalog)
+        rows = review.get("sources")
+        if (not isinstance(rows, list) or len(rows) != len(approved)
+                or {row["source_id"] for row in rows} != set(approved)):
+            raise RenewalError("Technical completion requires one review per authorized source")
+        for row in rows:
+            binding = _binding(approved[row["source_id"]], documents[row["source_id"]])
+            if any(row.get(key) != value for key, value in binding.items()):
+                raise RenewalError("Technical completion refuses changed source identity or hashes")
+        directory.mkdir()
+        _exclusive(directory / "review.before.json", original)
+        worksheet = []
+        for row in rows:
+            source_id = row["source_id"]
+            binding = _binding(approved[source_id], documents[source_id])
+            filename = row.get("provenance_file")
+            if filename is None:
+                if row.get("provenance_sha256") is not None:
+                    raise RenewalError("A provenance hash without a file cannot be repaired automatically")
+                evidence = {**binding, "record_type": "source_renewal_provenance", "record_version": 1,
+                            "observed_at": None, "input_boundary": "authorized_non_personal_material",
+                            "checks": {key: False for key in PROVENANCE_CHECKS}}
+                evidence_path = directory / (source_id + ".provenance.json")
+                evidence_raw = _encoded(evidence)
+                _exclusive(evidence_path, evidence_raw)
+                row["provenance_file"] = evidence_path.relative_to(review_path.parent).as_posix()
+            else:
+                if (not isinstance(filename, str) or "\\" in filename or ":" in filename
+                        or Path(filename).is_absolute() or ".." in Path(filename).parts
+                        or Path(filename).suffix != ".json"):
+                    raise RenewalError("Relative sanitized provenance JSON file required")
+                evidence_path = _path(review_path.parent / filename)
+                if not evidence_path.is_relative_to(review_path.parent):
+                    raise RenewalError("Provenance file is outside review directory")
+                evidence_raw = _read(evidence_path)
+                evidence = _decode(evidence_raw)
+                if any(evidence.get(k) != v for k, v in binding.items()):
+                    raise RenewalError("Technical completion refuses mismatched provenance bindings")
+                if row.get("provenance_sha256") not in (None, digest(evidence_raw)):
+                    raise RenewalError("Provenance file changed; do not silently rebind a reviewed file")
+            row["provenance_sha256"] = digest(evidence_raw)
+            row["technical_verification"] = {
+                "verified_at_utc": now.isoformat(), "performed_by": "source-renewal-tool",
+                "method": "Existing local records only; no municipal retrieval or human review.",
+                "checks": {key: True for key in (
+                    "approval_schema_and_official_https_url_valid", "source_identity_matches",
+                    "selection_scope_matches", "paragraph_identity_and_hashes_match",
+                    "combined_text_hash_matches", "recorded_provenance_matches_catalog",
+                    "recorded_expiry_matches_catalog", "limited_privacy_pattern_screen_no_flags")},
+                "provenance_file_hash_verified": True,
+                "human_review_performed": False, "source_freshness_established": False,
+                "privacy_clearance_established": False}
+            worksheet.append({"source_id": source_id, "url": row["url"],
+                              "paragraphs": [{"id": p.id, "text": p.text}
+                                             for p in documents[source_id].source.paragraphs],
+                              "owner_must_assess": list(CHECKS),
+                              "provenance_attestations_required": list(PROVENANCE_CHECKS),
+                              "decision": row.get("decision"), "technical_verification": row["technical_verification"]})
+        _exclusive(directory / "owner-review-items.json", _encoded({
+            "record_type": "local_owner_review_worksheet", "recorded_at_utc": now.isoformat(),
+            "target_expiry": fresh["target_expiry"], "human_review_performed": False,
+            "sources": worksheet}))
+        if _read(review_path, 512 * 1024) != original or any(
+                _read(paths[k], 16 * 1024 * 1024) != originals[k] for k in LABELS):
+            raise RenewalError("Inputs changed during technical completion; draft not overwritten")
+        _replace(review_path, _encoded(review))
+        return {"activation": "not_attempted", "technical_sources_verified": len(rows),
+                "paragraphs_verified": sum(len(d.source.paragraphs) for d in documents.values()),
+                "human_reviews_created": 0, "review_file_sha256": digest(_encoded(review)),
+                "source_expiries_changed": False}
+    finally:
+        lock.unlink()
+
+
 def _review(row, binding, review_path, now):
     for key, value in binding.items():
         if row.get(key) != value:

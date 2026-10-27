@@ -1,0 +1,402 @@
+{
+  "record_type": "source_renewal_technical_completion_validation",
+  "record_version": 1,
+  "recorded_at_utc": "2026-10-27T12:50:54.221041+00:00",
+  "baseline_git_commit": "e87ece4393829479cc36dc862c859635dc9ee5d2",
+  "owner_authorization_preserved": true,
+  "requested_expiry": "2026-11-27",
+  "actual_expiry": "2026-10-28",
+  "renewed_sources": 0,
+  "runtime_eligible_sources_under_original_approval": 8,
+  "technical_sources_verified": 8,
+  "paragraphs_verified": 39,
+  "review_check_activation": "blocked",
+  "review_check_exit_code": 3,
+  "technical_fields_filled": [
+    "technical_verification",
+    "provenance_file",
+    "provenance_sha256"
+  ],
+  "human_attestations_created": 0,
+  "source_status": [
+    {
+      "source_id": "hamar-sfo",
+      "retained_paragraph_count": 5,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm eligibility for years 1-3, 12 free hours, school-specific hours and the recorded 186 monthly meal/trip fee.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    },
+    {
+      "source_id": "hamar-byggesak",
+      "retained_paragraph_count": 5,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm application exemptions, conservation exceptions and the recorded regulation/effective date; preserve all conditions.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    },
+    {
+      "source_id": "hamar-folkehelse",
+      "retained_paragraph_count": 4,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm the cited 2024 document remains the applicable knowledge base and its scope is accurately represented.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    },
+    {
+      "source_id": "hamar-bibliotek",
+      "retained_paragraph_count": 5,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm self-service hours, locations and return arrangements remain current.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    },
+    {
+      "source_id": "hamar-kommuneplan",
+      "retained_paragraph_count": 5,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm plan period 2026-2049, adoption date and relationship to the action/economic plan.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    },
+    {
+      "source_id": "hamar-drikkevann",
+      "retained_paragraph_count": 5,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm the recorded 2-9 bar pressure, normal 8-hour interruption limit, reporting and meter-reading conditions.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    },
+    {
+      "source_id": "hamar-parkering",
+      "retained_paragraph_count": 5,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm precisely which locations the first-free-hour and three-hour conditions apply to, plus zones and payment terms.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    },
+    {
+      "source_id": "hamar-luftkvalitet",
+      "retained_paragraph_count": 5,
+      "technical_checks": {
+        "approval_schema_and_official_https_url_valid": true,
+        "source_identity_matches": true,
+        "selection_scope_matches": true,
+        "paragraph_identity_and_hashes_match": true,
+        "combined_text_hash_matches": true,
+        "recorded_provenance_matches_catalog": true,
+        "recorded_expiry_matches_catalog": true,
+        "limited_privacy_pattern_screen_no_flags": true
+      },
+      "provenance_file_exists_and_hash_matches": true,
+      "human_decision": "pending",
+      "missing_human_review_checks": [
+        "official_url_and_excerpt_reviewed",
+        "dates_numbers_fees_and_conditions_reviewed",
+        "privacy_review_completed",
+        "no_personal_data_in_retained_content",
+        "permitted_non_personal_input_boundary_confirmed",
+        "source_and_robots_provenance_reviewed",
+        "retained_content_current_for_extension"
+      ],
+      "missing_human_review_metadata": [
+        "decision (approve/reject)",
+        "reviewed_at",
+        "reviewer",
+        "reviewer_role"
+      ],
+      "missing_provenance_fields": [
+        "observed_at",
+        "current_service_information_verified",
+        "source_permission_verified",
+        "non_personal_input_boundary_verified",
+        "original_hash_provenance_verified"
+      ],
+      "owner_factual_assessment_focus": "Confirm emission percentages, reference periods and monitoring statements; distinguish general background from current measurements.",
+      "active_expiry": "2026-10-28",
+      "renewed_to_target": false
+    }
+  ],
+  "input_sha256": {
+    "approvals": "6a8a4aeaece6fa42e6afbd8bbfe5c92ec8d929c8b2785fd33a896076d35247d2",
+    "selection": "5ec22cbe97282098452ea284e8d0ac4724fc03ef6303c808260297332fb30f6b",
+    "catalog": "3d220e3371e853646f36c4a1eb6fd0f490bbf1dbdfbcb181ddcb8ec559f8c438"
+  },
+  "review_before_sha256": "64c5b8e4844814b1a4f5a21708a0bd64df9053e42b7c5946a5c49c6b6c459a56",
+  "review_after_sha256": "af1398bf359835990e377d5c17d2639281091b7fcb7cad0f45448835a2a49623",
+  "validation": {
+    "offline_tests": {
+      "passed": 356,
+      "failures": 0,
+      "errors": 0,
+      "baseline_tests": 318,
+      "renewal_tests": 38
+    },
+    "real_source_web_startup": {
+      "status": "PASS",
+      "http_status": 200,
+      "documents": 8,
+      "provider": "ollama:llama3.2:3b"
+    },
+    "municipal_search": {
+      "status": "PASS",
+      "query": "SFO"
+    },
+    "real_source_AI": {
+      "status": "PASS",
+      "query": "SFO",
+      "claims": 1,
+      "verification_findings": 0,
+      "provider": "ollama:llama3.2:3b"
+    },
+    "synthetic_CLI": {
+      "status": "PASS",
+      "claims": 2,
+      "verification_findings": 0
+    }
+  },
+  "preservation": {
+    "source_manifests_and_catalog_changed": false,
+    "historical_records_changed": false,
+    "archive_branch_changed": false,
+    "municipal_HTML_fetched": false,
+    "incomplete_drafts_published": false
+  },
+  "limits": [
+    "Automated metadata/hash validation is not human factual review, source freshness, privacy clearance or independent approval.",
+    "The locally generated provenance drafts have genuine file hashes, but their human checks and source-observation timestamps remain incomplete.",
+    "Runtime tests used the existing 2026-10-28 approvals, not the requested November renewal.",
+    "The separate academic report is not verified."
+  ]
+}

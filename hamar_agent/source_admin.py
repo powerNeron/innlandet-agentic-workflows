@@ -204,8 +204,11 @@ def main(argv=None) -> int:
     activate.add_argument("--transaction-dir", type=Path, help="New directory for original bytes, staged bytes and audit")
     activate.add_argument("--confirm", help="Type exactly 'renew TARGET-DATE'")
     activate.add_argument("--application-stopped", action="store_true")
-    for name in ("prepare-renewal", "check-renewal"):
-        renewal = commands.add_parser(name, help="Prepare unchecked review forms" if name == "prepare-renewal" else "Read-only renewal eligibility check")
+    for name in ("prepare-renewal", "check-renewal", "complete-renewal-technical"):
+        help_text = {"prepare-renewal": "Prepare unchecked review forms",
+                     "check-renewal": "Read-only renewal eligibility check",
+                     "complete-renewal-technical": "Fill verified local metadata without completing human review"}
+        renewal = commands.add_parser(name, help=help_text[name])
         renewal.add_argument("--owner-authorization", type=Path, required=True)
         renewal.add_argument("--approvals", type=Path, required=True)
         renewal.add_argument("--selection", type=Path, required=True)
@@ -214,6 +217,9 @@ def main(argv=None) -> int:
             renewal.add_argument("--output", type=Path, required=True)
         else:
             renewal.add_argument("--reviews", type=Path, required=True)
+        if name == "complete-renewal-technical":
+            renewal.add_argument("--output-dir", type=Path, required=True,
+                                 help="New directory under the review directory for technical evidence and original draft")
     recover = commands.add_parser("recover-renewal", help="Restore original bytes after an interrupted renewal")
     recover.add_argument("--transaction-dir", type=Path, required=True)
     recover.add_argument("--approvals", type=Path, required=True)
@@ -221,7 +227,7 @@ def main(argv=None) -> int:
     recover.add_argument("--catalog", type=Path, required=True)
     recover.add_argument("--application-stopped", action="store_true")
     args = parser.parse_args(argv)
-    if args.command in {"prepare-renewal", "check-renewal", "recover-renewal"} or (
+    if args.command in {"prepare-renewal", "check-renewal", "complete-renewal-technical", "recover-renewal"} or (
             args.command == "activate" and args.owner_authorization is not None):
         return _renewal_command(args)
     try:
@@ -257,7 +263,7 @@ def main(argv=None) -> int:
 
 
 def _renewal_command(args):
-    from .source_renewal import (prepare_review, check_renewal, activate_renewal,
+    from .source_renewal import (prepare_review, check_renewal, complete_technical_review, activate_renewal,
                                  recover_renewal, RenewalError)
     try:
         if args.command == "recover-renewal":
@@ -271,7 +277,11 @@ def _renewal_command(args):
                 print(json.dumps({"review_draft": str(args.output), "activation": "not_attempted",
                                   "all_review_checks": False}))
                 return 0
-            if args.command == "check-renewal":
+            if args.command == "complete-renewal-technical":
+                result = complete_technical_review(args.owner_authorization, args.reviews,
+                                                   args.approvals, args.selection, args.catalog,
+                                                   args.output_dir)
+            elif args.command == "check-renewal":
                 result, _, _, _ = check_renewal(args.owner_authorization, args.reviews,
                                                args.approvals, args.selection, args.catalog)
             else:
