@@ -1,21 +1,35 @@
 """Synthetic temporary renewal packages only; no municipal retrieval or models."""
 from copy import deepcopy
-from contextlib import redirect_stdout, redirect_stderr
-from datetime import datetime, timezone
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
+from datetime import date, datetime, timezone
 import hashlib
 import io
 import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from hamar_agent import source_renewal as renewal
 from hamar_agent.source_admin import main
 from hamar_agent.portal_sources import load_approvals, load_catalog
+from hamar_agent.ollama_provider import OllamaClient, OllamaConfig
+from hamar_agent.real_sources import create_municipal_service, RealSourceError
+from hamar_agent.portal import PortalService
 
 
 NOW = datetime(2026, 10, 27, 14, tzinfo=timezone.utc)
+
+
+@contextmanager
+def runtime_date(day):
+    """Test-only scoped clock; never changes system time or production config."""
+    class FrozenDate(date):
+        @classmethod
+        def today(cls):
+            return cls.fromisoformat(day)
+    with patch("hamar_agent.portal_sources.date", FrozenDate), patch("hamar_agent.search.date", FrozenDate):
+        yield
 
 
 class SourceRenewalTests(unittest.TestCase):
@@ -32,7 +46,7 @@ class SourceRenewalTests(unittest.TestCase):
         approvals, selection, documents = [], [], []
         for number in (1, 2):
             source_id = f"hamar-test-{number}"
-            text = f"Fictional non-personal test service number {number}."
+            text = f"Fictional non-personal SFO test service number {number}."
             paragraph_hash = hashlib.sha256(text.encode()).hexdigest()
             approval = {"source_id": source_id, "url": f"https://www.hamar.kommune.no/test-{number}/",
                         "title": "Fictional test service", "category": "oppvekst",
@@ -446,6 +460,84 @@ class SourceRenewalTests(unittest.TestCase):
             renewal.complete_technical_review(self.owner, self.reviews, self.approvals,
                                              self.selection, self.catalog, folder, now=NOW)
         self.assertEqual(self.reviews.read_bytes(), before)
+
+    def dated_service(self):
+        def transport(url, headers, body, timeout, limit):
+            payload = json.loads(body)
+            prompt = payload["messages"][0]["content"]
+            paragraphs = json.loads(prompt.split("SOURCE_PARAGRAPHS=", 1)[1].splitlines()[0])
+            p = paragraphs[0]
+            claim = {"id": "c1", "text": p["text"], "paragraph_id": p["id"], "evidence_quote": p["text"]}
+            return json.dumps({"message": {"content": json.dumps({"claims": [claim]})}}).encode()
+        calls = Mock(side_effect=transport)
+        client = OllamaClient(OllamaConfig(model="llama3.2:3b"), transport=calls)
+        service = create_municipal_service([self.catalog], self.approvals, client=client)
+        return service, calls
+
+    def test_original_october_approval_blocks_november_20_before_model_access(self):
+        with runtime_date("2026-11-20"), patch("hamar_agent.provider_registry.require_installed_ollama_model") as model:
+            with self.assertRaisesRegex(ValueError, "expired"):
+                create_municipal_service([self.catalog], self.approvals, model="llama3.2:3b")
+            model.assert_not_called()
+        self.assertEqual(self.bytes(), self.originals)
+
+    def test_authorized_synthetic_renewal_loads_searches_and_answers_on_november_20(self):
+        self.activate()
+        with runtime_date("2026-11-20"):
+            service, calls = self.dated_service()
+            portal = PortalService(service)
+            self.assertEqual(portal.overview()["documents"], 2)
+            self.assertTrue(portal.search("SFO")["results"])
+            answer = portal.answer("SFO")
+            self.assertEqual(answer["answer_status"], "evidence_checked")
+            self.assertFalse(answer["result"]["verification"]["findings"])
+            self.assertTrue(all(c["text"] == c["evidence_quote"] for c in answer["result"]["claims"]))
+            calls.assert_called_once()
+
+    def test_authorized_expiry_is_inclusive_on_november_27(self):
+        self.activate()
+        with runtime_date("2026-11-27"):
+            approvals = load_approvals(self.approvals)
+            self.assertTrue(all(a.current() for a in approvals.values()))
+            service, calls = self.dated_service()
+            result = service.run("hamar-test-1")
+            self.assertFalse(result.verification.has_findings)
+            calls.assert_called_once()
+
+    def test_november_28_refuses_new_startup_without_contacting_model(self):
+        self.activate()
+        with runtime_date("2026-11-28"), patch("hamar_agent.provider_registry.require_installed_ollama_model") as model:
+            with self.assertRaisesRegex(ValueError, "expired"):
+                create_municipal_service([self.catalog], self.approvals, model="llama3.2:3b")
+            model.assert_not_called()
+
+    def test_already_running_service_drops_expired_search_and_AI_on_november_28(self):
+        self.activate()
+        with runtime_date("2026-11-20"):
+            service, calls = self.dated_service()
+            portal = PortalService(service)
+            self.assertTrue(portal.search("SFO")["results"])
+        with runtime_date("2026-11-28"):
+            self.assertEqual(portal.overview()["documents"], 0)
+            self.assertFalse(portal.search("SFO")["results"])
+            self.assertEqual(portal.answer("SFO")["answer_status"], "insufficient_evidence")
+            with self.assertRaises(RealSourceError): service.run("hamar-test-1")
+            calls.assert_not_called()
+
+    def test_clock_simulation_does_not_change_real_time_or_any_input(self):
+        import hamar_agent.portal_sources as sources
+        import hamar_agent.search as search
+        real_sources_date, real_search_date = sources.date, search.date
+        today = date.today()
+        for day in ("2026-11-20", "2026-11-28"):
+            with runtime_date(day):
+                self.assertEqual(sources.date.today().isoformat(), day)
+                self.assertEqual(search.date.today().isoformat(), day)
+                with self.assertRaises(ValueError): load_approvals(self.approvals)
+        self.assertIs(sources.date, real_sources_date)
+        self.assertIs(search.date, real_search_date)
+        self.assertEqual(date.today(), today)
+        self.assertEqual(self.bytes(), self.originals)
 
 
 if __name__ == "__main__":

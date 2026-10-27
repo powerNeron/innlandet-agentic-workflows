@@ -1,0 +1,283 @@
+{
+  "record_type": "source_renewal_simulated_date_validation",
+  "record_version": 1,
+  "recorded_at_utc": "2026-10-27T13:05:35.190657+00:00",
+  "baseline_git_commit": "5afa00859d06ebc3139a2148362259d3d3969301",
+  "requested_expiry": "2026-11-27",
+  "actual_expiry": "2026-10-28",
+  "actual_renewed_sources": 0,
+  "sources": [
+    {
+      "source_id": "hamar-sfo",
+      "paragraph_count": 5,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "source_id": "hamar-byggesak",
+      "paragraph_count": 5,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "source_id": "hamar-folkehelse",
+      "paragraph_count": 4,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "source_id": "hamar-bibliotek",
+      "paragraph_count": 5,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "source_id": "hamar-kommuneplan",
+      "paragraph_count": 5,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "source_id": "hamar-drikkevann",
+      "paragraph_count": 5,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "source_id": "hamar-parkering",
+      "paragraph_count": 5,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "source_id": "hamar-luftkvalitet",
+      "paragraph_count": 5,
+      "actual_expiry": "2026-10-28",
+      "renewal_status": "PENDING_HUMAN_REVIEW"
+    }
+  ],
+  "input_sha256": {
+    "approvals": "6a8a4aeaece6fa42e6afbd8bbfe5c92ec8d929c8b2785fd33a896076d35247d2",
+    "selection": "5ec22cbe97282098452ea284e8d0ac4724fc03ef6303c808260297332fb30f6b",
+    "catalog": "3d220e3371e853646f36c4a1eb6fd0f490bbf1dbdfbcb181ddcb8ec559f8c438"
+  },
+  "actual_source_date_simulations": [
+    {
+      "simulated_date": "2026-11-20",
+      "actual_source_expiry": "2026-10-28",
+      "eligible_sources": 0,
+      "new_runtime_loading": "BLOCKED_EXPIRED",
+      "already_loaded_search_results": 0,
+      "AI_status": "insufficient_evidence",
+      "model_generation_calls": 0,
+      "expiry_safeguards": "PASS",
+      "requested_service_availability": "BLOCKED"
+    },
+    {
+      "simulated_date": "2026-11-28",
+      "actual_source_expiry": "2026-10-28",
+      "eligible_sources": 0,
+      "new_runtime_loading": "BLOCKED_EXPIRED",
+      "already_loaded_search_results": 0,
+      "AI_status": "insufficient_evidence",
+      "model_generation_calls": 0,
+      "expiry_safeguards": "PASS",
+      "requested_service_availability": "CORRECTLY_REFUSED"
+    }
+  ],
+  "live_local_Ollama_check": {
+    "date": "2026-10-27",
+    "source_expiry": "2026-10-28",
+    "eligible_sources": 8,
+    "ordinary_search": "PASS",
+    "Ollama_answer": "PASS",
+    "claims": 1,
+    "findings": 0,
+    "provider": "ollama:llama3.2:3b"
+  },
+  "renewal_check": {
+    "activation": "blocked",
+    "missing_evidence": [
+      {
+        "source_id": "hamar-sfo",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      },
+      {
+        "source_id": "hamar-byggesak",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      },
+      {
+        "source_id": "hamar-folkehelse",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      },
+      {
+        "source_id": "hamar-bibliotek",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      },
+      {
+        "source_id": "hamar-kommuneplan",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      },
+      {
+        "source_id": "hamar-drikkevann",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      },
+      {
+        "source_id": "hamar-parkering",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      },
+      {
+        "source_id": "hamar-luftkvalitet",
+        "reason": "Documented source/privacy approval is missing or rejected",
+        "missing_review_checks": [
+          "official_url_and_excerpt_reviewed",
+          "dates_numbers_fees_and_conditions_reviewed",
+          "privacy_review_completed",
+          "no_personal_data_in_retained_content",
+          "permitted_non_personal_input_boundary_confirmed",
+          "source_and_robots_provenance_reviewed",
+          "retained_content_current_for_extension"
+        ],
+        "missing_review_fields": [
+          "reviewed_at",
+          "reviewer",
+          "reviewer_role"
+        ]
+      }
+    ]
+  },
+  "offline_regression_scope": {
+    "unchanged_original_expiry_blocks_november_20": true,
+    "authorized_synthetic_renewal_works_november_20": true,
+    "expiry_november_27_inclusive": true,
+    "november_28_startup_blocked_before_model": true,
+    "already_running_service_refuses_expired_search_and_AI": true,
+    "test_clock_restored_and_inputs_preserved": true
+  },
+  "constraints": {
+    "system_clock_changed": false,
+    "production_runtime_clock_override_added": false,
+    "source_expiry_or_content_changed": false,
+    "municipal_network_requests": false,
+    "human_attestations_created": false,
+    "archive_branch_changed": false
+  },
+  "limits": [
+    "The successful November positive cases use synthetic temporary reviewed test packages and a fake model transport, not renewed project sources.",
+    "The actual eight project sources are blocked on November 20 because their approvals expire October 28.",
+    "Current source facts, source/robots permission and privacy/provenance sign-offs remain required; owner authorization alone is not these reviews."
+  ],
+  "full_offline_suite": {
+    "passed": 362,
+    "failures": 0,
+    "errors": 0,
+    "baseline_tests": 318,
+    "renewal_tests": 44,
+    "new_date_regressions": 6
+  },
+  "live_local_web_startup": {
+    "status": "PASS",
+    "http_status": 200,
+    "documents": 8,
+    "provider": "ollama:llama3.2:3b",
+    "expiry_used": "2026-10-28"
+  }
+}
