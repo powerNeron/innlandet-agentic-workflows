@@ -61,11 +61,11 @@ The catalog is ignored local data and is not supplied by a Git clone. The record
 
 ### Source Approval Validity and Extension Request — Instructor Note
 
-On **2026-10-27**, the project owner explicitly authorized renewal of all eight municipal sources to **2026-11-27** for continued KIUA-2003 academic testing, including municipal search and the real-source Ollama workflow, subject to all mandatory source, provenance and privacy checks. The [owner authorization and local technical review](docs/source-renewal-owner-authorization-20261027.json) record the actual authorization date and project-owner role separately from the Codex technical inspection. No private identity or independent reviewer role is inferred. The original recorded source review date remains **2026-10-21**, and the recorded approval expiry remains **2026-10-28**. **2026-11-27 is an authorized renewal target, not an active approval.** Owner authorization is not evidence of a fresh source review, privacy sign-off or instructor approval.
+On **2026-10-27**, the project owner confirmed continued academic use of all eight existing municipal sources through and including **2026-11-20**, superseding the earlier November 27 target. The [current owner decision and verified status](docs/source-renewal-owner-authorization-20261027-to-20261120.json) preserve that decision separately from the [earlier owner authorization](docs/source-renewal-owner-authorization-20261027.json). The existing technical checks and provenance metadata are reused; no source text or paragraph hash was changed. The original source review date remains **2026-10-21**, and the actual active expiry remains **2026-10-28**. **2026-11-20 is the current authorized target, not an activated approval.** The continuation decision does not supply unperformed factual/privacy/provenance attestations or independent instructor approval.
 
 All eight records in [the approval manifest](docs/approved-service-pages.json), and their corresponding entries in [the reviewed selection](docs/reviewed-service-selection.json), carry that original expiry:
 
-| Source ID | Reviewed service | Retained paragraphs | Renewal to 2026-11-27 |
+| Source ID | Reviewed service | Retained paragraphs | Renewal to 2026-11-20 |
 | --- | --- | --- | --- |
 | `hamar-sfo` | School-age childcare | 5 | Pending human re-review |
 | `hamar-byggesak` | Building without an application | 5 | Pending human re-review |
@@ -98,6 +98,8 @@ The owner supplied October 30, 2026 as the submission date and November 20, 2026
 
 Six new offline regressions separately prove that a genuinely authorized renewal of a synthetic temporary test package loads, searches and answers on November 20, includes November 27 itself, and refuses new startup and already-running search/AI on November 28. Those positive cases are not activation of the eight project sources. The complete suite passes 362 tests. Current-date local Ollama web startup/search/one AI answer also passed under the original October 28 approvals. November examiner access remains blocked until the documented human content/privacy/provenance review is completed and the actual renewal transaction succeeds. No fresh official-page check was performed: the approved workflow still has no authorized non-personal delivery boundary for new raw HTML acquisition.
 
+The latest owner target is **November 20 inclusive**. The existing workflow accepts that target without code changes. Its check still returns exit `3` for all eight missing human reviews. Actual records were checked with simulated November 20 and November 21: both refuse startup, return no eligible search evidence and refuse AI before model generation because the records still expire October 28. This verifies expiry enforcement, not the requested November 20 availability. Current-date local Ollama source loading, search and one verified AI answer passed. The current owner-decision record lists every missing review/attestation field; the old November 27/28 regression evidence remains unchanged historical evidence.
+
 ### Owner-controlled renewal: review, check, activate
 
 This is an offline, all-or-nothing renewal of the entire authorized source set, not content admission. No source is changed if any review is missing or rejected. All required human review and provenance observations must be on the activation's current UTC day, not in the future. A project-owner review is a local attestation; the tool does not authenticate identity or independently establish the truth of the review. Protect the local files and audit directories accordingly.
@@ -105,7 +107,7 @@ This is an offline, all-or-nothing renewal of the entire authorized source set, 
 Prepare an unchecked review draft, using a new output filename in an existing directory:
 
 ```powershell
-$renewalInputs = @('--owner-authorization', 'docs/source-renewal-owner-authorization-20261027.json', '--approvals', 'docs/approved-service-pages.json', '--selection', 'docs/reviewed-service-selection.json', '--catalog', 'output/municipal-catalog.json')
+$renewalInputs = @('--owner-authorization', 'docs/source-renewal-owner-authorization-20261027-to-20261120.json', '--approvals', 'docs/approved-service-pages.json', '--selection', 'docs/reviewed-service-selection.json', '--catalog', 'output/municipal-catalog.json')
 python -B -X utf8 -m hamar_agent.source_admin prepare-renewal @renewalInputs --output output/source-renewal-review-20261027.json
 ```
 
@@ -133,7 +135,7 @@ python -B -X utf8 -m hamar_agent.source_admin check-renewal @renewalInputs --rev
 Exit `0` means eligible, not activated or academically approved; `3` means blocked with per-source missing checks/fields; `2` means invalid inputs or an operational failure. Only after a successful check, stop the application and use a new transaction directory:
 
 ```powershell
-python -B -X utf8 -m hamar_agent.source_admin activate @renewalInputs --reviews output/source-renewal-review-20261027.json --transaction-dir output/source-renewal-transaction-20261027 --confirm 'renew 2026-11-27' --application-stopped
+python -B -X utf8 -m hamar_agent.source_admin activate @renewalInputs --reviews output/source-renewal-review-20261027.json --transaction-dir output/source-renewal-transaction-20261027 --confirm 'renew 2026-11-20' --application-stopped
 ```
 
 This command acquires an exclusive lock and preserves byte-identical original files, proposed files, owner authorization, reviews and provenance evidence in that transaction directory. It verifies all input bindings, stages schema-valid data, changes only the three expiry fields, verifies the resulting bytes and writes `COMMITTED.json`. Handled partial-write/audit failures restore the original bytes; unsuccessful rollback leaves a lock and recovery journal. A stale review, changed input, reused transaction, unexpected concurrent modification or rejected privacy decision cannot be silently accepted. Keep all transaction directories as evidence; restart the application only after successful commit verification.
