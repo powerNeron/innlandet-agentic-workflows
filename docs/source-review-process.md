@@ -48,3 +48,9 @@ if an approved input format guarantees personal data is not received.
 ## Current real-source update
 
 The previous application decision to allow transient HTML acquisition was superseded by the strict assignment privacy requirement. Eight reviewed source records and 39 retained paragraph hashes are still in the repository, but their approvals expire on 2026-10-28 and are not renewed. Use the existing local catalog only while current. See [current implementation and limitations](real-source-workflow.md) and [assignment matrix](assignment-requirements-matrix.md). Use `--demo` for synthetic offline testing.
+
+## Controlled expiry-only renewal
+
+The owner may personally document the current source, service-fact, privacy and permitted provenance checks using the recorded project-owner authorization. This does not claim independent municipal/instructor approval. The new `prepare-renewal`, `check-renewal` and explicitly confirmed `activate` path is limited to unchanged approved content; all original hashes and review/retrieval timestamps are preserved, and new review dates/decisions are recorded in the transaction audit. An unchecked owner authorization alone cannot activate anything. Legacy changed-content activation and all HTML acquisition/import remain blocked.
+
+Follow the [current owner-review and transaction procedure](../README.md#owner-controlled-renewal-review-check-activate). It requires current UTC-day reviews, hash-bound sanitized provenance, consistent approval/selection/catalog inputs, stopped application processes, a new audit directory and explicit confirmation. Partial failures roll back or retain a recovery lock/journal; do not restart after an interrupted transaction until verified recovery. No actual November renewal has been performed; all eight recorded expiries remain 2026-10-28.

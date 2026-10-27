@@ -1,6 +1,7 @@
-"""Local, proposal-only review controls for manually prepared source updates.
+"""Local review controls and separately gated, unchanged-content renewal.
 
-This module never fetches sources or changes the active approval manifest. A
+This module never fetches sources. The explicit owner-controlled renewal path
+can update expiry metadata only after validating the complete review bundle. A
 recorded decision is an auditable local human action, not cryptographic proof
 of reviewer identity or permission to activate content.
 """
@@ -191,10 +192,38 @@ def main(argv=None) -> int:
     decision.add_argument("--privacy-checked", action="store_true")
     decision.add_argument("--service-facts-checked", action="store_true")
     decision.add_argument("--output", type=Path, required=True, help="New local audit JSON path; never overwritten")
-    activate = commands.add_parser("activate", help="Attempt activation; blocked by current provenance/privacy policy")
-    activate.add_argument("--decision-record", type=Path, required=True)
-    activate.add_argument("--output", type=Path, required=True, help="New activation audit JSON path; never overwritten")
+    activate = commands.add_parser("activate", help="Owner-controlled expiry renewal, or legacy blocked content activation")
+    activation_input = activate.add_mutually_exclusive_group(required=True)
+    activation_input.add_argument("--decision-record", type=Path, help="Legacy content decision; remains blocked")
+    activation_input.add_argument("--owner-authorization", type=Path, help="Recorded conditional owner authorization")
+    activate.add_argument("--output", type=Path, help="Legacy blocked activation audit only")
+    activate.add_argument("--reviews", type=Path)
+    activate.add_argument("--approvals", type=Path)
+    activate.add_argument("--selection", type=Path)
+    activate.add_argument("--catalog", type=Path)
+    activate.add_argument("--transaction-dir", type=Path, help="New directory for original bytes, staged bytes and audit")
+    activate.add_argument("--confirm", help="Type exactly 'renew TARGET-DATE'")
+    activate.add_argument("--application-stopped", action="store_true")
+    for name in ("prepare-renewal", "check-renewal"):
+        renewal = commands.add_parser(name, help="Prepare unchecked review forms" if name == "prepare-renewal" else "Read-only renewal eligibility check")
+        renewal.add_argument("--owner-authorization", type=Path, required=True)
+        renewal.add_argument("--approvals", type=Path, required=True)
+        renewal.add_argument("--selection", type=Path, required=True)
+        renewal.add_argument("--catalog", type=Path, required=True)
+        if name == "prepare-renewal":
+            renewal.add_argument("--output", type=Path, required=True)
+        else:
+            renewal.add_argument("--reviews", type=Path, required=True)
+    recover = commands.add_parser("recover-renewal", help="Restore original bytes after an interrupted renewal")
+    recover.add_argument("--transaction-dir", type=Path, required=True)
+    recover.add_argument("--approvals", type=Path, required=True)
+    recover.add_argument("--selection", type=Path, required=True)
+    recover.add_argument("--catalog", type=Path, required=True)
+    recover.add_argument("--application-stopped", action="store_true")
     args = parser.parse_args(argv)
+    if args.command in {"prepare-renewal", "check-renewal", "recover-renewal"} or (
+            args.command == "activate" and args.owner_authorization is not None):
+        return _renewal_command(args)
     try:
         if args.command == "review":
             proposal, digest = load_proposal(args.proposal)
@@ -215,6 +244,8 @@ def main(argv=None) -> int:
             print(json.dumps({"source_id": record["source_id"], "decision_status": record["decision_status"],
                               "activation": record["activation"], "audit_record": str(args.output)}, ensure_ascii=False))
             return 0
+        if args.output is None:
+            raise ValueError("Legacy activation requires a new --output audit path")
         record = _load_small_json(args.decision_record)
         blocked = blocked_activation(record)
         save_exclusive(blocked, args.output)
@@ -222,6 +253,39 @@ def main(argv=None) -> int:
         return 3
     except (OSError, UnicodeError, ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
         print("Source administration stopped safely: " + str(exc), file=sys.stderr)
+        return 2
+
+
+def _renewal_command(args):
+    from .source_renewal import (prepare_review, check_renewal, activate_renewal,
+                                 recover_renewal, RenewalError)
+    try:
+        if args.command == "recover-renewal":
+            result = recover_renewal(args.transaction_dir, args.approvals, args.selection,
+                                    args.catalog, application_stopped=args.application_stopped)
+        else:
+            inputs = (args.owner_authorization, args.approvals, args.selection, args.catalog)
+            if args.command == "prepare-renewal":
+                result = prepare_review(*inputs)
+                save_exclusive(result, args.output)
+                print(json.dumps({"review_draft": str(args.output), "activation": "not_attempted",
+                                  "all_review_checks": False}))
+                return 0
+            if args.command == "check-renewal":
+                result, _, _, _ = check_renewal(args.owner_authorization, args.reviews,
+                                               args.approvals, args.selection, args.catalog)
+            else:
+                if any(x is None for x in (*inputs, args.reviews, args.transaction_dir, args.confirm)) or args.output is not None:
+                    raise RenewalError("Renewal requires owner authorization, reviews, approvals, selection, catalog, a new transaction-dir and confirm; omit legacy output")
+                result = activate_renewal(args.owner_authorization, args.reviews,
+                                         args.approvals, args.selection, args.catalog,
+                                         args.transaction_dir, confirm=args.confirm,
+                                         application_stopped=args.application_stopped)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 3 if result.get("activation") == "blocked" else 0
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError, IndexError, AttributeError) as exc:
+        reason = str(exc) if isinstance(exc, RenewalError) else "Missing, malformed or unwritable renewal inputs; no successful activation is claimed. Inspect any transaction journal before restarting."
+        print("Source renewal stopped safely: " + reason, file=sys.stderr)
         return 2
 
 

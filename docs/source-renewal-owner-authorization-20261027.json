@@ -1,0 +1,390 @@
+{
+  "record_type": "project_owner_conditional_renewal_authorization_and_technical_review",
+  "record_version": 1,
+  "recorded_at_utc": "2026-10-27T12:07:01.242425+00:00",
+  "authorization": {
+    "decision_date": "2026-10-27",
+    "actor_role": "project_owner",
+    "identity_assurance": "Self-declared project owner in this conversation; no private identity collected or independently authenticated.",
+    "source": "Explicit user instruction in the current project conversation.",
+    "statement": "I explicitly authorize renewal of all eight municipal sources through 2026-11-27 for continued KIUA-2003 academic testing.",
+    "source_ids": [
+      "hamar-bibliotek",
+      "hamar-byggesak",
+      "hamar-drikkevann",
+      "hamar-folkehelse",
+      "hamar-kommuneplan",
+      "hamar-luftkvalitet",
+      "hamar-parkering",
+      "hamar-sfo"
+    ],
+    "scope": [
+      "municipal_search",
+      "real_source_ollama_workflow"
+    ],
+    "requested_expiry": "2026-11-27",
+    "subject_to_mandatory_source_provenance_and_privacy_checks": true,
+    "is_source_or_privacy_review_signoff": false
+  },
+  "technical_review": {
+    "performed_by": "Codex",
+    "recorded_at_utc": "2026-10-27T12:07:01.242425+00:00",
+    "method": "Read-only inspection of existing local approved excerpts and metadata; no municipal network requests or raw HTML imports.",
+    "source_count": 8,
+    "paragraph_count": 39,
+    "limits": [
+      "Hash equality establishes identity of stored excerpts, not current municipal content or factual truth.",
+      "The privacy pattern screen is not independent human privacy clearance.",
+      "Raw source and robots hashes are recorded metadata; no new source-body or robots comparison was performed.",
+      "Historical bounded privacy review exists, but the 2026-10-22 renewal review records all eight human renewal approvals as pending."
+    ],
+    "sources": [
+      {
+        "source_id": "hamar-sfo",
+        "url": "https://www.hamar.kommune.no/skolefritidsordning/12-timer-gratis-sfo-for-1-3-trinn/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "paragraph_count": 5,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:03:52.312125+00:00",
+        "recorded_indexed_at": "2026-10-21T13:03:52.340400+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      },
+      {
+        "source_id": "hamar-byggesak",
+        "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "paragraph_count": 5,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:03:57.400233+00:00",
+        "recorded_indexed_at": "2026-10-21T13:03:57.425864+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      },
+      {
+        "source_id": "hamar-folkehelse",
+        "url": "https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4"
+        ],
+        "paragraph_count": 4,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:04:02.329398+00:00",
+        "recorded_indexed_at": "2026-10-21T13:04:02.360965+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      },
+      {
+        "source_id": "hamar-bibliotek",
+        "url": "https://www.hamar.kommune.no/kultur-og-aktivitet/hamar-bibliotek/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "paragraph_count": 5,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:04:07.328096+00:00",
+        "recorded_indexed_at": "2026-10-21T13:04:07.359927+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      },
+      {
+        "source_id": "hamar-kommuneplan",
+        "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "paragraph_count": 5,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:04:12.403827+00:00",
+        "recorded_indexed_at": "2026-10-21T13:04:12.443621+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      },
+      {
+        "source_id": "hamar-drikkevann",
+        "url": "https://www.hamar.kommune.no/drikkevann/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "paragraph_count": 5,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:04:17.303356+00:00",
+        "recorded_indexed_at": "2026-10-21T13:04:17.338029+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      },
+      {
+        "source_id": "hamar-parkering",
+        "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "paragraph_count": 5,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:04:22.320433+00:00",
+        "recorded_indexed_at": "2026-10-21T13:04:22.349606+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      },
+      {
+        "source_id": "hamar-luftkvalitet",
+        "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/",
+        "paragraph_ids": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "paragraph_count": 5,
+        "technical_checks": {
+          "approval_schema_and_official_https_url": true,
+          "approval_selection_scope_identical": true,
+          "catalog_source_identity_matches": true,
+          "unique_paragraph_ids": true,
+          "paragraph_hashes_match": true,
+          "combined_text_hash_matches": true,
+          "recorded_raw_hash_matches": true,
+          "catalog_expiry_and_category_match": true,
+          "recorded_privacy_assertion": true,
+          "limited_privacy_pattern_screen_no_flags": true
+        },
+        "recorded_reviewed_on": "2026-10-21",
+        "recorded_expires_on": "2026-10-28",
+        "recorded_retrieved_at": "2026-10-21T13:04:27.308298+00:00",
+        "recorded_indexed_at": "2026-10-21T13:04:27.333472+00:00",
+        "owner_authorization": "GRANTED_SUBJECT_TO_MANDATORY_CHECKS",
+        "independent_current_source_review": "NOT_ESTABLISHED",
+        "independent_current_privacy_review": "NOT_ESTABLISHED",
+        "current_source_body_and_robots_reverification": "NOT_PERFORMED",
+        "renewal_status": "PENDING_NOT_ACTIVATED",
+        "resulting_active_expiry": "2026-10-28"
+      }
+    ],
+    "evidence_files": {
+      "docs/approved-service-pages.json": {
+        "sha256": "6a8a4aeaece6fa42e6afbd8bbfe5c92ec8d929c8b2785fd33a896076d35247d2"
+      },
+      "docs/reviewed-service-selection.json": {
+        "sha256": "5ec22cbe97282098452ea284e8d0ac4724fc03ef6303c808260297332fb30f6b"
+      },
+      "output/municipal-catalog.json": {
+        "sha256": "3d220e3371e853646f36c4a1eb6fd0f490bbf1dbdfbcb181ddcb8ec559f8c438"
+      },
+      "output/final-technical-evidence/privacy-review-20261022.json": {
+        "sha256": "f44e630c27d77037ee9bbfe1da9d821a31d3d18f4c296afcc1fa4109fd3e29f9"
+      },
+      "output/final-technical-evidence/source-renewal-review-20261022.json": {
+        "sha256": "8773c2d886b8779f093b1fe2543f5ad103b583a8dc7fcfaa822e43b43391c9d1"
+      },
+      "docs/source-review-process.md": {
+        "sha256": "f3760fe060a142864fad33e6c512364339d2c99784f3092b22b89fd7337f1d4b"
+      },
+      "hamar_agent/source_admin.py": {
+        "sha256": "ee0355093012c0601f9d5d277c7378183ab2e938f516e2d10d168c5b771ea079"
+      }
+    }
+  },
+  "activation": {
+    "status": "NOT_ACTIVATED",
+    "activated_sources": [],
+    "approval_manifest_changed": false,
+    "selection_manifest_changed": false,
+    "active_catalog_changed": false,
+    "reviewed_on_dates_changed": false,
+    "blockers": [
+      "Independent current source/service-fact review and privacy sign-off are not established.",
+      "Current permitted source/robots provenance has not been reverified for renewal.",
+      "The existing source_admin.activate procedure is blocked and does not update approvals or the catalog."
+    ],
+    "existing_activation_command_invoked": false,
+    "existing_approval_expiry_preserved": "2026-10-28"
+  },
+  "not_a_source_admin_decision_record": true,
+  "validation": {
+    "recorded_at_utc": "2026-10-27T12:08:50.633389+00:00",
+    "offline_tests": {
+      "command": "python -B -X utf8 -m harness.offline_tests",
+      "passed": 318,
+      "failures": 0,
+      "errors": 0,
+      "exit_code": 0
+    },
+    "real_source_web_startup": {
+      "status": "PASS",
+      "http_status": 200,
+      "eligible_documents": 8,
+      "provider": "ollama:llama3.2:3b",
+      "approval_expiry_exercised": "2026-10-28"
+    },
+    "real_source_cli": {
+      "status": "PASS",
+      "source_id": "hamar-drikkevann",
+      "provider": "ollama:llama3.2:3b",
+      "exit_code": 0,
+      "claims": 1,
+      "verification_findings": 0,
+      "synthetic": false,
+      "ollama_timeout_seconds": 45,
+      "approval_expiry_exercised": "2026-10-28",
+      "result_json_saved": false
+    },
+    "constraints": {
+      "municipal_network_requests": false,
+      "non_loopback_connections_blocked_during_real_source_checks": true,
+      "fallback_to_synthetic": false,
+      "approval_renewal_tested_or_activated": false
+    },
+    "limits": "One existing-source inference and startup check do not establish fresh source/privacy review, factual correctness, or eight-source model quality."
+  }
+}
