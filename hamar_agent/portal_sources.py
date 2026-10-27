@@ -15,6 +15,7 @@ from .categories import CATEGORY_IDS
 from .html_extract import extract_html, extract_service_excerpts
 from .retrieval import _validate_url
 from .schemas import Paragraph, Source
+from .historical_sources import retained_approval, retained_document
 
 HOST = "www.hamar.kommune.no"
 AGENT = "HamarKommuneAgent/0.2"
@@ -88,7 +89,7 @@ def load_approvals(path: Path):
     result = {}
     for entry in data:
         approval = PageApproval(**entry)
-        if not approval.current():
+        if not approval.current() and not retained_approval(approval, today=date.today()):
             raise ValueError("Manifest contains an expired or future approval")
         if approval.source_id in result or any(a.url == approval.url for a in result.values()):
             raise ValueError("Duplicate approval")
@@ -163,14 +164,17 @@ def load_catalog(path, approvals=APPROVED_PAGES):
         data = dict(data)
         source_data = dict(data.pop("source"))
         approval = approvals.get(source_data.get("id"))
-        if not approval or not approval.current():
+        if not approval or (not approval.current() and not retained_approval(approval, today=date.today())):
             raise ValueError("Unapproved/expired indexed document")
         if source_data.get("url") != approval.url or source_data.get("title") != approval.title or source_data.get("synthetic") is not False:
             raise ValueError("Catalog source identity mismatch")
         if data.get("text_sha256") != approval.text_sha256 or data.get("raw_sha256") != approval.raw_sha256 or data.get("category") != approval.category or data.get("approval_expires") != approval.expires_on:
             raise ValueError("Catalog does not match reviewed extraction")
         source_data["paragraphs"] = tuple(Paragraph(**p) for p in source_data["paragraphs"])
-        docs.append(IndexedDocument(source=Source(**source_data), **data))
+        document = IndexedDocument(source=Source(**source_data), **data)
+        if not approval.current() and not retained_document(document):
+            raise ValueError("Historical catalog differs from the exact retained dataset")
+        docs.append(document)
     return SearchIndex(docs)
 
 

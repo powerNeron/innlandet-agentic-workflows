@@ -75,6 +75,7 @@ function officialMenuLink(parent, url = officialMenuUrl) {
   } catch (_) { /* Only the fixed official menu URL can be presented. */ }
 }
 function provenance(parent, source) {
+  if (source.historical_warning) item(parent, "p", source.historical_warning).className = "notice";
   const time = source.retrieved_at ? "Hentet: " + new Date(source.retrieved_at).toLocaleString("nb-NO") : "Ikke hentet fra nettet (syntetisk)";
   item(parent, "p", time + " · Indeksert: " + new Date(source.indexed_at).toLocaleString("nb-NO")).className = "source-meta";
 }
@@ -90,7 +91,7 @@ function renderSearch(data) {
   }
   data.results.forEach((hit) => {
     const card = item($("search-results"), "article", ""); card.className = "result-card";
-    item(card, "p", hit.synthetic ? "SYNTETISK EKSEMPEL" : "GJENNOMGÅTT KILDE").className = "eyebrow";
+    item(card, "p", hit.synthetic ? "SYNTETISK EKSEMPEL" : (hit.approval_status === "historical_expired" ? "HISTORISK KILDE · UTLØPT GODKJENNING" : "GJENNOMGÅTT KILDE")).className = "eyebrow";
     item(card, "h3", hit.title); item(card, "p", hit.excerpt); sourceLink(card, hit); provenance(card, hit);
   });
 }
@@ -224,6 +225,7 @@ function renderAnswer(answer) {
       if (!citation.url || linkedUrls.has(citation.url)) return;
       const citationCard = item(citationGroup, "div", ""); citationCard.className = "citation-card"; linkedUrls.add(citation.url);
       item(citationCard, "p", "OFFISIELL KILDE").className = "answer-label";
+      if (citation.historical_warning) item(citationCard, "p", citation.historical_warning).className = "notice";
       item(citationCard, "p", citation.title).className = "citation-title"; sourceLink(citationCard, citation);
       item(citationCard, "p", citation.retrieved_at ? "Kildematerialet ble gjennomgått " + new Date(citation.retrieved_at).toLocaleDateString("nb-NO") + "." : "Tidspunkt for gjennomgang er ikke oppgitt.").className = "source-meta";
     });

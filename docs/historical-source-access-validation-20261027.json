@@ -1,0 +1,195 @@
+{
+  "recorded_at_utc": "2026-10-27T14:27:41.513837+00:00",
+  "type": "historical_dataset_real_ollama_validation",
+  "model": "llama3.2:3b",
+  "approval_expiry_unchanged": "2026-10-28",
+  "renewed": false,
+  "dates": [
+    {
+      "date": "2026-11-20",
+      "sources": [
+        {
+          "source_id": "hamar-sfo",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-byggesak",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-folkehelse",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-bibliotek",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-kommuneplan",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-drikkevann",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-parkering",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-luftkvalitet",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        }
+      ],
+      "source_count": 8,
+      "paragraph_count": 39,
+      "portal_answer": "evidence_checked",
+      "web_http": 200
+    },
+    {
+      "date": "2026-11-27",
+      "sources": [
+        {
+          "source_id": "hamar-sfo",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-byggesak",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-folkehelse",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-bibliotek",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-kommuneplan",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-drikkevann",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-parkering",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        },
+        {
+          "source_id": "hamar-luftkvalitet",
+          "loaded": true,
+          "search": true,
+          "model_claims": 1,
+          "verification_findings": 0,
+          "historical_label": true,
+          "citation_url": true
+        }
+      ],
+      "source_count": 8,
+      "paragraph_count": 39,
+      "portal_answer": "evidence_checked",
+      "web_http": 200
+    }
+  ],
+  "policy": "Exact original eight-source dataset may be used after approval expiry, always labelled historical. Not renewed, not newly reviewed, no municipal rights clearance inferred.",
+  "owner_decision": {
+    "source": "Explicit latest project-owner instruction in conversation",
+    "recorded_at_utc": "2026-10-27T14:29:12.295389+00:00",
+    "action": "Remove expiry as runtime stop only for the exact existing dataset; preserve history and all other safeguards."
+  },
+  "inputs_unchanged_sha256": {
+    "approvals": "6a8a4aeaece6fa42e6afbd8bbfe5c92ec8d929c8b2785fd33a896076d35247d2",
+    "selection": "5ec22cbe97282098452ea284e8d0ac4724fc03ef6303c808260297332fb30f6b",
+    "catalog": "3d220e3371e853646f36c4a1eb6fd0f490bbf1dbdfbcb181ddcb8ec559f8c438"
+  },
+  "limitations": [
+    "Dates simulated by scoped application clocks; real local Ollama used, not a mock.",
+    "No browser automation or future-freshness guarantee.",
+    "Reuse rights remain unresolved; this implementation does not establish permission.",
+    "Original folkehelse p1 retained; PDF adoption wording discrepancy remains documented.",
+    "Local catalog not included in Git clone."
+  ],
+  "offline_tests": {
+    "passed": 374,
+    "failures": 0,
+    "errors": 0,
+    "command": "python -B -X utf8 -m harness.offline_tests"
+  }
+}

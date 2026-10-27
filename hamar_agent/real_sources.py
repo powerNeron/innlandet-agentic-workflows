@@ -18,6 +18,7 @@ from .search import SearchIndex
 from .summarize import parse_claim_response
 from .verify import verify_claims, VerificationReport, VerificationFinding, FindingCode
 from .workflow import WorkflowResult, CorrectionOutcome, _check_claims
+from .historical_sources import HISTORICAL_WARNING
 
 
 class RealSourceError(RuntimeError):
@@ -133,7 +134,9 @@ class MunicipalWorkflowService(WorkflowService):
             raise ValueError("Real-source mode refuses synthetic documents")
 
     def sources(self):
-        return [{"id": d.source.id, "label": d.source.title, "kind": "reviewed municipal excerpts"}
+        return [{"id": d.source.id, "label": d.source.title, "kind": "reviewed municipal excerpts",
+                 "approval_status": d.provenance()["approval_status"],
+                 "historical_warning": d.provenance()["historical_warning"]}
                 for d in self.index.documents.values() if self.index.eligible(d)]
 
     def close(self):
@@ -200,7 +203,8 @@ class MunicipalWorkflowService(WorkflowService):
             raise RealSourceError("Insufficient evidence after at most one correction; no answer published")
         return MunicipalResult(source=source, claims=report.claims, provider=self.provider,
             warnings=("Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
-                      "Limited source coverage. Consult the official page for context and current conditions."),
+                      "Limited source coverage. Consult the official page for context and current conditions.")
+                     + ((HISTORICAL_WARNING,) if any(p["approval_status"] == "historical_expired" for p in provenance) else ()),
             verification=report, correction=correction, source_provenance=provenance,
             provider_latency_ms=round((time.perf_counter() - started) * 1000))
 

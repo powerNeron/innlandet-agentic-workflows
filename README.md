@@ -6,6 +6,51 @@ The real-source workflow retrieves reviewed local excerpts, asks a local model t
 
 **Development status:** the walking skeleton, tests and historical evaluation evidence are retained for Compulsory 2 and continued development toward the final exam. This repository is not a completed or approved academic submission.
 
+## Current runtime policy: retained historical municipal dataset
+
+The owner has explicitly removed expiry as a runtime stop for the **exact eight
+existing local source records and 39 retained paragraphs**. This supersedes the
+earlier expiry-blocked runtime status described in the historical renewal notes
+below. This is **historical access, not renewed approval**: the manifests still
+record review on 2026-10-21 and expiry on 2026-10-28, without rewriting history.
+After expiry, search results, AI evidence/citations and the existing web UI show
+that approval has expired and information is historical, not newly approved or
+updated. The source list and JSON provenance also expose that status.
+
+The exception is bound to canonical SHA-256 fingerprints of all eight original
+approval records and complete catalog documents. It cannot admit a modified or
+unrelated expired dataset. Source identity, content/paragraph/provenance checks,
+query privacy checks, exact-quote verification and disabled municipal HTML
+acquisition remain in place. No new runtime mode or synthetic fallback was
+introduced. `PageApproval.current()` still reports the recorded approval's
+actual validity. Historical access has no automatic November 28 shutdown; it
+does not change the source approval expiry to November 27.
+
+**Actual validation:** 374 offline tests passed. With scoped application clocks
+on **2026-11-20** and **2026-11-27**, the real local catalog loaded all eight
+sources/39 paragraphs; every source was searchable and produced an actual
+`ollama:llama3.2:3b` answer with zero evidence-verification findings and historical
+provenance. There were 16 direct source inferences and two portal AI answers.
+The real-source web page returned HTTP 200 on both dates. These are tests run
+now with simulated dates, not proof of future machine/model availability or
+future factual correctness. See the [sanitized validation record](docs/historical-source-access-validation-20261027.json).
+
+Use the existing web application, with Ollama running and the original ignored
+local catalog present:
+
+```powershell
+python -B -X utf8 -m hamar_agent.web --real-sources --provider ollama --model llama3.2:3b --ollama-timeout 90 --port 8000
+```
+
+Open <http://127.0.0.1:8000>. A Git clone does not include the local catalog.
+Historical access is not municipal permission or a legal clearance: the
+documented reuse-rights uncertainty remains. The original public-health p1
+wording is retained as requested; its adoption wording remains unsupported by
+the inspected PDF, and the separately approved correction has not been applied.
+Consult the official sources for current facts, particularly dates, fees and
+conditions. The PDF correction and a genuine source renewal are separate from
+this owner-authorized historical runtime policy.
+
 ## Requirements and setup
 
 - Python 3.12. Historical evaluation records identify Python 3.12.10.

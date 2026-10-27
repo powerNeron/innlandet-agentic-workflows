@@ -9,6 +9,7 @@ import unicodedata
 
 from .categories import CATEGORY_IDS
 from .schemas import Source
+from .historical_sources import retained_document, HISTORICAL_WARNING
 
 STOPWORDS = frozenset({"og", "i", "er", "en", "et", "det", "den", "for", "til", "av", "om", "hva", "hvordan", "hvor", "kan", "jeg", "med",
              "soker", "soke", "gjelder", "koster", "trenger", "finn", "finne", "finner", "informasjon",
@@ -118,7 +119,10 @@ class IndexedDocument:
             date.fromisoformat(self.approval_expires)
 
     def provenance(self) -> dict:
+        expired = not self.source.synthetic and date.fromisoformat(self.approval_expires) < date.today()
         return {"source_id": self.source.id, "title": self.source.title, "url": self.source.url,
+                "approval_status": "historical_expired" if expired else ("synthetic" if self.source.synthetic else "within_recorded_period"),
+                "historical_warning": HISTORICAL_WARNING if expired else None,
                 "retrieved_at": self.retrieved_at, "indexed_at": self.indexed_at,
                 "text_sha256": self.text_sha256, "synthetic": self.source.synthetic,
                 "category": self.category, "approval_expires": self.approval_expires, "raw_sha256": self.raw_sha256}
@@ -169,7 +173,8 @@ class SearchIndex:
         self.average_length = sum(self.lengths.values()) / max(1, len(self.lengths))
 
     def eligible(self, doc):
-        return doc.source.synthetic or date.fromisoformat(doc.approval_expires) >= date.today()
+        return (doc.source.synthetic or date.fromisoformat(doc.approval_expires) >= date.today()
+                or retained_document(doc))
 
     def search(self, query: str, *, category: str | None = None, limit: int = 10) -> tuple[SearchHit, ...]:
         terms = validate_query(query, real_sources=self.real_sources)
