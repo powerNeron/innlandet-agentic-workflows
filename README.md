@@ -61,22 +61,22 @@ The catalog is ignored local data and is not supplied by a Git clone. The record
 
 ### Source Approval Validity and Extension Request — Instructor Note
 
-On **2026-10-27**, the project owner confirmed continued academic use of all eight existing municipal sources through and including **2026-11-20**, superseding the earlier November 27 target. The [current owner decision and verified status](docs/source-renewal-owner-authorization-20261027-to-20261120.json) preserve that decision separately from the [earlier owner authorization](docs/source-renewal-owner-authorization-20261027.json). The existing technical checks and provenance metadata are reused; no source text or paragraph hash was changed. The original source review date remains **2026-10-21**, and the actual active expiry remains **2026-10-28**. **2026-11-20 is the current authorized target, not an activated approval.** The continuation decision does not supply unperformed factual/privacy/provenance attestations or independent instructor approval.
+The latest owner instruction restores **2026-11-27** as the requested expiry for all eight existing municipal sources. The [original November 27 authorization](docs/source-renewal-owner-authorization-20261027.json) is reused; the [intermediate November 20 decision](docs/source-renewal-owner-authorization-20261027-to-20261120.json) is preserved as historical evidence. Source content and all 39 paragraph hashes are unchanged. Original source review remains **2026-10-21**, and actual active expiry remains **2026-10-28**. The owner authorization is not a substitute for unperformed source/privacy/provenance decisions.
 
 All eight records in [the approval manifest](docs/approved-service-pages.json), and their corresponding entries in [the reviewed selection](docs/reviewed-service-selection.json), carry that original expiry:
 
-| Source ID | Reviewed service | Retained paragraphs | Renewal to 2026-11-20 |
+| Source ID | Reviewed service | Retained paragraphs | Renewal to 2026-11-27 |
 | --- | --- | --- | --- |
-| `hamar-sfo` | School-age childcare | 5 | Pending human re-review |
-| `hamar-byggesak` | Building without an application | 5 | Pending human re-review |
-| `hamar-folkehelse` | Public-health knowledge base | 4 | Pending human re-review |
-| `hamar-bibliotek` | Municipal library | 5 | Pending human re-review |
-| `hamar-kommuneplan` | Municipal community plan | 5 | Pending human re-review |
-| `hamar-drikkevann` | Drinking water | 5 | Pending human re-review |
-| `hamar-parkering` | Parking locations and payment | 5 | Pending human re-review |
-| `hamar-luftkvalitet` | Air quality | 5 | Pending human re-review |
+| `hamar-sfo` | School-age childcare | 5 | Pending reuse-basis clearance |
+| `hamar-byggesak` | Building without an application | 5 | Pending reuse-basis clearance |
+| `hamar-folkehelse` | Public-health knowledge base | 4 | Pending reuse-basis clearance |
+| `hamar-bibliotek` | Municipal library | 5 | Pending reuse-basis clearance |
+| `hamar-kommuneplan` | Municipal community plan | 5 | Pending reuse-basis clearance |
+| `hamar-drikkevann` | Drinking water | 5 | Pending reuse-basis clearance |
+| `hamar-parkering` | Parking locations and payment | 5 | Pending reuse-basis clearance |
+| `hamar-luftkvalitet` | Air quality | 5 | Pending reuse-basis clearance |
 
-**Renewal review outcome: zero renewed, eight pending, zero rejected. Owner authorization is recorded for all eight; documented current human review remains incomplete. Controlled activation is implemented but has not been applied to these sources.** Read-only comparison of the existing local catalog against both manifests confirms matching official HTTPS URLs, source identities, paragraph hashes and unique paragraph IDs, combined text hashes, recorded raw hashes and expiry metadata for all eight sources. All 39 retained paragraphs pass the existing limited privacy-pattern screen. Retrieval/index timestamps are recorded from 2026-10-21. These checks establish consistency of the retained material, not current website content, current robots permission or a new privacy clearance. The recorded `no_personal_data` assertion and pattern screen are not a fresh human review; raw-page and robots hashes were not reverified against newly acquired material. No municipal HTML was fetched or imported.
+**Current renewal outcome: zero renewed, eight pending, zero rejected. powerNeron has confirmed human review and conditional approval; the reuse basis remains unresolved. Controlled activation is implemented but has not been applied to these sources.** Read-only comparison of the existing local catalog against both manifests confirms matching official HTTPS URLs, source identities, paragraph hashes and unique paragraph IDs, combined text hashes, recorded raw hashes and expiry metadata for all eight sources. All 39 retained paragraphs pass the existing limited privacy-pattern screen. Retrieval/index timestamps are recorded from 2026-10-21. These checks establish consistency of the retained material, not current website content, current robots permission or a new privacy clearance. The recorded `no_personal_data` assertion and pattern screen are not a fresh human review; raw-page and robots hashes were not reverified against newly acquired material. No municipal HTML was fetched or imported.
 
 Existing local evidence under `output/final-technical-evidence/` includes a bounded catalog privacy review and `source-renewal-review-20261022.json`. The latter records all eight human renewal approvals as pending, no expiry updates, and an older requested target of 2026-11-30. That historical evidence is unchanged. The new owner authorization is recorded separately; it does not retroactively change the earlier findings or supply a new source/privacy reviewer sign-off.
 
@@ -98,16 +98,55 @@ The owner supplied October 30, 2026 as the submission date and November 20, 2026
 
 Six new offline regressions separately prove that a genuinely authorized renewal of a synthetic temporary test package loads, searches and answers on November 20, includes November 27 itself, and refuses new startup and already-running search/AI on November 28. Those positive cases are not activation of the eight project sources. The complete suite passes 362 tests. Current-date local Ollama web startup/search/one AI answer also passed under the original October 28 approvals. November examiner access remains blocked until the documented human content/privacy/provenance review is completed and the actual renewal transaction succeeds. No fresh official-page check was performed: the approved workflow still has no authorized non-personal delivery boundary for new raw HTML acquisition.
 
-The latest owner target is **November 20 inclusive**. The existing workflow accepts that target without code changes. Its check still returns exit `3` for all eight missing human reviews. Actual records were checked with simulated November 20 and November 21: both refuse startup, return no eligible search evidence and refuse AI before model generation because the records still expire October 28. This verifies expiry enforcement, not the requested November 20 availability. Current-date local Ollama source loading, search and one verified AI answer passed. The current owner-decision record lists every missing review/attestation field; the old November 27/28 regression evidence remains unchanged historical evidence.
+An intermediate owner target was **November 20 inclusive**; that dated decision and its validation remain historical evidence. The existing workflow accepts that target without code changes. Its check still returns exit `3` for all eight missing human reviews. Actual records were checked with simulated November 20 and November 21: both refuse startup, return no eligible search evidence and refuse AI before model generation because the records still expire October 28. This verifies expiry enforcement, not the requested November 20 availability. Current-date local Ollama source loading, search and one verified AI answer passed. The current owner-decision record lists every missing review/attestation field; the old November 27/28 regression evidence remains unchanged historical evidence.
+
+### Official-source comparison and remaining review decisions
+
+The [actual official-source observations](docs/source-review-official-observations-20261027.json) compare all 39 retained paragraphs: 38 match the official rendered text after whitespace/link normalization. All eight URL views were available, but provider-reported crawl ages range from today to two months, so this is not proof of live page-body identity for every source. No HTML was imported into the knowledge base and no personal contact details were copied into project evidence.
+
+One paragraph remains unresolved: `hamar-folkehelse:p1` says the document was **adopted** on February 21, 2024. That statement was not located in the official page view. The linked official PDF instead says it was **treated by the municipal council on 21.02.2024**. Treatment is not automatically evidence of adoption. Supply the actual adoption/source evidence or make a separately reviewed correction; do not certify this paragraph unchanged merely from the date match. Parking paragraph p4 belongs to **zone 3211**, not every parking location.
+
+A direct HTTPS observation of robots.txt on 2026-10-27 returned HTTP 200 and SHA-256 `52b871e73c993dd13ffb8bb1760cddf1bf5ce5eb4175d31234d6f474b2a0adfc`, different from the historical pinned `b05e0051ef9bb54c62b82ed2dd8880438ff2a3032d0ffb40009eac5e965df6fd`. The observed policy allows all eight paths for the checked project/research agents with a five-second minimum interval. This is a robots-access observation, not a reuse license or privacy guarantee; preserve the historical hash and explicitly review the new observation rather than relabelling it as unchanged.
+
+The local worksheet contains these findings. powerNeron has since supplied a project-owner review declaration and conditional approval, recorded at the actual UTC decision time in ignored local audit records. This does not establish unresolved reuse rights or activate the PDF correction. No November activation or production expiry change has been performed.
 
 ### Owner-controlled renewal: review, check, activate
+
+**Latest rights assessment (2026-10-27; 367 offline tests passed):** powerNeron has expressly confirmed
+human review and conditionally approved continued use, including the proposed
+public-health correction supported by the official PDF. The remaining issue is
+the documented reuse basis, not another owner authorization. The
+[rights assessment](docs/source-reuse-assessment-20261027.json) distinguishes
+public access, copyright, privacy and publication. No applicable municipal
+licence or source-specific statutory clearance has been established for all 39
+verbatim excerpts. Local inference, short length, attribution and academic use
+alone do not establish that clearance. No source permission flag has been
+invented; actual expiry remains **2026-10-28**, with **0/8 renewed**. Earlier
+statements about pending owner review above describe the earlier review state.
+The approved public-health correction is prepared locally but is not active:
+its PDF provenance differs from the existing exact HTML-source approval.
+
+For explicit navigation without loading any municipal text, run:
+
+```powershell
+python -B -X utf8 -m hamar_agent.exam_links
+```
+
+This separate, offline **link-only examination mode** lists eight official
+reference URLs with project-authored topic labels. It reads no catalog or
+approval files, fetches nothing, does not call Ollama and makes no current
+service-fact or source-approval assertion. It is never selected automatically
+when real mode fails. Follow the links manually for current municipal guidance.
+It is not a successful November real-source AI test. A future fact-answer mode
+would require separately reviewed fact-only inputs; this command does not
+relabel the existing verbatim catalog as free-to-reuse facts.
 
 This is an offline, all-or-nothing renewal of the entire authorized source set, not content admission. No source is changed if any review is missing or rejected. All required human review and provenance observations must be on the activation's current UTC day, not in the future. A project-owner review is a local attestation; the tool does not authenticate identity or independently establish the truth of the review. Protect the local files and audit directories accordingly.
 
 Prepare an unchecked review draft, using a new output filename in an existing directory:
 
 ```powershell
-$renewalInputs = @('--owner-authorization', 'docs/source-renewal-owner-authorization-20261027-to-20261120.json', '--approvals', 'docs/approved-service-pages.json', '--selection', 'docs/reviewed-service-selection.json', '--catalog', 'output/municipal-catalog.json')
+$renewalInputs = @('--owner-authorization', 'docs/source-renewal-owner-authorization-20261027.json', '--approvals', 'docs/approved-service-pages.json', '--selection', 'docs/reviewed-service-selection.json', '--catalog', 'output/municipal-catalog.json')
 python -B -X utf8 -m hamar_agent.source_admin prepare-renewal @renewalInputs --output output/source-renewal-review-20261027.json
 ```
 
@@ -135,7 +174,7 @@ python -B -X utf8 -m hamar_agent.source_admin check-renewal @renewalInputs --rev
 Exit `0` means eligible, not activated or academically approved; `3` means blocked with per-source missing checks/fields; `2` means invalid inputs or an operational failure. Only after a successful check, stop the application and use a new transaction directory:
 
 ```powershell
-python -B -X utf8 -m hamar_agent.source_admin activate @renewalInputs --reviews output/source-renewal-review-20261027.json --transaction-dir output/source-renewal-transaction-20261027 --confirm 'renew 2026-11-20' --application-stopped
+python -B -X utf8 -m hamar_agent.source_admin activate @renewalInputs --reviews output/source-renewal-review-20261027.json --transaction-dir output/source-renewal-transaction-20261027 --confirm 'renew 2026-11-27' --application-stopped
 ```
 
 This command acquires an exclusive lock and preserves byte-identical original files, proposed files, owner authorization, reviews and provenance evidence in that transaction directory. It verifies all input bindings, stages schema-valid data, changes only the three expiry fields, verifies the resulting bytes and writes `COMMITTED.json`. Handled partial-write/audit failures restore the original bytes; unsuccessful rollback leaves a lock and recovery journal. A stale review, changed input, reused transaction, unexpected concurrent modification or rejected privacy decision cannot be silently accepted. Keep all transaction directories as evidence; restart the application only after successful commit verification.

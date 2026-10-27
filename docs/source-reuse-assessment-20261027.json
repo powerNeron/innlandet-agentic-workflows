@@ -1,0 +1,70 @@
+{
+  "record_type": "source_reuse_basis_assessment",
+  "record_version": 1,
+  "recorded_at_utc": "2026-10-27T14:16:57.490889+00:00",
+  "performed_by": "Codex",
+  "nature": "Technical compliance assessment using official guidance; not a binding legal opinion or municipal permission.",
+  "owner_review": {
+    "reviewer": "powerNeron",
+    "role": "project-owner",
+    "status": "Human review and conditional continued-use approval explicitly confirmed in the conversation; PDF correction approved. No inferred permission from the municipality."
+  },
+  "scope": {
+    "stored_short_excerpts": 39,
+    "local_ollama": true,
+    "short_cited_answers": true,
+    "public_code_repository": true,
+    "catalog_ignored_and_not_published": true
+  },
+  "sources": [
+    {
+      "url": "https://www.regjeringen.no/no/tema/kultur-idrett-og-frivillighet/opphavsrett/innsiktsartikler/Opphavsrett1/id2000944/",
+      "relevance": "Copyright protects original expression, subject to statutory limitations. Educational purpose alone is not a blanket reproduction/publication permission."
+    },
+    {
+      "url": "https://www.regjeringen.no/no/dokumenter/prop.-104-l-20162017/id2547943/?ch=16",
+      "relevance": "Legislative proposal text explains quotation and public documents. Historical preparatory material, not proof of current consolidated wording or blanket clearance of these paragraphs."
+    },
+    {
+      "url": "https://www.regjeringen.no/no/dokumenter/prop.-90-l-20232024/id3033740/?ch=4",
+      "relevance": "Explains section 14 exception for certain public-authority documents; does not classify all municipal website prose as exempt."
+    },
+    {
+      "url": "https://www.regjeringen.no/globalassets/upload/kmd/aif/hoeringoffentleglova.pdf",
+      "relevance": "Historical government discussion of public-access reuse subject to other law and third-party rights; not an individual permission."
+    },
+    {
+      "url": "https://data.norge.no/guide/veileder-apne-data",
+      "relevance": "Official Digdir guidance distinguishes availability from openly licensed reuse and copyright/database rights."
+    },
+    {
+      "url": "https://data.norge.no/nlod/no",
+      "relevance": "NLOD permits reuse of data actually licensed under it. No evidence found that these eight sources were placed under NLOD."
+    }
+  ],
+  "direct_law_access": {
+    "copyright_act": "https://lovdata.no/dokument/NL/lov/2018-06-15-40",
+    "public_access_act": "https://lovdata.no/dokument/NL/lov/2006-05-19-16",
+    "result": "Research HTTP access returned 405; current consolidated provisions were not independently read through that endpoint."
+  },
+  "assessment": {
+    "public_access": "Public URLs and robots access observations do not establish reuse permission.",
+    "storage": "Copying original expression can engage reproduction rights. Short length alone does not settle originality, quotation purpose or database extraction.",
+    "local_inference": "Local Ollama limits external disclosure; it does not itself grant copying or reuse rights. No model training is proposed.",
+    "answers": "Attribution is necessary for relevant quotation uses but not sufficient alone to establish that arbitrary full-paragraph answer reproduction qualifies.",
+    "public_github": "Publishing code and reference URLs is distinct from publishing source excerpts. Keep catalog and private review records excluded.",
+    "privacy": "Retained excerpt screening and owner review are separate from copyright. No whole-page personal-data clearance is inferred.",
+    "public_documents": "A municipal decision may be exempt, but all eight service-page passages have not been individually established as exempt public-authority documents.",
+    "facts": "Independently expressed bare facts and reference links offer a narrower route; do not copy protected expression or make unsupported freshness claims."
+  },
+  "outcome": "REUSE_BASIS_NOT_ESTABLISHED_FOR_ALL_39_EXCERPTS",
+  "source_permission_verified": false,
+  "renewed_sources": 0,
+  "actual_expiry": "2026-10-28",
+  "alternative": {
+    "command": "python -B -X utf8 -m hamar_agent.exam_links",
+    "mode": "Explicit link-only navigation, not automatic fallback. Eight reference URLs and project-authored topic labels; no catalog, excerpt copying, retrieval, model call, current-fact answer or approval assertion.",
+    "limitations": "Does not satisfy renewed real-source AI demonstration. A fact-answer mode would need separately reviewed fact-only inputs and verification policy; not implemented by relabelling existing verbatim excerpts."
+  },
+  "required_resolution": "Provide a source-specific applicable licence/permission or a documented legal assessment covering storage, local inference and the intended quotation/display scope. Do not set source_permission_verified true solely from ownership of the student software."
+}

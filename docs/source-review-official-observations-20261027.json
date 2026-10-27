@@ -1,0 +1,338 @@
+{
+  "record_type": "official_source_review_observations",
+  "record_version": 1,
+  "recorded_at_utc": "2026-10-27T13:51:16.762Z",
+  "performed_by": "Codex AI-assisted research review; not a human reviewer attestation",
+  "requested_expiry": "2026-11-27",
+  "actual_approval_expiry": "2026-10-28",
+  "source_count": 8,
+  "paragraphs_compared": 39,
+  "rendered_paragraphs_matched": 38,
+  "method": "Official municipal text views compared to existing retained paragraphs; whitespace and link presentation normalized. No HTML imported into the application knowledge base.",
+  "source_results": [
+    {
+      "source_id": "hamar-sfo",
+      "url": "https://www.hamar.kommune.no/skolefritidsordning/12-timer-gratis-sfo-for-1-3-trinn/",
+      "observed_at_utc": "2026-10-27T13:41:57.083Z",
+      "provider_reported_crawl_age": "today",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p5",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 5,
+      "total": 5,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    },
+    {
+      "source_id": "hamar-byggesak",
+      "url": "https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/",
+      "observed_at_utc": "2026-10-27T13:41:57.102Z",
+      "provider_reported_crawl_age": "last week",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p5",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 5,
+      "total": 5,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    },
+    {
+      "source_id": "hamar-folkehelse",
+      "url": "https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/",
+      "observed_at_utc": "2026-10-27T13:42:05.037Z",
+      "provider_reported_crawl_age": "3 weeks ago",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": false
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 3,
+      "total": 4,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    },
+    {
+      "source_id": "hamar-bibliotek",
+      "url": "https://www.hamar.kommune.no/kultur-og-aktivitet/hamar-bibliotek/",
+      "observed_at_utc": "2026-10-27T13:42:12.314Z",
+      "provider_reported_crawl_age": "2 days ago",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p5",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 5,
+      "total": 5,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    },
+    {
+      "source_id": "hamar-kommuneplan",
+      "url": "https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/",
+      "observed_at_utc": "2026-10-27T13:42:19.502Z",
+      "provider_reported_crawl_age": "3 days ago",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p5",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 5,
+      "total": 5,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    },
+    {
+      "source_id": "hamar-drikkevann",
+      "url": "https://www.hamar.kommune.no/drikkevann/",
+      "observed_at_utc": "2026-10-27T13:42:26.839Z",
+      "provider_reported_crawl_age": "last week",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p5",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 5,
+      "total": 5,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    },
+    {
+      "source_id": "hamar-parkering",
+      "url": "https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/",
+      "observed_at_utc": "2026-10-27T13:42:34.270Z",
+      "provider_reported_crawl_age": "today",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p5",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 5,
+      "total": 5,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    },
+    {
+      "source_id": "hamar-luftkvalitet",
+      "url": "https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/",
+      "observed_at_utc": "2026-10-27T13:42:41.506Z",
+      "provider_reported_crawl_age": "2 months ago",
+      "paragraph_results": [
+        {
+          "paragraph_id": "p1",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p2",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p3",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p4",
+          "rendered_text_match": true
+        },
+        {
+          "paragraph_id": "p5",
+          "rendered_text_match": true
+        }
+      ],
+      "matched": 5,
+      "total": 5,
+      "privacy_scope": "Retained approved excerpts only; no identifiable personal data observed in those 39 excerpts. This is AI-assisted assessment, not a human sign-off.",
+      "freshness_limit": "Provider crawl age is not proof of live page bytes at review time.",
+      "human_decision": "PENDING"
+    }
+  ],
+  "folkehelse_exception": {
+    "paragraph_id": "p1",
+    "retained_statement": "Dokumentet er vedtatt av kommunestyret i Hamar 21. februar 2024.",
+    "page_observation": "Not located in the retrieved official page view, including a targeted search for vedtatt.",
+    "supporting_document_url": "https://www.hamar.kommune.no/getfile.php/1389249-1719996553/Hamar%20kommune/Kategorier/Helse,%20sosial%20og%20familie/Oversikt%20over%20folkehelsen%202023%20kunnskapsgrunnlag.pdf",
+    "supporting_document_observation": "Cover states Behandlet i Hamar kommunestyre 21.02.2024.",
+    "supporting_document_provider_crawl_age": "yesterday",
+    "assessment": "Date is supported by the linked document, but treated is not automatically equivalent to formally adopted. Original page/excerpt identity is not re-established for p1.",
+    "required_decision": "Provide evidence of adoption and original paragraph scope, or authorize a separate reviewed correction/source-admission change; otherwise keep this source pending."
+  },
+  "parking_context": {
+    "source_id": "hamar-parkering",
+    "paragraph_id": "p4",
+    "observation": "The first-free-hour paragraph is under the heading Gratis parkering 1 time i sentrum - sone 3211. Do not generalize it to every parking location."
+  },
+  "robots_observation": {
+    "url": "https://www.hamar.kommune.no/robots.txt",
+    "observed_at_utc": "2026-10-27T13:38:49.189997+00:00",
+    "http_status": 200,
+    "content_type": "text/plain",
+    "bytes": 36068,
+    "current_sha256": "52b871e73c993dd13ffb8bb1760cddf1bf5ce5eb4175d31234d6f474b2a0adfc",
+    "historical_sha256": "b05e0051ef9bb54c62b82ed2dd8880438ff2a3032d0ffb40009eac5e965df6fd",
+    "hash_changed": true,
+    "agent": "HamarKommuneAgent/0.2",
+    "all_eight_paths_allowed": true,
+    "minimum_interval_seconds": 5,
+    "other_checked_agents": [
+      "Aisha-Agent-Source-Review/1.0",
+      "GPTBot",
+      "ChatGPT-User",
+      "OAI-SearchBot"
+    ],
+    "other_checked_agents_all_eight_paths_allowed": true,
+    "legal_reuse_license_established": false,
+    "raw_body_saved": false,
+    "limitation": "Robots permission is an access observation, not copyright permission or a non-personal-data guarantee. The changed hash must not be relabelled as the historical pinned response."
+  },
+  "privacy_and_rights": {
+    "retained_content_automated_pattern_flags": 0,
+    "retained_content_AI_review": "No identifiable individual names, personal contacts or personal records observed; institutional/geographic names are retained.",
+    "whole_page_privacy_clearance": false,
+    "personal_contact_information_observed_outside_retained_excerpts": true,
+    "personal_details_copied_to_project": false,
+    "current_legal_reuse_basis": "Not established by the robots response or the inspected source views.",
+    "human_approval": "PENDING"
+  },
+  "activation": {
+    "attempted": false,
+    "renewed_sources": 0,
+    "remaining_requirements": [
+      "Source-specific human review decisions, reviewer role/identifier and actual UTC review time.",
+      "Resolve folkehelse p1 adoption wording/provenance.",
+      "Confirm current factual suitability given provider crawl ages.",
+      "Review changed robots observation and establish the applicable access/reuse/privacy basis without falsifying the historical hash."
+    ]
+  },
+  "preservation": {
+    "retained_paragraphs_changed": false,
+    "source_manifests_changed": false,
+    "local_catalog_changed": false,
+    "historical_records_changed": false,
+    "archive_branch_changed": false
+  }
+}
