@@ -34,6 +34,12 @@ python -X utf8 -m hamar_agent --fixture fixtures/water-synthetic.json
 
 In PyCharm select the existing Python 3.12 interpreter, run module hamar_agent, and use --fixture fixtures/water-synthetic.json as parameters. Stdout is the result; no output file is created.
 
+## Historical integration fixture approval
+
+The guarded registry includes the reviewed, explicitly fictional `synthetic-verification-demo` fixture with its exact path and fixed LF/CRLF-normalized SHA-256. Arbitrary paths, unknown IDs and modified fixture content remain rejected. This local fixture approval does not approve a municipal URL or authorize retrieval. The original integration record reported 12 setup errors in a 77-test run before fixture registration, followed by all 77 tests passing offline; these are historical observations, not current suite totals. The [original approval record](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/integration-fixture-approval.md) remains archived.
+
+The isolated HTTP transport is not permission to fetch real pages. Its documented controls include exact approved HTTPS URLs, TLS validation, no redirects/proxies/cookies, bounded UTF-8 text responses, timeouts, optional byte hashes and sanitized errors. These controls do not prove personal-data absence, provide an overall execution deadline or establish network-level egress isolation. Keep production retrieval disabled and follow the current source-review boundary. See the [historical transport record](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/approved-http-retrieval.md) for the original implementation and test conditions.
+
 ## Validation record
 
 All 25 tests passed on Python 3.12.10: 9 existing scaffold tests and 16 new source/workflow tests. These cover approval before reads, immutable default registry, changed content, line-ending portability, malformed approved JSON, oversize and missing files, ID mismatches, injected responses, invalid result shapes, provider failures, no premature summarizer calls, no partial JSON and offline CLI compatibility. Temporary fixtures are synthetic only. No live retrieval or paid API was used.

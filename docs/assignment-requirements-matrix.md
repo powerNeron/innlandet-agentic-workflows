@@ -6,6 +6,12 @@ Authority: [the official assignment supplied by the students](official-assignmen
 - **PARTIAL**: supporting material exists, but content, scope or student review remains incomplete or unverified. A separate report is not a failure merely because it is absent from GitHub.
 - **PENDING**: publication or external confirmation awaits explicit authorization or a later check.
 
+## Documentation split for the current submission branch
+
+The ten-Markdown `main` retains application inputs, context instructions, code, tests, approved-source data and non-Markdown evidence unchanged. Historical result analysis, meeting/decision records, prompt summaries and the two performance Markdown tables are in the complete `archive/exam-documentation-2026` worktree. Historical PASS statements below describe the dated audits, not a successful full-package verification on the reduced main. The unchanged `comp2/verify_package.py --evidence-only` reports missing historical Markdown on main (exit 1); run it in the archive worktree for the original manifest/table checks. This expected failure is not suppressed or counted as PASS. The current application is validated independently by the complete offline suite, synthetic CLI/web demonstration and held-out synthetic case, as documented in README.
+
+The official report requirements are unchanged: a separate English report in the supplied NeurIPS 2025 preprint template, 3-4 main-text pages, the required problem/success/architecture/schedule/risk/repository content, representative coding-agent excerpts of at most two pages, and genuine meeting reports. Archiving repository Markdown neither supplies nor removes these separate submission obligations. The report/PDF has not been verified here.
+
 ## Mandatory Compulsory 2 requirements: software and context
 
 | Requirement and authority | Status | Current evidence and exact next action |
@@ -82,13 +88,13 @@ Current code rejects `import-snapshot` before opening the supplied HTML file. `R
 
 Portal query restrictions, local Host/Origin checks, session ownership, bounded context/results and source/model allowlists remain documented safety controls. Privacy-pattern screening and exact excerpt hashes are defense in depth, not a proof of absence of personal data. Historical receipt/parsing of complete HTML cannot be made compliant by merely retaining non-personal excerpts afterwards. A future source-delivery process must establish a permitted non-personal boundary before acquisition and parsing. No live source renewal is authorized here.
 
-Earlier audits recorded 226 offline tests, a synthetic 1,000-claim adversarial batch and a failed optional local Ollama smoke with `CUDA error: device kernel image is invalid`. A separate historical observation records 229 tests and an HTTP 500 model failure. These observations remain historical and are not today's test count or a diagnosis of the current model runtime. Later historical evidence includes 282 tests, 23 Ollama cases, browser checks and stress/failure records. The latest offline audit repeats no Ollama tests and makes no external requests. See [verified results](reports/verified-results-2026-10-23.md), [real-source history](real-source-workflow.md) and the preserved resultat/ evidence package.
+Earlier audits recorded 226 offline tests, a synthetic 1,000-claim adversarial batch and a failed optional local Ollama smoke with `CUDA error: device kernel image is invalid`. A separate historical observation records 229 tests and an HTTP 500 model failure. These observations remain historical and are not today's test count or a diagnosis of the current model runtime. Later historical evidence includes 282 tests, 23 Ollama cases, browser checks and stress/failure records. The latest offline audit repeats no Ollama tests and makes no external requests. See [verified results](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/reports/verified-results-2026-10-23.md), [real-source history](real-source-workflow.md) and the preserved resultat/ evidence package.
 
 Historical raw logs, manifests, sanitized prompt excerpts and decision records remain unchanged. Superseded analysis previously archived locally is not republished or used as assignment authority. The software and documentation were assisted by OpenAI Codex under student direction; students retain responsibility for decisions, review and submitted claims. No meeting dialogue, human correction, experiment or contribution is invented by this matrix.
 
 ## Final exam and additional criteria: separate from Compulsory 2
 
-The available official assignment ends after Section 2. It does not establish a complete final-exam rubric. The Abstract supplies semester-wide testing context; it does not make every later user supplement a Compulsory 2 minimum. [Historical final-exam readiness](../resultat/english/13_final_exam_readiness.md) and the results package retain the outstanding work.
+The available official assignment ends after Section 2. It does not establish a complete final-exam rubric. The Abstract supplies semester-wide testing context; it does not make every later user supplement a Compulsory 2 minimum. [Historical final-exam readiness](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/resultat/english/13_final_exam_readiness.md) and the results package retain the outstanding work.
 
 | Later criterion or recommendation | Status | Scope and next action |
 | --- | --- | --- |

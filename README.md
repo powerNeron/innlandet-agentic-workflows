@@ -47,7 +47,7 @@ For the offline demonstration website:
 python -B -X utf8 -m hamar_agent.web --demo --provider mock --port 8000
 ```
 
-Open <http://127.0.0.1:8000>. Run only one server on the chosen port; reuse an existing appropriate server rather than starting a duplicate. In PyCharm, select Python 3.12 and run the module with the repository root as the working directory; do not execute `hamar_agent/__main__.py` as a standalone script. See the [Python setup notes](docs/python-scaffold.md).
+Open <http://127.0.0.1:8000>. Run only one server on the chosen port; reuse an existing appropriate server rather than starting a duplicate. In PyCharm, select Python 3.12 and run the module with the repository root as the working directory; do not execute `hamar_agent/__main__.py` as a standalone script.
 
 ## Run with approved local municipal sources
 
@@ -83,7 +83,27 @@ Use a new output filename: JSON export is exclusive and does not overwrite exist
 python -B -X utf8 -m hamar_agent --source synthetic-verification-demo --provider ollama --model llama3.2:3b --ollama-timeout 90
 ```
 
-Real mode never silently substitutes synthetic data when its catalog, model or verification fails. See the [real-source workflow and historical test evidence](docs/real-source-workflow.md), [source review process](docs/source-review-process.md), [portal guide](docs/search-portal.md) and [provider configuration](docs/provider-configuration.md).
+Real mode never silently substitutes synthetic data when its catalog, model or verification fails. See the [real-source workflow and historical test evidence](docs/real-source-workflow.md), [source review process](docs/source-review-process.md) and [provider configuration](docs/provider-configuration.md).
+
+### Portal search and catalog loading
+
+Ordinary municipal search uses `/api/search` over the reviewed local paragraph index and never invokes a model. The independent AI form uses `/api/answer`, performs its own retrieval and sufficiency check, and does not require a preceding ordinary search or reuse its category selection. A new or edited question clears the previous answer/download state. The index uses word-based retrieval and ranking, not semantic/vector search or whole-site crawling. Missing indexed evidence does not mean that a municipal service does not exist.
+
+Follow-ups retain only bounded, volatile topic context and repeat retrieval; previous model answers are never evidence. Reset/model changes clear context. Do not enter personal information. POST bodies and privacy-pattern screening do not guarantee that arbitrary user input contains no personal data. Real-mode refusal must not trigger a synthetic or paid-provider fallback.
+
+For an existing eligible catalog at a non-default path, use the current real-source loading options:
+
+```powershell
+python -B -X utf8 -m hamar_agent.web --real-sources --catalog LOCAL_CATALOG.json --approvals docs/approved-service-pages.json --model llama3.2:3b --port 8000
+```
+
+Repeat `--catalog` only for individually reviewed eligible catalogs matching the supplied approval manifest. Loading rechecks identity, URL, paragraph hashes, provenance and expiry; it does not acquire HTML or renew approvals. Do not combine real catalogs with `--empty-index` or treat old snapshot-import commands as supported ingestion. No web endpoint can approve sources, upload pages or enable fetching.
+
+### JSON output and file saving
+
+Use `--output` with an unused filename in an existing parent directory, preferably ignored `output/`. Successful CLI saving writes UTF-8 JSON and prints the same result to stdout. Exclusive creation prevents overwriting existing files; handled saving/serialization failures report an error on stderr and exit `2` without success JSON. No parent directories, filenames, retries or backups are created automatically.
+
+Exclusive creation is not atomic completion or crash durability: interruption/write failure can leave a partial new file, and a stdout failure after saving can leave a valid file. Export does not add privacy detection or establish semantic correctness. Review new outputs before sharing; never regenerate historical evidence in place.
 
 ## Architecture and boundaries
 
@@ -97,7 +117,7 @@ The runtime stages are:
 4. Check paragraph identity, verbatim claim/evidence support and provenance through the existing verifier and strict adapter.
 5. Permit at most one correction, re-verify, and return a cited result or safe refusal.
 
-Human source admission precedes runtime. There is no autonomous crawling, source approval or unrestricted shell execution by the model. See the [workflow contract](docs/full-system-contract.md), [integration guide](docs/full-system-web.md), [summary and verification design](docs/summary-verification.md), [JSON storage notes](docs/json-result-saving.md) and [workflow figure](comp2/figures/aisha-workflow.pdf).
+Human source admission precedes runtime. There is no autonomous crawling, source approval or unrestricted shell execution by the model. See the [workflow contract](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/full-system-contract.md), [integration guide](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/full-system-web.md), [summary and verification design](docs/summary-verification.md) and [workflow figure](comp2/figures/aisha-workflow.pdf). JSON export constraints are documented above.
 
 ### Privacy and security
 
@@ -105,7 +125,7 @@ Do not collect or process personal data. Public availability is not permission. 
 
 The local web service binds to loopback and applies Host/Origin and session-token checks. Query topics, model choices, context lifetime and exported results are bounded. These controls and exact-paragraph verification reduce risk but do not establish universal security or semantic correctness. Keep Ollama local; do not expose it through a public tunnel.
 
-Source-update comparison and local review records are offline and proposal-only. They do not activate excerpts, renew approvals or fetch pages. Follow the [source-update policy](docs/source-update-proposals.md) and [source proposal administration guide](docs/source-proposal-administration.md). Historical raw-HTML processing remains an unresolved assignment-compliance concern; excerpt filtering alone does not establish that no personal data was received.
+Source-update comparison and local review records are offline and proposal-only. They do not activate excerpts, renew approvals or fetch pages. Follow the [source-update policy](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/source-update-proposals.md) and [source proposal administration guide](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/source-proposal-administration.md). Historical raw-HTML processing remains an unresolved assignment-compliance concern; excerpt filtering alone does not establish that no personal data was received.
 
 ## Tests and evidence verification
 
@@ -125,56 +145,45 @@ python -B -X utf8 -m harness.offline_tests --output output/NEW-offline-tests.txt
 
 For direct unittest discovery, the established command is `python -B -X utf8 -m unittest discover -s eval -p 'test_*.py' -v`; prefer the harness when whole-suite network blocking is required. Test pass rates are not estimates of factual accuracy or general reliability.
 
-### Verify existing Compulsory 2 evidence
+### Active application checks versus historical archive audits
+
+The offline suite and synthetic CLI/web commands above validate the active application. The ten Markdown files on `main` provide current setup, architecture, source-review, provider, assignment and verification instructions. Historical analysis, meeting/decision records, prompt summaries and performance Markdown are preserved in `archive/exam-documentation-2026`, together with the complete original evidence package. Non-Markdown application inputs, tests, approved-source configuration, figures, CSV/JSON evidence and manifests are retained unchanged on `main`.
+
+`comp2/verify_package.py` is an unchanged historical-package verifier, not an application startup requirement. It reads all original manifest files and both historical performance Markdown tables. **On the reduced `main`, `--evidence-only` must report missing historical Markdown and exit `1`; this is not a successful integrity verification and must not be represented as one.** The manifests and checks have not been changed to accommodate the cleanup. Run the full historical verification in the archive worktree instead:
 
 ```powershell
-python -B -X utf8 comp2/verify_package.py --evidence-only
+# From main's root, using the existing sibling archive worktree:
+python -B -X utf8 ../innlandet-agentic-workflows-exam-documentation-archive/comp2/verify_package.py --evidence-only
 ```
 
-Evidence verification is the default; `--evidence-only` remains a compatible explicit choice. The verifier reads existing evidence without invoking Ollama or fetching sources. All hash, manifest, copy-integrity, bilingual table, source-provenance, saved-output and security-pattern checks are retained. Fifteen evidence/security checks are separate from Git inspection; the former total of 17 also included two Git checks. Missing or malformed evidence is a failure, never a documentation warning. No historical result is rewritten.
+If no archive worktree exists, first obtain the approved archive branch and create a separate worktree with `git worktree add ../innlandet-agentic-workflows-exam-documentation-archive archive/exam-documentation-2026`; do not merge it into main or overwrite an existing directory. This local branch is not assumed to be published. A main-only clone cannot perform a complete historical audit without the archive.
 
-JSON schema `2.0` has independent `evidence`, `worktree` and `report` sections. Consumers of the former flat `checks` output must use the new schema. `evidence.status` reports integrity only. The worktree section lists every tracked modification/deletion, staging state, untracked file and detected rename/copy, including its original path. Worktree changes always produce review warnings; unavailable Git inspection is explicitly `ERROR`. Ignored files are not listed by Git, but manifest-covered evidence is checked independently. No file-path allowlist is built into the verifier.
+The selected-copy manifest additionally requires the ignored original `output/aisha-heading-encoding-fixed-browser-20261023/browser-check.txt`. An original-byte copy is preserved in both local worktrees, with SHA-256 `4aafbe6eedc58bbc8a58727b798964e72d67680ee141ab106f752621f6c1ce04`. It is not delivered by a normal clone/push. A separately transferred authentic original is needed for that source/copy check on another machine; the retained tracked copy is `comp2/evidence/aisha-browser.txt`. Do not claim a clean-clone full audit without satisfying this dependency. This limitation does not affect application startup or the synthetic tests.
 
-Use repeated `--scope-path` options to classify a task's repository-relative files or directories. A directory includes its children; a missing directory can be specified with a trailing `/`. Paths outside the repository and parent traversal are rejected. Without a scope, changes are `UNREVIEWED`; with a scope, they are `IN_SCOPE` or `OUT_OF_SCOPE`. Both sides of a rename/copy must be in scope. Every entry has `approved: false`: scope classification never grants human approval.
+The verifier retains 15 evidence/security checks covering manifests, hashes, selected copies, bilingual tables, provenance, saved outputs and security patterns. JSON schema `2.0` separates `evidence`, `worktree` and optional `report` results. Git inspection reports modifications, deletions, staging, untracked files and detected renames; ignored files are outside Git inspection. Repeated `--scope-path` options classify repository-relative task paths without approving them. `--strict-worktree` makes staging, conflicts, out-of-scope/unreviewed changes or unavailable Git inspection a separate gate failure.
 
-`--strict-worktree` adds a separate gate: staging, conflicts, changes outside the supplied scope, unreviewed changes or unavailable Git inspection make it fail. A clean worktree passes without a declared scope. For example, the following checks a task limited to two files; any other current changes remain visible and cause the strict gate to fail:
+Exit `0` means evidence passes and no requested gate fails; worktree warnings can remain. Exit `1` means integrity/security or verifier/output failure. Exit `2` means an explicit worktree/report gate fails with intact evidence, or invalid CLI usage. Evidence verification is the default; `--evidence-only` remains compatible. Report checks are `NOT RUN` unless `--check-report` is requested, optionally with `--report-source PATH`; these structural checks do not verify compiled page counts or academic correctness. `submission_ready` and `commit_and_push_permitted` always remain `false`.
 
-```powershell
-python -B -X utf8 comp2/verify_package.py --strict-worktree --scope-path README.md --scope-path comp2/verify_package.py
-```
+The 36 verifier regression tests create their own temporary synthetic packages and remain part of the 318-test active offline suite; they do not require the removed historical Markdown. Run them separately with `python -B -X utf8 -m unittest discover -s eval -p 'test_package_verifier.py' -v`.
 
-| Exit code | Meaning |
-| --- | --- |
-| `0` | Evidence passes and no requested gate fails. Worktree warnings or an unavailable non-strict Git inspection can still require review. |
-| `1` | Evidence/security failure, or a required verifier/output operation could not finish. Integrity failures take priority over gate failures. |
-| `2` | Evidence passes but an explicit strict-worktree/report gate fails; also used for invalid CLI arguments. |
+The separate `docs/reports/verify_evidence.py --archive-only` audit reads preserved historical non-Markdown artifacts and requires a new exclusive output path. Its recorded counts refer to earlier experiments, not new inference. Do not overwrite the existing untracked audit or historical evidence. Prefer running historical tools in the archive worktree. `comp2/build_package.py` and the results generators are historical generators; do not run them to reconstruct main or overwrite evidence, as they can recreate archived presentation files.
 
-The four report checks are `NOT RUN` by default and in evidence-only mode. Optional `--check-report` retains the legacy structural checks; `--report-source PATH` selects a source explicitly and requires `--check-report`. Without a supplied path, that opt-in uses the old `comp2/report/main.tex` location and reports its absence gracefully. Evidence remains independent of separate report files and report generation. These limited checks do not establish compiled page counts or academic correctness. `submission_ready` and `commit_and_push_permitted` always remain `false`.
-
-The verifier's standard-library regressions can be run separately with `python -B -X utf8 -m unittest discover -s eval -p 'test_package_verifier.py' -v`. The latest full offline run passed 318 tests: the original 282 plus 36 verifier regressions. The historical 282-test results below are unchanged.
-
-An additional archived-evidence audit is available with an unused output path:
-
-```powershell
-python -B -X utf8 docs/reports/verify_evidence.py --archive-only --output comp2/evidence/ANOTHER-UNIQUE-audit.json
-```
-
-This creates a new audit record; it does not repeat model evaluation or authorize new use of expired sources. Do not run generators over historical evidence. New experiments require separate outputs, their own dates and documented conditions.
+The legacy `resultat/audit_package.py --check` also belongs to the complete archive. Even there it has older fingerprint discrepancies for `harness/browser_smoke.cjs` and `hamar_agent/web_assets/app.js`, `index.html`, and `style.css`, all unchanged from the pre-cleanup HEAD. These unresolved discrepancies must not be reported as a successful full integrity audit. The archive's separate 190-file results manifest and evidence-only verifier are distinct checks.
 
 ## Results, provenance and academic evidence
 
 | Location | Contents |
 | --- | --- |
-| [resultat/](resultat/) | Historical evaluation package, bilingual analysis, raw logs, stress/failure evidence, figures, token measurements and integrity manifests. |
-| [Verified-results report](docs/reports/verified-results-2026-10-23.md) | Methods, historical outcomes, limitations and links to supporting evidence. |
+| Historical results archive | The complete package, including bilingual Markdown analysis, remains in `archive/exam-documentation-2026:resultat/`. Non-Markdown results, logs, figures and manifests are also retained on main; the local directory is not a complete standalone historical package. |
+| [Verified-results report](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/reports/verified-results-2026-10-23.md) | Methods, historical outcomes, limitations and links to supporting evidence. |
 | [comp2/evidence/](comp2/evidence/) | Selected original-byte logs, selection manifest, saved synthetic/real skeleton output and historical command/audit records. |
-| [comp2/tables/](comp2/tables/) | Preserved English/Norwegian CSV results and performance summaries, plus the English LaTeX results table. |
+| [comp2/tables/](comp2/tables/) | Preserved English/Norwegian CSV results and the English LaTeX results table. Historical Markdown performance summaries are in the archive. |
 | [comp2/figures/](comp2/figures/) | Mermaid/PDF workflow and an existing model response-time figure. |
-| [Prompt excerpts](resultat/english/17_prompt_excerpts.md) | Authentic sanitized evaluation instructions; not a complete development transcript. |
-| [Prompt log](docs/prompt-log.md) | Sanitized historical prompt summaries, explicitly distinguished from verbatim excerpts. |
-| [Decision notes](docs/meetings/) | Recorded implementation decisions, human constraints, corrections and verification history. |
-| [Meeting register](docs/meetings/meeting-register-2026-10.md) | Student-supplied October 2026 dates and October 19 agenda; October 27 is planned, not completed. |
-| [Historical meeting evidence status](resultat/english/09_agent_changes_meetings.md) | Earlier assessment retained unchanged; date registration does not establish attendance or formal confirmation of minutes. |
+| [Prompt excerpts](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/resultat/english/17_prompt_excerpts.md) | Authentic sanitized evaluation instructions; not a complete development transcript. |
+| [Prompt log](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/prompt-log.md) | Sanitized historical prompt summaries, explicitly distinguished from verbatim excerpts. |
+| [Archived decision notes](https://github.com/powerNeron/innlandet-agentic-workflows/tree/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/meetings) | Original implementation decisions, human constraints, corrections and verification history; also present in the local archive worktree. |
+| [Meeting register](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/meetings/meeting-register-2026-10.md) | Student-supplied October 2026 dates and October 19 agenda; October 27 is planned, not completed. |
+| [Historical meeting evidence status](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/resultat/english/09_agent_changes_meetings.md) | Earlier assessment retained unchanged; date registration does not establish attendance or formal confirmation of minutes. |
 
 The selected 2026-10-23 evidence records 282 offline tests and a 23-case Ollama suite containing expected refusals. The 17 saved positive outputs belong to an earlier archived series, not a rerun of the later suite. These denominators must not be pooled. The retained browser log records desktop, tablet and mobile checks; it does not establish human-rated accessibility. Historical checks are not fresh runs on every later code version.
 
@@ -184,9 +193,9 @@ The recorded performance series completed 14 of 20 planned calls before a therma
 
 ## Known limitations and academic context
 
-Students write their academic reports separately. This repository provides the software, reproducibility instructions and supporting evidence. The [official Compulsory 2 assignment](docs/official-assignment-user-supplied.md), [requirements matrix](docs/assignment-requirements-matrix.md) and [historical final-exam readiness evidence](resultat/english/13_final_exam_readiness.md) remain available for assessment.
+Students write their academic reports separately. Main provides the software, reproducibility instructions and retained non-Markdown evidence; the archive preserves historical documentation and the complete evidence package. The [official Compulsory 2 assignment](docs/official-assignment-user-supplied.md), [requirements matrix](docs/assignment-requirements-matrix.md) and [historical final-exam readiness evidence](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/resultat/english/13_final_exam_readiness.md) remain available for assessment.
 
-The [meeting register](docs/meetings/meeting-register-2026-10.md) records the students' supplied dates and limited agenda information. It does not certify formal minutes or resolve all meeting-evidence requirements. Report formatting and page limits, submission/demonstration dates, a dated milestone plan, complete final-exam requirements, historical HTML/privacy compliance and lawful source reproduction after approval expiry remain matters for student review. Historical assessments remain unchanged and may describe earlier states.
+The [meeting register](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/meetings/meeting-register-2026-10.md) records the students' supplied dates and limited agenda information. It does not certify formal minutes or resolve all meeting-evidence requirements. Report formatting and page limits, submission/demonstration dates, a dated milestone plan, complete final-exam requirements, historical HTML/privacy compliance and lawful source reproduction after approval expiry remain matters for student review. Historical assessments remain unchanged and may describe earlier states.
 
 Current limitations include a small reviewed source collection, extractive rather than semantic verification, no completed human usability study, local model availability/cold-start constraints, and no demonstrated global computation kill switch or aggregate token/cost enforcement. Some experimental controls exist only in the evaluation tools. Preserve those distinctions for the final white paper and demonstration.
 
@@ -200,14 +209,20 @@ The repository, code and documentation were assisted by OpenAI Codex under stude
 | [hamar_agent/](hamar_agent/) | Application, source/provider adapters, verification integration, CLI and website assets. |
 | [fixtures/](fixtures/) | Explicitly synthetic non-personal examples. |
 | [eval/](eval/), [harness/](harness/) | Test cases and execution/evaluation tools. |
-| [docs/](docs/) | Technical, source-review, provider, decision and academic context. |
+| [docs/](docs/) | Current technical, source-review, provider and assignment guides; historical decisions/prompts are in the archive. |
 | [comp2/](comp2/) | Functional skeleton scripts, selected evidence, tables and figures. |
-| [resultat/](resultat/) | Preserved historical evaluation material. |
+| [resultat/](resultat/) | Retained non-Markdown historical evidence; the complete historical package is in the archive. |
 | [tasks/](tasks/) | Planned work. |
 
-Use separate feature branches and pull requests for shared integration. Cross-review is currently optional under the independent-component agreement. [powerNeron](https://github.com/powerNeron) owns source approval, fetching, orchestration, CLI and JSON output; [JeppeGs](https://github.com/JeppeGs) owns summarization, LLM integration, evidence verification and evaluation. Coordinate shared interfaces and preserve both students' contribution history. Read `AGENTS.md` before coding; record task goals under `tasks/`, sanitized prompts in `docs/prompt-log.md`, and meaningful decisions in `docs/meetings/`.
+Use separate feature branches and pull requests for shared integration. Cross-review is currently optional under the independent-component agreement. [powerNeron](https://github.com/powerNeron) owns source approval, fetching, orchestration, CLI and JSON output; [JeppeGs](https://github.com/JeppeGs) owns summarization, LLM integration, evidence verification and evaluation. Coordinate shared interfaces and preserve both students' contribution history. Read `AGENTS.md` before coding; record new task goals under `tasks/` and retain authentic sanitized prompt/decision evidence in the separately maintained submission appendices or approved archive workflow. The historical prompt and meeting records are archived unchanged.
 
-Earlier implementation and ownership context remains in the [offline workflow](docs/source-workflow.md), [full-system decisions](docs/meetings/full-system-web-decisions.md), [Ollama integration record](docs/meetings/ollama-integration.md) and [historical integration gate](docs/final-integration-gate.md). Remote writes and merging require explicit authorization under the project workflow.
+Earlier implementation and ownership context remains in the [offline workflow](docs/source-workflow.md), [full-system decisions](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/meetings/full-system-web-decisions.md), [Ollama integration record](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/meetings/ollama-integration.md) and [historical integration gate](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/final-integration-gate.md). Remote writes and merging require explicit authorization under the project workflow.
+
+### Historical documentation archive
+
+The local branch `archive/exam-documentation-2026` preserves the pre-cleanup documentation at commit `dad5024fda555113ab65233b1d2abdd9c34f09cf`. It is not assumed to be published. For example, inspect an archived document without switching branches with `git show archive/exam-documentation-2026:docs/search-portal.md`. Historical documents describe earlier implementations and test runs; use this README and the current source-review requirements for operation. The two explicitly withdrawn verification-note/final-verification files are deleted in both working trees; earlier Git history is not rewritten.
+
+The manifest-covered `resultat/` Markdown, nine meeting/decision documents, authentic prompt records and retired technical guides remain in the archive. Main retains the ten current Markdown guides and the unchanged non-Markdown application/evidence files. Documentation cleanup does not imply final-exam readiness. GitHub visibility applies to the entire repository, including every pushed branch: an archive branch in a public repository is not private. Verify access and obtain explicit approval before synchronizing either branch; use an approved private remote or private offline transfer if confidentiality is required.
 
 ## User Interface Screenshots
 

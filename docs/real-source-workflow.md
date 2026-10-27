@@ -104,7 +104,9 @@ The older default synthetic workflow remains available only through explicit fix
 No Git add, commit, push, pull, merge, rebase, reset, stash, branch change or GitHub modification was performed. Course compliance is not declared: see assignment-requirements-matrix.md for actual missing/unknown requirements.
 
 
-## Final local verification and complete changed-file list
+## Historical final local verification and complete changed-file list
+
+The observations and file list below record that earlier integration, not a fresh run or a list of files still active on main. The archived [portal record](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/search-portal.md) and [municipal source review](https://github.com/powerNeron/innlandet-agentic-workflows/blob/dad5024fda555113ab65233b1d2abdd9c34f09cf/docs/municipal-source-review.md) remain available at the historical revision and in the local archive branch. Follow the root README for current operation.
 
 The final 13/13 real inference rerun is saved in output/real-smoke-final/summary.json. An actual `python -m hamar_agent.web --real-sources` subprocess startup also passed portal metadata (eight real documents), background SHA-256, search, real answer, mandatory verification (zero findings) and exact JSON download; artifact output/actual-server-smoke.json. The browser harness was repeated successfully against the final integrated service in output/browser-real-verified/. The final offline raw log is output/offline-evaluation-227.txt: 227 tests, zero failures/errors. JavaScript syntax checks and Git whitespace checks passed. All generated evidence is local ignored output, not source HTML.
 
