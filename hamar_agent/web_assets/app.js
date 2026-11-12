@@ -37,6 +37,7 @@ let queryStopwords = new Set();
 let queryFollowupModifiers = new Set();
 let queryAliases = new Map();
 let officialMenuUrl = "https://www.hamar.kommune.no/meny/";
+let officialMunicipalHosts = new Set(["www.hamar.kommune.no"]);
 function revealInView(element) {
   element.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
@@ -70,7 +71,7 @@ function sourceLink(parent, citation) {
   if (!citation.url) { item(parent, "p", "Syntetisk demo. Ingen kommunal kildeside.").className = "source-meta"; return; }
   try {
     const url = new URL(citation.url);
-    if (url.protocol !== "https:" || url.hostname !== "www.hamar.kommune.no" || url.username || url.password) return;
+    if (url.protocol !== "https:" || !officialMunicipalHosts.has(url.hostname) || url.username || url.password || (url.port && url.port !== "443")) return;
     const link = item(parent, "a", url.hostname + url.pathname + " ↗");
     link.href = url.href; link.target = "_blank"; link.rel = "noopener noreferrer"; link.className = "source-link";
   } catch (_) { /* Invalid citations are not turned into clickable links. */ }
@@ -78,9 +79,10 @@ function sourceLink(parent, citation) {
 function officialMenuLink(parent, url = officialMenuUrl) {
   try {
     const official = new URL(url);
-    if (official.href !== "https://www.hamar.kommune.no/meny/" || official.username || official.password) return;
+    if ((official.href !== "https://www.hamar.kommune.no/meny/" && !(officialMunicipalHosts.has(official.hostname) && official.pathname === "/"))
+        || official.protocol !== "https:" || official.username || official.password || (official.port && official.port !== "443")) return;
     const wrapper = item(parent, "p", ""); wrapper.className = "official-menu-fallback";
-    const link = item(wrapper, "a", "Se Hamar kommunes offisielle tjenestemeny");
+    const link = item(wrapper, "a", official.hostname === "www.hamar.kommune.no" ? "Se Hamar kommunes offisielle tjenestemeny" : "Se kommunens offisielle nettside");
     link.href = official.href; link.target = "_blank"; link.rel = "noopener noreferrer";
   } catch (_) { /* Only the fixed official menu URL can be presented. */ }
 }
@@ -175,6 +177,13 @@ $("query").addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.isComposing) { event.preventDefault(); $("search-form").requestSubmit(); }
 });
 $("clear-category").addEventListener("click", () => { selectedCategory = null; selectedService = null; searchPortal(); });
+function showMunicipalMenu() {
+  $("municipal-topic-menu").hidden = false;
+  $("municipal-back-to-menu").hidden = true;
+  $("categories-title").focus();
+  revealInView($("municipal-topic-menu"));
+}
+$("municipal-back-to-menu").addEventListener("click", showMunicipalMenu);
 function addTechnicalDetails(container, answer) {
   const details = item(container, "details", ""); details.className = "technical-details";
   item(details, "summary", "Teknisk kontroll og kildesporing");
@@ -518,6 +527,8 @@ function renderCategories(data) {
     button.disabled = !data.categories.some((category) => category.id === service.category);
     button.addEventListener("click", () => {
       selectedCategory = service.category; selectedService = service.id;
+      $("municipal-topic-menu").hidden = true;
+      $("municipal-back-to-menu").hidden = false;
       $("query").value = service.query; searchPortal();
     });
   });
@@ -538,6 +549,19 @@ async function loadPortal() {
     queryStopwords = new Set(data.query_stopwords || []);
     queryFollowupModifiers = new Set(data.query_followup_modifiers || []);
     queryAliases = new Map(Object.entries(data.query_aliases || {}));
+    officialMunicipalHosts = new Set(["www.hamar.kommune.no"]);
+    if (Array.isArray(data.municipalities)) data.municipalities.forEach((municipality) => {
+      try {
+        const url = new URL("https://" + municipality.official_host + "/");
+        if (!/^[a-z0-9.-]+$/u.test(municipality.official_host) || url.hostname !== municipality.official_host
+            || url.username || url.password || url.port || !url.hostname.includes(".")) return;
+        officialMunicipalHosts.add(url.hostname);
+        [municipality.name, ...(municipality.aliases || [])].forEach((name) => {
+          const normalized = name.normalize("NFC").toLocaleLowerCase("nb-NO").replaceAll("æ", "ae").replaceAll("ø", "o").replaceAll("å", "a");
+          (normalized.match(/[\p{L}\p{N}]+/gu) || []).forEach((term) => queryStopwords.add(term));
+        });
+      } catch (_) { /* Only the backend's reviewed host identities become links. */ }
+    });
     portalReady = true; $("search-button").disabled = false;
     let providerData = { choices: [] };
     try { providerData = await api("/api/providers"); } catch (_) { /* Ordinary search remains usable if model discovery fails. */ }
@@ -563,6 +587,7 @@ loadPortal();
 // General AI chat never shares municipal answers, sources or conversation state.
 let chatReady = false, chatLoading = false, chatBusy = false, chatGeneration = 0;
 let chatRevision = 0, chatChoices = [], chatSearchAllowed = false, chatAbort = null, chatLastRequest = null;
+let chatMenuRequested = true;
 let chatResetting = false, chatChecking = false, chatResetQueue = Promise.resolve();
 let chatSelectionKey = "";
 const chatProviderErrors = new Set();
@@ -623,14 +648,19 @@ function updateChatControls() {
   $("chat-search-control").hidden = !chatSearchAllowed;
   if (!chatSearchAllowed) $("chat-web-search").checked = false;
   $("chat-processing").textContent = choice?.provider === "openai"
-    ? (chatProviderErrors.has(choice.provider + "|" + choice.model) ? "OpenAI var utilgjengelig ved siste forsøk. Du kan prøve igjen selv. " : "Konfigurert for OpenAI; tilkoblingen kontrolleres først når du sender. ") + "Betalt, ekstern behandling. Kommunale dokumenter legges ikke ved."
-    : choice?.provider === "ollama" ? "Lokal AI · samtalen behandles på denne PC-en."
-    : "Velg et AI-alternativ. Ingen melding er sendt.";
+    ? "Valgfri betalt AI · meldinger behandles av OpenAI."
+    : "";
+  $("chat-processing").hidden = !choice || choice.provider !== "openai";
   renderModelChoices("chat-model-choices", "chat-provider", chatChoices, chatLoading || chatResetting || chatChecking);
 }
-function scrollChat() { $("chat-log").scrollTop = $("chat-log").scrollHeight; }
+function scrollChat() { $("chat-log").scrollTop = chatMenuRequested ? 0 : $("chat-log").scrollHeight; }
 function renderChatMessage(message) {
-  $("chat-log").querySelector(".chat-empty")?.remove();
+  if (message.role === "user" || message.pending || !chatMenuRequested) {
+    chatMenuRequested = false;
+    const menu = $("chat-log").querySelector(".chat-empty");
+    if (menu) menu.hidden = true;
+    $("chat-back-to-menu").hidden = false;
+  }
   const row = item($("chat-log"), "article", ""); row.className = "chat-row " + (message.role === "user" ? "user" : "assistant");
   if (message.role !== "user") {
     const avatar = document.querySelector(".chat-heading .robot-avatar").cloneNode(true); row.appendChild(avatar);
@@ -669,10 +699,22 @@ function renderChatMessage(message) {
 }
 function emptyChat() {
   $("chat-log").replaceChildren();
-  const welcome = item($("chat-log"), "div", ""); welcome.className = "chat-empty";
+  showChatMenu(false);
+}
+function showChatMenu(focus = true) {
+  chatMenuRequested = true;
+  $("chat-back-to-menu").hidden = true;
+  const existing = $("chat-log").querySelector(".chat-empty");
+  if (existing) {
+    existing.hidden = false;
+    if (focus) existing.focus();
+    scrollChat(); return;
+  }
+  const welcome = document.createElement("div"); welcome.className = "chat-empty";
+  welcome.setAttribute("tabindex", "-1"); welcome.setAttribute("aria-label", "Forslag til samtaletema");
+  $("chat-log").prepend(welcome);
   const avatar = document.querySelector(".chat-heading .robot-avatar").cloneNode(true);
   avatar.className = "robot-avatar chat-welcome-avatar"; avatar.setAttribute("aria-hidden", "true"); welcome.appendChild(avatar);
-  item(welcome, "h2", "Hva kan jeg hjelpe deg med?"); item(welcome, "p", "Velg et forslag, eller skriv din egen melding. Vi tar det sammen.");
   const prompts = item(welcome, "div", ""); prompts.className = "chat-prompts";
   [["Forklar et tema", "Kan du forklare et tema på en enkel måte? Temaet er …", ["M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3V4Z", "M12 6v15"]],
    ["Hjelp meg å skrive", "Hjelp meg å skrive en kort, generell tekst om …", ["m4 16 12-12 4 4-12 12-5 1 1-5Z", "m13 7 4 4"]],
@@ -682,9 +724,15 @@ function emptyChat() {
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg"); icon.setAttribute("viewBox", "0 0 24 24"); icon.setAttribute("aria-hidden", "true");
     paths.forEach((d) => { const path = document.createElementNS("http://www.w3.org/2000/svg", "path"); path.setAttribute("d", d); icon.appendChild(path); });
     button.appendChild(icon); item(button, "span", label);
-    button.addEventListener("click", () => { $("chat-message").value = text; updateChatControls(); $("chat-message").focus(); });
+    button.addEventListener("click", () => {
+      chatMenuRequested = false; welcome.hidden = true; $("chat-back-to-menu").hidden = false;
+      $("chat-message").value = text; updateChatControls(); $("chat-message").focus();
+    });
   });
+  if (focus) welcome.focus();
+  scrollChat();
 }
+$("chat-back-to-menu").addEventListener("click", () => showChatMenu());
 async function syncChatState(generation = chatGeneration) {
   const state = await api("/api/chat/state", { headers: { "X-Hamar-Token": token } });
   if (generation !== chatGeneration || state.revision < chatRevision) return null;
@@ -725,10 +773,11 @@ async function loadChat() {
       : pausedCloud.reason || "OpenAI må klargjøres av den som drifter tjenesten. Du kan fortsatt bruke lokal AI."
       : pausedAdvanced ? "Utvidet AI er ikke aktivert. OpenAI-alternativet i listen kan fortsatt velges." : "";
     $("chat-search-help").textContent = chatSearchAllowed
-      ? "Du velger selv om spørsmålet skal bruke godkjente offentlige kilder. Ingen automatisk overgang til betalt AI."
-      : "Nettsøk er av. Kommunale dokumenter deles ikke automatisk.";
+      ? "Bruk bare godkjente offentlige kilder når du trenger oppdatert informasjon."
+      : "";
+    $("chat-search-help").hidden = !chatSearchAllowed;
     chatReady = true;
-    $("chat-status").textContent = selected ? "Hva kan jeg hjelpe deg med?" : state.messages.length ? "Velg AI for å starte en ny samtale." : "Lokal AI er ikke klar. Start Ollama og trykk Oppdater, eller velg et annet aktivert alternativ.";
+    $("chat-status").textContent = selected ? "" : state.messages.length ? "Velg AI for å starte en ny samtale." : "Lokal AI er ikke klar. Start Ollama og trykk Oppdater, eller velg et annet aktivert alternativ.";
   } catch (_) {
     if (generation !== chatGeneration) return;
     chatReady = false; $("chat-status").textContent = "Vi fikk ikke kontakt med Aisha. Prøv Oppdater om et øyeblikk.";

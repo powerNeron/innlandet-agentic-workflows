@@ -6,6 +6,90 @@ The real-source workflow retrieves reviewed local excerpts, asks a local model t
 
 **Development status:** the walking skeleton, tests and historical evaluation evidence are retained for Compulsory 2 and continued development toward the final exam. This repository is not a completed or approved academic submission.
 
+## Current Innlandet research and UI preparation (2026-11-12)
+
+The existing research planner now resolves an explicitly named municipality or
+the bounded conversation context. Unknown, ambiguous or expired municipality
+records fail closed; a different municipality never silently becomes Hamar.
+An owner-reviewed registry records identity, exact official host, aliases,
+review/expiry dates and the reference/hash of its verification evidence.
+`MunicipalityRegistry.from_reviewed_file` accepts a bounded strict JSON manifest
+with `region: "Innlandet"` and `municipalities` records matching `Municipality`.
+Loading a record is not independent verification of its domain. No authoritative
+complete Innlandet roster has been supplied; tests use three fictional review
+records and do not activate or verify those domains.
+
+Municipal service conditions require tier1 sources from the selected municipality.
+Tier2 approved public authorities and tier3 individually approved supplementary
+sites can be compared when requested, but cannot replace municipal evidence.
+At most four selected sources are observed per request. Reviewed facts are
+compared only within matching entity/attribute/period/geography/unit scopes;
+unresolved conflicts, outages or changed source bytes prevent publication.
+This is not arbitrary discovery, crawling or general semantic fact checking.
+
+The same `ResearchService` policy can be injected into the existing
+`ChatBackend` and `create_municipal_service(request_sources=...)`. Both existing
+Ollama/OpenAI adapters use its current-request excerpts, receipts and independent
+exact-quote verification. Ollama additionally uses a bounded JSON selection
+schema with an abstention option. Existing historical Hamar URL validation is
+unchanged; only request-private documents constructed from the reviewed registry
+accept another municipality's exact host. Follow-ups retain the selected place,
+while an explicit new place overrides it. Registry/index/receipt mutation or
+revocation invalidates publication. The standard CLI does not load or activate
+this regional policy automatically: live transport, the complete verified roster,
+specific sources/paragraphs, processing rights and network access still require
+review and separate owner approval. Municipal production remains fail-closed.
+
+The public chat now says “Hei, jeg er Aisha”, uses the requested short welcome
+text and keeps safety information in a closed accessible disclosure. Both chat
+topics and municipal categories have a pink “← Tilbake til meny” button that
+preserves conversation/draft without fetching, generating or resetting. “Ny
+samtale” remains separate. Local AI is still the default and cloud selection is
+explicit. Paid OpenAI and search are not enabled by navigation.
+
+Evidence: `output/aisha-innlandet-ui-3f4c8d1a/`. The full offline run passes
+571 methods;24 Node VM/DOM groups pass. `research-final-v2/` adds34 declared
+case/provider contracts (44 requests) across three fictional municipality
+policies, both mocked providers, faults and recovery:34 pass,12/12 final
+published quotations have their expected municipal citation. The acceptance
+matrix has14 expected acceptances and20 expected rejections, with no mismatch;
+guidance is counted separately from published source answers. The earlier20
+research contracts also pass. Mock timings are not provider/network performance.
+Every phase now checks its exact HTTP status, error code, response origin and
+publication/reference state; mutation controls reject wrong error labels and
+wrong earlier-phase answers. Short municipality-change follow-ups retain the
+new place, including the next elliptical turn. Original v1 results, independently
+reproduced defects and their failing regressions remain preserved.
+
+`local-rag-final-v2/` records6 genuine local `llama3.2:3b` calls: three source-blind
+counterfactuals expressed uncertainty; three RAG calls returned the exact
+fictional excerpt with source binding. This is a development experiment using
+synthetic sources, not current municipal truth or a representative accuracy
+estimate. Only the experimental source-blind arm bypasses the production
+zero-call municipal referral; RAG also adds constrained selection/rejection,
+so the comparison does not isolate retrieval's causal effect. Full raw provider
+usage, run reservations, latency and residual-worker counts are retained.
+The earlier6-call cohort retains its original source hashes;12 genuine local
+calls were executed in total, not12 independent held-out cases. No source
+websites, OpenAI calls, new models or dependencies were used. Native
+browser rendering/accessibility and independent matching-snapshot review are
+reported separately; Node contracts alone do not establish either.
+
+Reproduce offline with a new evidence destination:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.offline_tests --output output/NEW-offline.log
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --output output/NEW-research
+node harness/browser_smoke.cjs --unit
+```
+
+Start the existing application locally with
+`.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web`, then open
+`http://127.0.0.1:8000`. Ollama must already be running with the allowed installed
+model. General local chat is available; live municipal/research answers stay
+unavailable until the approvals and transport above are completed. This command
+does not enable paid OpenAI or web search.
+
 ## Current production policy — request-bound sources (2026-11-12)
 
 Every new source-bearing municipal search/answer/direct run must use a complete,
@@ -948,7 +1032,7 @@ Actual red evidence reproduces6 unauthorized dispatch/history cases and8 invalid
 completion acceptances; the same repaired regressions pass. Exact controlled-source
 verification, local default, one-call chat budgets and no paid fallback remain.
 
-Final current offline regression:556/556 methods,0 failures/errors, exit0.
+Prior reviewed research-readiness regression:556/556 methods,0 failures/errors, exit0.
 Targeted research/chat/transport/provider/municipal/run checks:219/219, exit0.
 The22-group Node model passes; this is not native browser/AX certification.
 The prior224-primary/152-restoration comparison was rerun with status-complete SDK

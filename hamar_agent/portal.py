@@ -1,4 +1,4 @@
-"""Search-to-workflow integration; never fetches documents on a query."""
+"""Search-to-workflow integration with opt-in request-bound approved sources."""
 from dataclasses import asdict
 import hashlib
 import json
@@ -15,6 +15,7 @@ from .search import (FOLLOWUP_MODIFIERS, QUERY_ALIASES, REAL_SERVICE_QUERY_TERMS
 from .workflow import run_workflow
 from .run_control import controlled_run
 from .source_updates import BoundPortalResult
+from .research import ResearchError,explicit_place
 
 DEMO_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "portal-synthetic.json"
 DEMO_SHA256 = "aece5c40409ebd712abc67705d1d26f77a98cf81d78a1018d1f764094bf968bf"
@@ -68,10 +69,24 @@ class PortalService:
         self.workflow = workflow_service if workflow_service is not None else WorkflowService()
         self.index = index if index is not None else (self.workflow.index if getattr(self.workflow, "real_sources", False) else demo_index())
 
+    def _query(self,query,workflow,*,allow_followup=False):
+        # Validate original input before removing any approved place aliases.
+        try:validate_query(query,real_sources=True,allow_followup=allow_followup)
+        except UnsupportedTopicError:pass
+        policy=getattr(workflow,'request_sources',None)
+        if callable(getattr(policy,'search_query',None)):return policy.search_query(query)
+        place=explicit_place(query)
+        if place is not None and place.casefold()!='hamar':
+            raise ResearchError('research_municipality_unknown')
+        return query
+
     def overview(self):
         policy=getattr(self.workflow,'request_sources',None)
         configured=tuple(policy.approvals.values()) if policy is not None else ()
+        registry=getattr(policy,'municipalities',None)
         return {
+            "municipalities": [{"id":m.id,"name":m.name,"official_host":m.official_host,"aliases":list(m.aliases)}
+                for m in registry.entries.values() if m.current()] if registry is not None else [],
             "categories": [{**asdict(c), "count": sum(a.category==c.id and a.current() for a in configured)
                 if policy is not None else sum(d.category == c.id and self.index.eligible(d) for d in self.index.documents.values())} for c in CATEGORIES],
             "official_home": OFFICIAL_HOME,
@@ -92,14 +107,18 @@ class PortalService:
     @controlled_run
     def search(self, query: str, *, category: str | None = None):
         try:
-            validate_query(query, real_sources=True)
+            search_query=self._query(query,self.workflow)
+            validate_query(search_query, real_sources=True)
             policy=getattr(self.workflow,'request_sources',None)
             if policy is not None:
-                snapshot=policy.retrieve()
+                snapshot=policy.retrieve_for_query(query) if callable(getattr(policy,'retrieve_for_query',None)) else policy.retrieve()
                 view=self.workflow.for_snapshot(snapshot)
-                result=PortalService(view,index=snapshot.index).search(query,category=category)
-                return BoundPortalResult({**result,'source_observation':snapshot.receipt()},snapshot)
-            hits = self.index.search(query, category=category)
+                result=PortalService(view,index=snapshot.index).search(search_query,category=category)
+                municipality=getattr(snapshot,'municipality',None)
+                if municipality is not None:result['official_menu_url']='https://'+municipality.official_host+'/'
+                return BoundPortalResult({**result,'source_observation':snapshot.receipt(),
+                    'municipality_id':getattr(getattr(snapshot,'municipality',None),'id',None)},snapshot)
+            hits = self.index.search(search_query, category=category)
         except (QueryPrivacyError, InvalidQueryError):
             return {"query": "", "category": category, "results": [], "query_status": "input_rejected",
                     "message": "Søket ble avvist av hensyn til personvernet.",
@@ -118,7 +137,7 @@ class PortalService:
 
     @controlled_run
     def answer(self, query: str, *, category: str | None = None, workflow_service=None,
-               prior_terms=()):
+               prior_terms=(),prior_municipality=None):
         workflow = workflow_service if workflow_service is not None else self.workflow
         safe_query = "" if getattr(workflow, "real_sources", False) else query
         try:
@@ -126,7 +145,8 @@ class PortalService:
                                                 if isinstance(term, str) and term in REAL_SERVICE_QUERY_TERMS))
             if len(allowed_prior) > 16:
                 raise InvalidQueryError("Invalid conversation context")
-            terms = validate_query(query, real_sources=True, allow_followup=bool(allowed_prior))
+            search_query=self._query(query,workflow,allow_followup=bool(allowed_prior))
+            terms = validate_query(search_query, real_sources=True, allow_followup=bool(allowed_prior))
         except QueryPrivacyError:
             return {"query": "", "answer_status": "input_rejected", "result": None, "citations": [],
                     "message": "Forespørselen ble avvist av hensyn til personvernet. Ikke skriv personopplysninger.",
@@ -146,14 +166,22 @@ class PortalService:
                     "official_menu_url": MENU_REFERENCE, "coverage": self.overview()["coverage"]}
         policy=getattr(workflow,'request_sources',None)
         if policy is not None:
-            snapshot=policy.retrieve()
+            if callable(getattr(policy,'retrieve_for_query',None)):
+                # Retain an explicitly changed municipality in a short follow-up.
+                effective_query=query if not is_follow_up else query+' '+' '.join(allowed_prior)
+                snapshot=policy.retrieve_for_query(effective_query,provider=workflow.provider,municipality_context=prior_municipality)
+            else:snapshot=policy.retrieve()
             view=workflow.for_snapshot(snapshot)
-            result=PortalService(view,index=snapshot.index).answer(query,category=category,prior_terms=prior_terms)
-            return BoundPortalResult({**result,'source_observation':snapshot.receipt()},snapshot)
+            result=PortalService(view,index=snapshot.index).answer(search_query,category=category,prior_terms=prior_terms)
+            municipality=getattr(snapshot,'municipality',None)
+            if municipality is not None:result['official_menu_url']='https://'+municipality.official_host+'/'
+            return BoundPortalResult({**result,'source_observation':snapshot.receipt(),
+                'municipality_id':getattr(getattr(snapshot,'municipality',None),'id',None)},snapshot)
         if is_follow_up:
             terms = list(allowed_prior)
             query = " ".join(terms)
-        hits = self.index.search(query, category=category, limit=3) if terms else ()
+            search_query=query
+        hits = self.index.search(search_query, category=category, limit=3) if terms else ()
         context_terms = {term for hit in hits for p in hit.document.source.paragraphs
                          if p.id in hit.paragraph_ids for term in tokens(p.text)}
         citations = _citation_records(hits)

@@ -1,7 +1,7 @@
 """Opt-in general conversation; independent of reviewed municipal evidence.
 
-History lives in the existing page session. No catalog, browser, shell, file or
-municipal retrieval tool is available. Cloud/search consent is server-owned.
+History lives in the existing page session. No browser, shell or file tool is
+available. Approved-source research is opt-in; cloud/search consent is server-owned.
 """
 from dataclasses import dataclass, field, replace
 import importlib.util
@@ -68,7 +68,7 @@ _LOCAL_SERVICE = re.compile(r'\b(?:parkering|drikkevann|vann|avløp|renovasjon|b
 _LOCAL_PLACE = re.compile(r'\bhamar\b|\bkommun\w*\b',re.I)
 _SERVICE_TASK = re.compile(r'\b(?:koster|pris\w*|gebyr\w*|frist\w*|søk\w*|vilkår\w*|regler|vedtak|tjeneste\w*|tilbyr|åpningstid\w*)\b|hvor finner',re.I)
 _MUNICIPAL_REFERRAL = ('Velg «Kommunal informasjon» for å finne kilder om dette. '
-    'Denne generelle chatten har ikke kommunale kilder og kan ikke bekrefte søknadsmåte, vilkår, priser eller frister.')
+    'Uten oppdaterte, godkjente kommunale kilder kan jeg ikke bekrefte søknadsmåte, vilkår, priser eller frister.')
 _MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}\Z")
 _SECRET = re.compile(r"\bsk-[A-Za-z0-9_-]{12,}|\bBearer\s+\S+|(?:api[_ -]?key|passord|password)\s*[:=]", re.I)
 _ENGLISH_DETAILS = re.compile(
@@ -247,6 +247,8 @@ class ChatOllamaClient(OllamaClient):
             raise ChatError('chat_search_unavailable', status=403)
         payload = {'model': self.config.model, 'messages': [{'role': 'system', 'content': system_prompt}, *request['messages']],
                    'stream': False, 'options': {'temperature': 0, 'seed': 0, 'num_predict': self.config.num_predict}}
+        if 'research_schema' in request:
+            payload['format']=request['research_schema']
         try:
             if check:check()
             raw = self._transport(self.config.base_url + '/api/chat', {'Content-Type': 'application/json'},
@@ -415,21 +417,39 @@ class ChatBackend:
             return CONTEXT_SYSTEM,(),'municipal_details_need_sources'
         return base+(_DEFINE_BRIEFLY if definition else ''),selected,('explicit_other_topic' if topic=='other' else 'relevant_vocabulary' if selected else 'general')
 
-    @staticmethod
-    def effective_question(messages):
+    def effective_question(self,messages):
         current=messages[-1]['content']
-        if not _FOLLOWUP.fullmatch(current):return current
-        prior=next((m['content'] for m in reversed(messages[:-1])
-                    if m['role']=='user' and not _FOLLOWUP.fullmatch(m['content'])),'')
+        registry=getattr(self.research_service,'municipalities',None)
+        def place_only(text):
+            if registry is None or not re.match(r'\s*(?:og|hva\s+med)\b',text,re.I):return False
+            residual=registry.strip_names(text)
+            if not re.fullmatch(r'\s*(?:og|hva\s+med)\s*(?:kommune)?\s*[?!.]?\s*',residual,re.I):return False
+            return registry.resolve(text) is not None
+        newest_place=current if place_only(current) else None
+        if not _FOLLOWUP.fullmatch(current) and newest_place is None:return current
+        prior=''
+        for message in reversed(messages[:-1]):
+            if message['role']!='user':continue
+            text=message['content']
+            if place_only(text):
+                if newest_place is None:newest_place=text
+            elif not _FOLLOWUP.fullmatch(text):
+                prior=text;break
+        if newest_place is not None:
+            prior=registry.strip_names(prior)+' '+newest_place
+            if newest_place==current:return prior.strip()
         return (prior+' '+current).strip()
 
     def managed_reply(self, context):
-        # General chat has no approved municipal excerpts. Do not ask a model to
-        # invent current procedures; keep this explicit zero-call referral separate
-        # from measured model quality and from the verified municipal workflow.
+        # Municipal detail needs an explicitly authorized, registered source plan.
+        # Otherwise keep this zero-call guidance separate from model quality.
         current=self.effective_question(json.loads(context)['messages'])
+        from .research import municipal_question
+        if (json.loads(context).get('web_search',False) and municipal_question(current)
+                and self.research_service is not None and self.research_service.municipalities is not None):
+            return None
         local=bool(_LOCAL_PLACE.search(current) and _LOCAL_SERVICE.search(current) and _SERVICE_TASK.search(current))
-        if self.instruction_plan(context)[2]=='municipal_details_need_sources' or local:
+        if self.instruction_plan(context)[2]=='municipal_details_need_sources' or local or municipal_question(current):
             return {'text':_MUNICIPAL_REFERRAL,'citations':[],'web_search_used':False,'web_search_calls':0,
                     'response_origin':'application_guidance'}
         return None

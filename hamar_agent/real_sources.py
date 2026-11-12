@@ -208,7 +208,9 @@ class MunicipalWorkflowService(WorkflowService):
         if self.request_sources is not None:
             ids=(source.id,) if source.id in self.request_sources.approvals else tuple(dict.fromkeys(
                 p.id.rpartition(':')[0] for p in source.paragraphs))
-            return self.for_snapshot(self.request_sources.retrieve(ids)).run_context(source)
+            policy=self.request_sources
+            snapshot=policy.retrieve_for_sources(ids,provider=self.provider.split(':',1)[0]) if callable(getattr(policy,'retrieve_for_sources',None)) else policy.retrieve(ids)
+            return self.for_snapshot(snapshot).run_context(source)
         if self.source_snapshot is not None:
             self.source_snapshot.assert_publishable()
         started = time.perf_counter()
@@ -260,7 +262,9 @@ class MunicipalWorkflowService(WorkflowService):
     @controlled_run
     def run(self, source_id):
         if self.request_sources is not None:
-            return self.for_snapshot(self.request_sources.retrieve((source_id,))).run(source_id)
+            policy=self.request_sources
+            snapshot=policy.retrieve_for_sources((source_id,),provider=self.provider.split(':',1)[0]) if callable(getattr(policy,'retrieve_for_sources',None)) else policy.retrieve((source_id,))
+            return self.for_snapshot(snapshot).run(source_id)
         return self.run_context(self.load(source_id))
 
     @controlled_run

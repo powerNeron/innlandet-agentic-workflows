@@ -107,9 +107,10 @@ class WebTests(unittest.TestCase):
         self.assertIn('<h1 id="chat-title">Hei, jeg er Aisha</h1>', html)
         self.assertEqual(html.count('<h1 '), 2)  # One per mutually exclusive mode.
         self.assertIn('id="municipal-mode" role="region" aria-labelledby="municipal-title" hidden', html)
-        self.assertIn('<h2 id="categories-title">Hvordan kan vi hjelpe deg?</h2>',html)
+        self.assertIn('<h2 id="categories-title" tabindex="-1">Hvordan kan vi hjelpe deg?</h2>',html)
         self.assertIn('href="https://www.hamar.kommune.no/meny/" target="_blank" rel="noopener noreferrer">Kommunens tjenestemeny',html)
-        self.assertIn('<h2>Hva kan jeg hjelpe deg med?</h2>',html)
+        self.assertNotIn('<h2>Hva kan jeg hjelpe deg med?</h2>',html)
+        self.assertIn('Spør meg om det du lurer på! Jeg kan hjelpe deg med spørsmål, læring og praktiske oppgaver.',html)
         self.assertIn('id="municipal-model-choices" class="model-choices" role="group"',html)
         self.assertIn('id="chat-model-choices" class="model-choices" role="group"',html)
         self.assertIn('id="provider-model" hidden',html)

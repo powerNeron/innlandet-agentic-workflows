@@ -8,7 +8,8 @@ import unittest
 from unittest.mock import patch
 
 import eval.test_chat as chat_tests
-from hamar_agent.research import ResearchApproval, ResearchExcerpt, ResearchService, information_need
+from hamar_agent.research import (ResearchApproval, ResearchExcerpt, ResearchService, information_need,
+                                  Municipality,MunicipalityRegistry,ResearchError)
 from hamar_agent.run_control import active_workers
 
 ROBOTS=b'User-agent: *\nAllow: /\n'
@@ -22,7 +23,7 @@ def approval(source_id='public-a',*,text='Fiktivt testtema: testverdien er 250 e
         hashlib.sha256(ROBOTS).hexdigest(),True,True,external)
 
 
-def service_fixture(approvals=None,*,mutate=None):
+def service_fixture(approvals=None,*,mutate=None,municipalities=None):
     approvals=tuple(approvals or [approval()]);registry={a.source_id:a for a in approvals};calls=[]
     def fetch(source_id,**kwargs):
         a=registry[source_id];calls.append(dict(source_id=source_id,**kwargs))
@@ -30,7 +31,258 @@ def service_fixture(approvals=None,*,mutate=None):
             retrieved_at=datetime.now(timezone.utc).isoformat(),status=200,content_type='text/plain')
         if mutate:mutate(value)
         return value
-    return ResearchService(approvals,fetcher=fetch),calls
+    return ResearchService(approvals,fetcher=fetch,municipalities=municipalities,municipal_authorized=lambda:municipalities is not None),calls
+
+
+def regional_fixture(*,mutate=None,public=False,conflict=False):
+    """Fictional reviewed-policy data; these domains are NOT verified or activated."""
+    today=date.today().isoformat();expiry=(date.today()+timedelta(days=7)).isoformat()
+    roster_hash=hashlib.sha256(b'FICTIONAL_OFFLINE_ROSTER_NOT_OFFICIAL_VERIFICATION').hexdigest()
+    registry=MunicipalityRegistry(tuple(Municipality(key,name,host,today,expiry,'Synthetic test-only registry',roster_hash,aliases)
+        for key,name,host,aliases in (
+            ('hamar','Hamar','www.hamar.kommune.no',()),
+            ('gjovik','Gjøvik','www.gjovik.kommune.no',('gjovik',)),
+            ('lillehammer','Lillehammer','www.lillehammer.kommune.no',()))))
+    values=[]
+    for entry in registry.entries.values():
+        text=f'Fiktivt testutdrag om vann i {entry.name}. Testgebyret er 250 kroner.'
+        values.append(replace(approval(entry.id+'-vann',text=text,scope=(*FACT[:3],entry.id,FACT[4])),
+            url='https://'+entry.official_host+'/synthetic-offline-water/',keywords=('vann',),
+            authority_tier=1,municipality_id=entry.id))
+    if public:
+        text='Fiktivt generelt testutdrag om vann. Testverdien er '+('300' if conflict else '250')+' kroner.'
+        values.append(replace(approval('fylke-vann',text=text,value='300' if conflict else '250',scope=(*FACT[:3],'gjovik',FACT[4])),
+            url='https://innlandetfylke.no/synthetic-offline-water/',keywords=('vann',),authority_tier=2))
+        values.append(replace(approval('thirdparty-vann',text='Fiktiv generell forklaring om vann.',scope=(),value=''),
+            url='https://example.org/synthetic-offline-water/',keywords=('vann',),authority_tier=3))
+    return service_fixture(values,mutate=mutate,municipalities=registry)
+
+
+class RegionalResearchTests(unittest.TestCase):
+    client=chat_tests.ChatTests.client
+    drain=chat_tests.ChatTests.drain
+    headers=chat_tests.ChatTests.headers
+    send=chat_tests.ChatTests.send
+    reset=chat_tests.ChatTests.reset
+    state=chat_tests.ChatTests.state
+
+    def setUp(self):
+        chat_tests.ChatTests.setUp(self)
+        self.service,self.observations=regional_fixture()
+        self.backend.research_service=self.service;self.backend.web_authorized=True
+        def response():
+            if not self.observations:return chat_tests.sdk_response('Syntetisk svar uten kilder.')
+            source=self.service.approvals[self.observations[-1]['source_id']]
+            # The model's choice is scripted, not a genuine quality measurement.
+            return chat_tests.sdk_response(json.dumps(dict(source_id=source.source_id,paragraph_id='p1',quote=source.excerpts[0].text)))
+        self.response_factory=response
+
+    def test_multiple_municipalities_share_both_provider_rag_paths(self):
+        for provider,model in (('ollama','llama3.2:3b'),('openai','approved-model')):
+            for name,key in (('Gjøvik','gjovik'),('Lillehammer','lillehammer'),('Hamar','hamar')):
+                with self.subTest(provider=provider,name=name):
+                    self.reset();self.calls.clear();self.observations.clear()
+                    self.app.sessions[self.token].chat.attempts.clear();self.process_window.attempts.clear()
+                    response=self.send('Hva koster vann i '+name+'?',provider=provider,model=model,web_search=True)
+                    self.assertEqual(response.status,200,response.body)
+                    reply=json.loads(response.body)['reply']
+                    self.assertEqual(reply['municipality_id'],key);self.assertEqual(reply['authority'],'official_municipal')
+                    self.assertIn(name,reply['text']);self.assertEqual([o['source_id'] for o in self.observations],[key+'-vann'])
+                    self.assertEqual(len(self.calls),1)
+                    call=self.calls[0]
+                    sent=json.dumps(call.get('payload',call.get('kwargs')),ensure_ascii=False)
+                    self.assertIn(self.service.approvals[key+'-vann'].excerpts[0].text,sent)
+                    if provider=='openai':self.assertNotIn('tools',call['kwargs'])
+
+    def test_official_sources_first_and_supplements_expand_only_for_comparison(self):
+        self.service,self.observations=regional_fixture(public=True)
+        self.backend.research_service=self.service
+        plan,entry,municipal=self.service.plan('Hva koster vann i Gjøvik?')
+        self.assertEqual([p.authority_tier for p in plan],[1]);self.assertEqual(entry.id,'gjovik');self.assertTrue(municipal)
+        plan,entry,municipal=self.service.plan('Sammenlign vann i Gjøvik med andre kilder.')
+        self.assertEqual([p.authority_tier for p in plan],[1,2,3])
+        self.assertEqual(self.send('Hva koster vann i Gjøvik?',web_search=True).status,200)
+        self.assertEqual([o['source_id'] for o in self.observations],['gjovik-vann'])
+
+    def test_supplement_cannot_replace_missing_official_source(self):
+        original,calls=regional_fixture(public=True)
+        supplements=[a for a in original.approvals.values() if a.authority_tier>1]
+        self.backend.research_service=ResearchService(supplements,fetcher=original.fetcher,municipalities=original.municipalities)
+        response=self.send('Hva koster vann i Gjøvik?',web_search=True)
+        self.assertNotEqual(response.status,200,response.body)
+        self.assertEqual(self.calls,[]);self.assertEqual(calls,[]);self.assertEqual(self.state()['messages'],[])
+
+    def test_ambiguous_unknown_and_missing_municipality_are_not_hamar(self):
+        for question in ('Hva koster vann i Gjøvik og Hamar?','Hva koster vann i Ukjentby kommune?',
+                         'Hva koster vann?'):
+            with self.subTest(question=question):
+                self.app.sessions[self.token].chat.attempts.clear();self.process_window.attempts.clear()
+                response=self.send(question,web_search=True)
+                self.assertEqual(self.calls,[]);self.assertEqual(self.observations,[])
+                if response.status==200:self.assertFalse(json.loads(response.body)['reply']['ai_generated'])
+
+    def test_conflicts_outages_and_modified_content_refuse_without_fallback(self):
+        self.service,self.observations=regional_fixture(public=True,conflict=True)
+        self.backend.research_service=self.service
+        response=self.send('Sammenlign vann i Gjøvik med andre kilder.',web_search=True)
+        self.assertEqual(response.status,422,response.body)
+        self.assertEqual(json.loads(response.body)['error_code'],'research_source_conflict')
+        self.assertEqual(self.calls,[]);self.assertEqual(self.state()['messages'],[])
+        self.assertEqual([o['source_id'] for o in self.observations],['gjovik-vann','fylke-vann','thirdparty-vann'])
+        self.service.fetcher=lambda *a,**k:(_ for _ in ()).throw(TimeoutError('synthetic outage'))
+        self.observations.clear()
+        response=self.send('Hva koster vann i Gjøvik?',web_search=True)
+        self.assertNotEqual(response.status,200);self.assertEqual(self.calls,[])
+
+    def test_substantive_followups_keep_city_and_new_city_overrides_it(self):
+        for question,key in (('Hva koster vann i Gjøvik?','gjovik'),('Hva koster det?','gjovik'),
+                             ('Og prisen?','gjovik'),('Hva koster vann i Lillehammer?','lillehammer')):
+            response=self.send(question,web_search=True)
+            self.assertEqual(response.status,200,response.body)
+            self.assertEqual(json.loads(response.body)['reply']['municipality_id'],key)
+        self.assertEqual(len({r['request_id'] for r in self.observations}),4)
+
+    def test_roster_aliases_dates_and_exact_hosts_are_enforced(self):
+        registry=self.service.municipalities
+        self.assertEqual(registry.resolve('Vann i gjovik kommune?').id,'gjovik')
+        self.assertEqual(registry.resolve('Vann i Ｇｊøｖｉｋ?').id,'gjovik')
+        with self.assertRaises(ResearchError):registry.resolve('Vann i Hamarøy kommune?')
+        with self.assertRaises(ResearchError):registry.resolve('Vann i Hamar og Gjøvik?')
+        with self.assertRaises(ResearchError):registry.resolve('Vann i Bergen sammenlignet med Hamar?')
+        with self.assertRaises(ResearchError):registry.resolve('Hva koster vann i oslo?',context='hamar')
+        source=self.service.approvals['gjovik-vann']
+        with self.assertRaises(ValueError):ResearchService([replace(source,url='https://www.gjovik.kommune.no.evil.invalid/path/')],municipalities=registry)
+        expired=replace(registry.entries['gjovik'],reviewed_on='2020-01-01',expires_on='2020-01-02')
+        with self.assertRaises(ResearchError):MunicipalityRegistry([expired]).resolve('Vann i Gjøvik?')
+
+    def test_city_only_followup_overrides_prior_city_and_survives_next_ellipsis(self):
+        for provider,model in (('ollama','llama3.2:3b'),('openai','approved-model')):
+            with self.subTest(provider=provider):
+                self.reset();self.calls.clear();self.observations.clear()
+                self.app.sessions[self.token].chat.attempts.clear();self.process_window.attempts.clear()
+                for question,city in (('Hva koster vann i Gjøvik?','gjovik'),('Og Hamar?','hamar'),('Hva koster det?','hamar')):
+                    response=self.send(question,provider=provider,model=model,web_search=True)
+                    self.assertEqual(response.status,200,response.body)
+                    self.assertEqual(json.loads(response.body)['reply']['municipality_id'],city)
+                self.assertEqual([o['source_id'] for o in self.observations],['gjovik-vann','hamar-vann','hamar-vann'])
+                self.assertEqual(len({o['request_id'] for o in self.observations}),3)
+
+    def test_ambiguous_name_requires_region_and_manifest_is_bounded(self):
+        import tempfile
+        from pathlib import Path
+        from dataclasses import asdict
+        entry=replace(self.service.municipalities.entries['gjovik'],id='valer',name='Våler',aliases=(),requires_region=True)
+        registry=MunicipalityRegistry([entry])
+        with self.assertRaises(ResearchError):registry.resolve('Vann i Våler?')
+        with self.assertRaises(ResearchError):registry.resolve('Vann i Våler i Østfold?')
+        self.assertEqual(registry.resolve('Vann i Våler i Innlandet?').id,'valer')
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'synthetic-roster.json'
+            path.write_text(json.dumps({'region':'Innlandet','municipalities':[asdict(entry)]}),encoding='utf-8')
+            self.assertEqual(MunicipalityRegistry.from_reviewed_file(path).resolve('Våler i Innlandet').id,'valer')
+            path.write_text('{"region":"Innlandet","region":"other","municipalities":[]}',encoding='utf-8')
+            with self.assertRaises(ValueError):MunicipalityRegistry.from_reviewed_file(path)
+            path.write_bytes(b'x'*65537)
+            with self.assertRaises(ValueError):MunicipalityRegistry.from_reviewed_file(path)
+
+    def test_regional_checker_rejects_wrong_error_and_earlier_phase_publication(self):
+        from copy import deepcopy
+        from harness.research_eval import regional_response_contract
+        outage=[dict(http_status=422,payload=dict(error_code='research_unavailable'))]
+        self.assertTrue(regional_response_contract('outage',outage,self.service.approvals))
+        for status,code in ((403,'chat_paid_disabled'),(500,'research_unavailable'),(422,'research_no_sources')):
+            wrong=[dict(http_status=status,payload=dict(error_code=code))]
+            self.assertFalse(regional_response_contract('outage',wrong,self.service.approvals))
+        source=self.service.approvals['gjovik-vann']
+        good=dict(http_status=200,payload=dict(reply=dict(response_origin='model',ai_generated=True,
+            research_verified=True,municipality_id='gjovik',text=source.excerpts[0].text,
+            citations=[dict(url=source.url,title=source.title)])))
+        phases=[deepcopy(good) for _ in range(3)]
+        self.assertTrue(regional_response_contract('followup',phases,self.service.approvals))
+        phases[0]['payload']['reply']['municipality_id']='hamar'
+        self.assertFalse(regional_response_contract('followup',phases,self.service.approvals))
+        phases[0]=deepcopy(good);phases[1]['payload']['reply']['response_origin']='application_guidance'
+        self.assertFalse(regional_response_contract('followup',phases,self.service.approvals))
+
+    def test_third_party_model_selection_is_rejected_even_when_quote_is_exact(self):
+        self.service,self.observations=regional_fixture(public=True)
+        self.backend.research_service=self.service
+        # Fixture model deliberately selects the last (third-party) observed source.
+        response=self.send('Sammenlign vann i Gjøvik med andre kilder.',web_search=True)
+        self.assertEqual(response.status,422,response.body)
+        self.assertEqual(json.loads(response.body)['error_code'],'research_claim_unsupported')
+        self.assertEqual(len(self.calls),1);self.assertEqual(len(self.observations),3)
+        self.assertEqual(self.state()['messages'],[])
+
+    def test_registry_and_index_mutations_invalidate_request_publication(self):
+        from hamar_agent.run_control import run_scope
+        from types import MappingProxyType
+        with run_scope():
+            binding=self.service.retrieve_for_query('Hva koster vann i Gjøvik?')
+            binding.index.documents.clear()
+            with self.assertRaises(ResearchError):binding.assert_publishable()
+        with run_scope():
+            binding=self.service.prepare('Hva koster vann i Gjøvik?',provider='ollama',authorized=lambda:True)
+            self.service.municipalities.entries=MappingProxyType({})
+            with self.assertRaises(ResearchError):binding.assert_publishable()
+
+    def test_other_municipality_never_uses_legacy_hamar_portal(self):
+        from hamar_agent.portal import PortalService
+        portal=PortalService()
+        for question in ('vann i Gjøvik','parkering i Lillehammer'):
+            with self.subTest(question=question),self.assertRaises(ResearchError):portal.search(question)
+        self.assertEqual(self.calls,[]);self.assertEqual(self.observations,[])
+
+    def test_no_search_municipal_question_is_guidance_not_an_invented_local_price(self):
+        for question in ('Hva koster vann i Gjøvik?','Hva koster vann i Lillehammer?'):
+            response=self.send(question,web_search=False)
+            self.assertEqual(response.status,200,response.body)
+            self.assertEqual(json.loads(response.body)['reply']['response_origin'],'application_guidance')
+        self.assertEqual(self.calls,[]);self.assertEqual(self.observations,[])
+
+    def test_common_municipal_backend_uses_regional_snapshot_and_keeps_quote_checks(self):
+        from hamar_agent.real_sources import MunicipalWorkflowService
+        from hamar_agent.ollama_provider import OllamaClient,OllamaConfig
+        from hamar_agent.openai_provider import OpenAIClient,OpenAIConfig
+        from hamar_agent.search import SearchIndex
+        from hamar_agent.web import WebApplication
+        from unittest.mock import Mock
+        for provider in ('ollama','openai'):
+            with self.subTest(provider=provider):
+                service,observations=regional_fixture();calls=[]
+                def choose(prompt):
+                    calls.append(prompt)
+                    p=json.loads(prompt.split('SOURCE_PARAGRAPHS=',1)[1].splitlines()[0])[0]
+                    return {'claims':[dict(id='c1',text=p['text'],paragraph_id=p['id'],evidence_quote=p['text'])]}
+                if provider=='ollama':
+                    def transport(url,headers,body,timeout,limit):
+                        payload=json.loads(body)
+                        return json.dumps({'message':{'content':json.dumps(choose(payload['messages'][0]['content']))}}).encode()
+                    client=OllamaClient(OllamaConfig(),transport=transport)
+                else:
+                    sdk=SimpleNamespace(responses=SimpleNamespace(create=lambda **kwargs:SimpleNamespace(
+                        status='completed',error=None,output_text=json.dumps(choose(kwargs['input'])))),close=Mock())
+                    client=OpenAIClient(OpenAIConfig(model='approved-model',api_key='synthetic-only',enabled=True,privacy_authorized=True),sdk_client=sdk)
+                workflow=MunicipalWorkflowService(SearchIndex(),client,provider=provider,request_sources=service)
+                app=WebApplication(workflow)
+                headers={'Host':'127.0.0.1:8000','Origin':'http://127.0.0.1:8000','Content-Type':'application/json','X-Hamar-Token':app.token}
+                for question,city in (('Hva koster vann i Gjøvik?','gjovik'),('Hva koster det?','gjovik'),
+                                      ('Og Hamar?','hamar'),('Og prisen i Lillehammer?','lillehammer')):
+                    response=app.dispatch('POST','/api/answer',headers,json.dumps({'query':question}).encode())
+                    self.assertEqual(response.status,200,response.body)
+                    answer=json.loads(response.body)['answer']
+                    self.assertEqual(answer['answer_status'],'evidence_checked',answer)
+                    self.assertEqual(answer['municipality_id'],city)
+                    self.assertTrue(all(city+'.kommune.no' in c['url'] for c in answer['citations']))
+                self.assertEqual(len(observations),4);self.assertEqual(len(calls),4)
+                self.assertNotEqual(observations[0]['request_id'],observations[1]['request_id'])
+                for question in ('Og prisen i Ukjentby kommune?','Og prisen i oslo?',
+                                 'Og prisen i Hamar og Gjøvik?'):
+                    before=(len(observations),len(calls))
+                    response=app.dispatch('POST','/api/answer',headers,json.dumps({'query':question}).encode())
+                    self.assertEqual((len(observations),len(calls)),before)
+                    if response.status==200:self.assertNotEqual(json.loads(response.body)['answer']['answer_status'],'evidence_checked')
+                    else:self.assertEqual(response.status,422)
 
 
 class ResearchTests(unittest.TestCase):

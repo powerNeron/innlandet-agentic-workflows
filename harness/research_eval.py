@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 import socket
 import sys
+import time
 from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -249,6 +250,142 @@ def offline(output):
     return success==len(rows)
 
 
+def regional_response_contract(case,responses,approvals):
+    """Prespecified per-phase HTTP/error/origin/publication/reference contract."""
+    errors={'missing_city':(422,'research_municipality_required'),
+        'unknown_city':(422,'research_municipality_unknown'),'ambiguous_city':(422,'research_municipality_ambiguous'),
+        'supplement_only':(422,'research_no_official_sources'),'conflict':(422,'research_source_conflict'),
+        'third_party':(422,'research_claim_unsupported'),'modified':(422,'research_source_invalid'),
+        'outage':(422,'research_unavailable'),'revoked':(403,'chat_search_unavailable'),'privacy':(400,'chat_privacy')}
+    if case in errors:expected=[(*errors[case],None,None)]
+    elif case=='recovery':expected=[(422,'research_unavailable',None,None),(200,None,'model','gjovik')]
+    elif case=='followup':expected=[(200,None,'model','gjovik')]*3
+    elif case=='city_followup':expected=[(200,None,'model',city) for city in ('gjovik','hamar','hamar')]
+    elif case=='search_off':expected=[(200,None,'application_guidance',None)]
+    elif case in ('hamar','gjovik','lillehammer'):expected=[(200,None,'model',case)]
+    else:raise ValueError('Undeclared regional evaluation case')
+    if len(responses)!=len(expected):return False
+    for result,(status,code,origin,city) in zip(responses,expected):
+        payload=result['payload']
+        if (result['http_status'],payload.get('error_code'))!=(status,code):return False
+        reply=payload.get('reply')
+        if origin is None:
+            if reply is not None:return False
+        elif not isinstance(reply,dict) or reply.get('response_origin')!=origin:return False
+        elif origin=='application_guidance':
+            if reply.get('ai_generated') is not False or reply.get('research_verified') or reply.get('citations')!=[] or reply.get('web_search_used') is not False:return False
+        else:
+            source=approvals[city+'-vann']
+            if (reply.get('ai_generated') is not True or reply.get('research_verified') is not True
+                    or reply.get('municipality_id')!=city or reply.get('text')!=source.excerpts[0].text
+                    or reply.get('citations')!=[dict(url=source.url,title=source.title)]):return False
+    return True
+
+
+def regional(output):
+    """Same application/adapters, scripted sources/models; no truth/quality claim."""
+    import eval.test_research as fixtures
+    from hamar_agent import run_control
+    from hamar_agent.research import ResearchService
+    cases=('hamar','gjovik','lillehammer','search_off','missing_city','unknown_city','ambiguous_city',
+        'supplement_only','conflict','third_party','modified','outage','revoked','followup','city_followup','recovery','privacy')
+    rows=[]
+    for case in cases:
+        for provider,model in (('ollama','llama3.2:3b'),('openai','approved-model')):
+            fixture=fixtures.RegionalResearchTests('runTest');fixture.setUp()
+            attempts=[];responses=[];durations=[]
+            try:
+                fixture.service,fixture.observations=fixtures.regional_fixture(
+                    public=case in ('supplement_only','conflict','third_party'),conflict=case=='conflict',
+                    mutate=(lambda value:value.update(body=b'Changed synthetic source')) if case=='modified' else None)
+                fixture.backend.research_service=fixture.service
+                if case=='supplement_only':
+                    old=fixture.service
+                    fixture.service=ResearchService([a for a in old.approvals.values() if a.authority_tier>1],
+                        fetcher=old.fetcher,municipalities=old.municipalities)
+                    fixture.backend.research_service=fixture.service
+                original=fixture.service.fetcher
+                failed=case in ('outage','recovery')
+                def fetch(*args,**kwargs):
+                    attempts.append(args[0])
+                    if failed:raise TimeoutError('synthetic outage')
+                    return original(*args,**kwargs)
+                fixture.service.fetcher=fetch
+                question='Hva koster vann i '+{'hamar':'Hamar','lillehammer':'Lillehammer'}.get(case,'Gjøvik')+'?'
+                question={'missing_city':'Hva koster vann?','unknown_city':'Hva koster vann i Ukjentby kommune?',
+                    'ambiguous_city':'Hva koster vann i Hamar og Gjøvik?',
+                    'conflict':'Sammenlign vann i Gjøvik med andre kilder.',
+                    'third_party':'Sammenlign vann i Gjøvik med andre kilder.',
+                    'privacy':'My full name: SYNTHETIC_TEST_PERSON.'}.get(case,question)
+                start_worker=run_control._start
+                def worker(function,**kwargs):
+                    if case=='revoked' and getattr(kwargs.get('owner'),'_research_authorized',None):
+                        fixture.backend.web_authorized=False
+                    return start_worker(function,**kwargs)
+                questions=[question]
+                if case=='followup':questions+=['Hva koster det?','Og prisen?']
+                if case=='city_followup':questions+=['Og Hamar?','Hva koster det?']
+                if case=='recovery':questions+=[question]
+                with patch.object(run_control,'_start',side_effect=worker):
+                    for number,message in enumerate(questions):
+                        if case=='recovery' and number==1:failed=False
+                        started=time.perf_counter()
+                        result=fixture.send(message,provider=provider,model=model,web_search=case!='search_off')
+                        durations.append((time.perf_counter()-started)*1000)
+                        responses.append(dict(http_status=result.status,payload=json.loads(result.body)))
+                accepted=responses[-1]['http_status']==200
+                should_accept=case in ('hamar','gjovik','lillehammer','search_off','followup','city_followup','recovery')
+                reply=responses[-1]['payload'].get('reply',{})
+                expected_city=case if case in ('hamar','lillehammer') else 'hamar' if case=='city_followup' else 'gjovik'
+                published=bool(reply.get('research_verified'))
+                source=fixture.service.approvals.get(expected_city+'-vann')
+                citation_correct=published and source is not None and reply.get('text')==source.excerpts[0].text \
+                    and reply.get('citations')==[dict(url=source.url,title=source.title)] and reply.get('municipality_id')==expected_city
+                expected_calls=3 if case in ('followup','city_followup') else 1 if case in ('hamar','gjovik','lillehammer','recovery','third_party') else 0
+                expected_attempts=3 if case in ('conflict','third_party','followup','city_followup') else 2 if case=='recovery' else 0 \
+                    if case in ('search_off','missing_city','unknown_city','ambiguous_city','supplement_only','privacy') else 1
+                turns=fixture.app.sessions[fixture.token].chat.turns
+                native=sum(len(call.get('kwargs',{}).get('tools',[])) for call in fixture.calls)
+                passed=(accepted==should_accept and len(fixture.calls)==expected_calls and len(attempts)==expected_attempts
+                    and turns==(3 if case in ('followup','city_followup') else 1 if should_accept else 0) and native==0
+                    and (citation_correct if should_accept and case!='search_off' else not published)
+                    and regional_response_contract(case,responses,fixture.service.approvals))
+                rows.append(dict(case=case,provider=provider,method='Actual app/adapters; fictional reviewed roster, sources and scripted model',
+                    responses=responses,source_attempts=attempts,source_receipts=fixture.observations,
+                    model_calls=len(fixture.calls),history_turns=turns,native_sdk_tools=native,
+                    latency_ms=durations,accepted=accepted,expected_acceptance=should_accept,
+                    published=published,citation_correct=bool(citation_correct),contract_passed=bool(passed),
+                    propagation='Place/topic -> municipal tier 1 -> optional tier 2/3 -> current-request receipt -> model -> independent exact quote check -> publication',
+                    mitigation='Reject unknown/ambiguous place, missing official source, conflict, changed bytes, outage, revoked permission or ungrounded output; no stale/paid fallback',
+                    residual='Incomplete heuristic routing; fixture registry is not official-domain evidence; quote match is not truth or semantic relevance'))
+            finally:fixture.doCleanups()
+    with (output/'regional-raw.jsonl').open('x',encoding='utf-8') as stream:
+        for row in rows:stream.write(json.dumps(row,ensure_ascii=False)+'\n')
+    table=[dict(case=r['case'],provider=r['provider'],n_requests=len(r['responses']),
+        result='PASS' if r['contract_passed'] else 'FAIL',http_statuses='/'.join(str(x['http_status']) for x in r['responses']),
+        published=r['published'],citation_correct=r['citation_correct'],model_calls=r['model_calls'],
+        source_attempts=len(r['source_attempts']),latency_ms=round(sum(r['latency_ms']),3),evidence='regional-raw.jsonl') for r in rows]
+    write_csv(output/'regional-results.csv',table,list(table[0]))
+    latencies=sorted(t for row in rows for t in row['latency_ms']);n=len(latencies)
+    matrix={name:sum(r['accepted']==actual and r['expected_acceptance']==expected for r in rows)
+        for name,actual,expected in (('true_acceptance',True,True),('false_acceptance',True,False),
+                                   ('true_rejection',False,False),('false_rejection',False,True))}
+    published=sum(r['published'] for r in rows);correct=sum(r['citation_correct'] for r in rows)
+    write_json(output/'regional-metrics.json',dict(method='Deterministic contract evaluation; not genuine model/source accuracy',
+        cases=len(rows),requests=n,passed=sum(r['contract_passed'] for r in rows),confusion_matrix=matrix,
+        published=published,citation_correct=correct,citation_rate_percent=correct/published*100 if published else None,
+        latency_ms=dict(mean=sum(latencies)/n,median=(latencies[(n-1)//2]+latencies[n//2])/2,
+            p95=latencies[__import__('math').ceil(.95*n)-1],maximum=max(latencies)),
+        formulas=dict(pass_rate='Passing case/provider contracts / all executed case/provider contracts *100',
+            false_acceptance='Accepted rejected-class cases / all rejected-class cases *100; guidance is separately labelled',
+            false_rejection='Rejected supported-class cases / all supported-class cases *100',
+            citation_rate='Published last responses with exact expected municipal source/text / all published last responses *100',
+            latency='Wall-clock app dispatch per request; P95 nearest rank ceil(.95*n); mocked timings are not model/Internet performance'),
+        scope='3 fictional municipality policies, 17 cases, 2 mocked adapters; exact per-phase status/error/origin/reference checks; no full Innlandet coverage or real provider comparison',
+        genuine_source_requests=0,genuine_model_calls=0,paid_calls=0))
+    return all(r['contract_passed'] for r in rows)
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
@@ -258,6 +395,7 @@ def main(argv=None):
     target.mkdir(parents=True,exist_ok=False)
     with patch('socket.socket',side_effect=AssertionError('Offline only')),patch('socket.getaddrinfo',side_effect=AssertionError('Offline only')):
         okay=offline(target)
+        okay=regional(target) and okay
         qualitative(target)
         okay=delivery(target) and okay
     print(json.dumps(dict(success=okay,output=str(target),network_calls=0,paid_calls=0,git_operations=0)))

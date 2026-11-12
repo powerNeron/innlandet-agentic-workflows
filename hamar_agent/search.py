@@ -109,14 +109,17 @@ class IndexedDocument:
         if self.text_sha256 != hashlib.sha256(text.encode("utf-8")).hexdigest():
             raise ValueError("Indexed text integrity mismatch")
         if not self.source.synthetic:
-            from .portal_sources import validate_page_url
-            validate_page_url(self.source.url)
+            self._validate_source_url()
             if not self.retrieved_at or not self.approval_expires:
                 raise ValueError("Live documents require provenance and expiring approval")
             retrieved = datetime.fromisoformat(self.retrieved_at.replace("Z", "+00:00"))
             if retrieved.tzinfo is None or retrieved > datetime.now(timezone.utc):
                 raise ValueError("Retrieval timestamp must be timezone-aware and not in the future")
             date.fromisoformat(self.approval_expires)
+
+    def _validate_source_url(self):
+        from .portal_sources import validate_page_url
+        validate_page_url(self.source.url)
 
     def provenance(self) -> dict:
         expired = not self.source.synthetic and date.fromisoformat(self.approval_expires) < date.today()
@@ -163,6 +166,21 @@ class RequestIndexedDocument(IndexedDocument):
         return {**super().provenance(), 'retrieval_request_id': self.retrieval_request_id,
                 'freshness_status': 'request_bound', 'link_checked_at': self.retrieved_at,
                 'published_at': self.published_at, 'last_modified': self.last_modified}
+
+
+@dataclass(frozen=True)
+class RegionalRequestIndexedDocument(RequestIndexedDocument):
+    """Additive request-only document; historical Hamar policy stays unchanged."""
+    approved_host: str = ''
+    registry_evidence_sha256: str = ''
+
+    def _validate_source_url(self):
+        from urllib.parse import urlsplit
+        from .retrieval import _validate_url
+        _validate_url(self.source.url)
+        if (urlsplit(self.source.url).hostname!=self.approved_host
+                or not re.fullmatch('[0-9a-f]{64}',self.registry_evidence_sha256)):
+            raise ValueError('Exact reviewed registry host and provenance required')
 
 
 @dataclass(frozen=True)

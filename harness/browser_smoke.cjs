@@ -54,7 +54,7 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   const documentListeners={};
   const context=vm.createContext({document:{getElementById:get,createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),querySelector:selector=>selector==='.skip'?skip:robot,
    addEventListener:(name,callback)=>{documentListeners[name]=callback}},
-   $:get,token:'synthetic-session-token',item:(parent,tag,text)=>{const e=new Element(tag);e.textContent=text;parent.appendChild(e);return e},
+   $:get,officialMunicipalHosts:new Set(['www.hamar.kommune.no']),token:'synthetic-session-token',item:(parent,tag,text)=>{const e=new Element(tag);e.textContent=text;parent.appendChild(e);return e},
    api,visibleRequestError:(error,fallback)=>error.message||fallback,AbortController,Event,URL,console,refreshMunicipalOptions:async()=>{}});
   vm.runInContext(source,context);
   const evaluate=script=>vm.runInContext(script,context);
@@ -96,6 +96,48 @@ async function chatUnitTests(sourcePath,apiResponse=null){
    text:nodes.map(n=>n.textContent).join('\n'),links:nodes.filter(n=>n.tagName==='A').map(n=>n.href),
    has_claim:nodes.some(n=>n.className==='answer-text'),payload_unchanged:e.evaluate('JSON.stringify(actualApiPayload)')===original,
    generation_requests:e.counts().posts,initial_hidden:initialHidden,panel_hidden:e.get('ai-result').hidden}));return;
+ }
+ {
+  for(const provider of ['ollama','openai']){
+   const e=environment();await e.ready(provider);e.get('chat-message').value='Forklar et tema.';await e.evaluate('sendChat()');
+   e.get('chat-message').value='Et usendt oppfølgingsspørsmål.';
+   const before=JSON.stringify(e.state()),counts=e.counts(),selection=e.get('chat-provider').value;
+   const rows=e.get('chat-log').children.filter(n=>n.tagName==='ARTICLE');
+   e.get('chat-back-to-menu').listeners.click();
+   assert.equal(JSON.stringify(e.state()),before);assert.deepEqual(e.counts(),counts);
+   assert.equal(e.get('chat-provider').value,selection);assert.equal(e.get('chat-message').value,'Et usendt oppfølgingsspørsmål.');
+   assert(rows.every(row=>e.get('chat-log').children.includes(row)),'Back removed conversation bubbles');
+   assert(e.get('chat-back-to-menu').hidden);assert(e.get('chat-log').children.find(n=>n.className==='chat-empty').focused);
+   e.evaluate('renderChatMessage({role:"assistant",text:"Et forsinket svar.",ai_generated:true,citations:[]})');
+   assert(!e.get('chat-log').children.find(n=>n.className==='chat-empty').hidden,'Late response concealed the requested menu');
+   e.get('chat-log').children.find(n=>n.className==='chat-empty').children.find(n=>n.className==='chat-prompts').children[1].listeners.click();
+   assert(!e.get('chat-back-to-menu').hidden);assert.deepEqual(e.counts(),counts);
+   await e.evaluate('resetChat()');assert.equal(e.state().messages.length,0);assert.equal(e.counts().resets,counts.resets+1);
+  }
+  checks.push('pink chat Back preserves messages, draft, provider and revision with zero requests; reset stays separate');
+ }
+ {
+  const e=environment();e.evaluate('let revealed=null;function revealInView(node){revealed=node}');
+  e.evaluate(fullSource.slice(fullSource.indexOf('function showMunicipalMenu('),fullSource.indexOf('function addTechnicalDetails(')));
+  const categories=fullSource.split('// Category rendering keeps the original source-search mapping and click behavior.')[1].split('async function loadPortal()')[0];
+  e.evaluate('let selectedCategory=null,selectedService=null,searches=0;function searchPortal(){searches++}');e.evaluate(categories);
+  e.evaluate('renderCategories({synthetic:false,categories:[{id:"teknisk"}]})');
+  const water=e.get('categories').children.find(c=>c.dataset.service==='vann');water.listeners.click();
+  assert(e.get('municipal-topic-menu').hidden);assert(!e.get('municipal-back-to-menu').hidden);assert.equal(e.evaluate('searches'),1);
+  e.get('answer-content').textContent='Et eksisterende kildekontrollert svar.';e.get('ai-query').value='Et usendt spørsmål.';
+  e.get('municipal-back-to-menu').listeners.click();
+  assert(!e.get('municipal-topic-menu').hidden);assert(e.get('municipal-back-to-menu').hidden);assert(e.get('categories-title').focused);
+  assert.equal(e.get('answer-content').textContent,'Et eksisterende kildekontrollert svar.');assert.equal(e.get('ai-query').value,'Et usendt spørsmål.');
+  assert.equal(e.evaluate('searches'),1);assert.deepEqual(e.counts(),{posts:0,resets:0});
+  const css=fs.readFileSync(path.join(root,'hamar_agent/web_assets/style.css'),'utf8');
+  for(const id of ['chat-back-to-menu','municipal-back-to-menu'])assert(new RegExp('<button\\b[^>]*id="'+id+'"[^>]*type="button"').test(shellMarkup));
+  assert(css.includes('.back-to-menu:focus-visible'));assert(/\.back-to-menu\s*\{[^}]*min-height:\s*44px/.test(css));
+  assert(/\.back-to-menu\s*\{[^}]*background:\s*#b63070/.test(css));
+  assert(/@media\(max-width:\s*650px\)\s*\{\.back-to-menu\s*\{[^}]*width:\s*100%/.test(css));
+  assert(shellMarkup.includes('Hei, jeg er Aisha'));assert(shellMarkup.includes('Spør meg om det du lurer på!'));
+  assert(/<details\b[^>]*id="chat-safety"[^>]*>/.test(shellMarkup));
+  assert(!/<details\b[^>]*id="chat-safety"[^>]*\bopen/.test(shellMarkup));
+  checks.push('municipal Back is keyboard-native, preserves answer/draft and performs no search; responsive pink/focus CSS contracts');
  }
  {
   const e=environment();await e.ready();assert.equal(e.counts().posts,0);
@@ -199,7 +241,7 @@ async function chatUnitTests(sourcePath,apiResponse=null){
    const e=environment();await e.ready(provider);
    const welcome=e.get('chat-log').children.find(n=>n.className==='chat-empty');
    assert(welcome.children.some(n=>n.className==='robot-avatar chat-welcome-avatar'));
-   assert(welcome.children.some(n=>n.tagName==='H2'&&n.textContent==='Hva kan jeg hjelpe deg med?'));
+   assert(!welcome.children.some(n=>n.tagName==='H1'||n.tagName==='H2'),'Welcome must not duplicate the primary heading');
    const prompts=welcome.children.find(n=>n.className==='chat-prompts').children;
    assert.deepEqual(prompts.map(b=>b.children.find(n=>n.tagName==='SPAN').textContent),['Forklar et tema','Hjelp meg å skrive','Hjelp med læring','Still et spørsmål']);
    for(const b of prompts){assert.equal(b.type,'button');assert(b.children.some(n=>n.tagName==='SVG'));b.listeners.click();assert(e.get('chat-message').value.length>0);assert(e.get('chat-message').focused);assert.equal(e.counts().posts,0)}

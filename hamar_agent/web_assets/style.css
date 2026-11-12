@@ -236,4 +236,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .model-choice:focus-visible{outline:3px solid #235b59;outline-offset:4px}
 #provider-openai-help{font-size:13px;line-height:1.6;color:#4c6560}
 @media(max-width:650px){.provider-controls .model-choice{flex-basis:100%;font-size:15px;min-height:50px}.chat-settings .provider-controls{flex-wrap:wrap}}
+
+.back-to-menu{display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;padding:12px 20px;margin:12px 0;border:2px solid #a72961;border-radius:999px;background:#b63070;color:#fff;font:inherit;font-weight:650;line-height:1.4;cursor:pointer;overflow-wrap:anywhere}
+.back-to-menu:hover{background:#96235a}.back-to-menu:focus-visible{outline:3px solid #641a43;outline-offset:4px}
+.back-to-menu[hidden]{display:none}.chat-safety{font-size:13px;color:#43564f;margin:8px 0 14px}.chat-safety summary{cursor:pointer;padding:8px 0;min-height:24px}.chat-safety p{max-width:75ch;line-height:1.6}
+.chat-heading>div>p{max-width:70ch}.chat-mode .chat-empty[hidden]{display:none}
+@media(max-width:650px){.back-to-menu{font-size:15px;width:100%;box-sizing:border-box}.chat-topbar{align-items:flex-start}.chat-heading>div>p{font-size:14px}}
+@media(forced-colors:active){.back-to-menu{border-color:ButtonText;background:ButtonFace;color:ButtonText}.back-to-menu:focus-visible{outline-color:Highlight}}
 @media(forced-colors:active){.model-choice:focus-visible{outline-color:Highlight}.model-choice[aria-pressed="true"]{outline:2px solid Highlight}}

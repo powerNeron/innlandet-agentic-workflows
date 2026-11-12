@@ -40,6 +40,7 @@ class ClientSession:
     revision: int = 0
     last_seen: float = field(default_factory=time.monotonic)
     chat: ChatState = field(default_factory=ChatState)
+    municipality_id: str | None = None
 
 
 SESSION_TTL_SECONDS = 2 * 60 * 60
@@ -62,6 +63,12 @@ def _provider_failure(error, *, status=422):
         "research_source_conflict": ("Kildene gir motstridende opplysninger. Aisha kan ikke bekrefte svaret.", False),
         "research_claim_unsupported": ("Svaret kunne ikke knyttes til kildene. Ingen nytt svar ble publisert.", True),
         "research_permission_revoked": ("Søketillatelsen er ikke lenger gyldig. Ingen nytt svar ble publisert.", False),
+        "research_municipality_unknown": ("Vi har ikke et godkjent kildegrunnlag for denne kommunen. Presiser kommunen eller se kommunens offisielle nettside.", False),
+        "research_municipality_ambiguous": ("Hvilken kommune gjelder spørsmålet? Spør om én kommune om gangen.", False),
+        "research_municipality_required": ("Hvilken kommune gjelder spørsmålet? Ta med kommunenavnet.", False),
+        "research_registry_expired": ("Kommuneoversikten må kontrolleres på nytt. Ingen nytt svar ble publisert.", False),
+        "research_no_official_sources": ("Vi fant ikke en godkjent kilde fra denne kommunen. Andre nettsider kan ikke bekrefte kommunens egne vilkår.", False),
+        "research_source_limit": ("Spørsmålet krever flere kilder enn vi kan behandle nå. Prøv et mer avgrenset spørsmål.", False),
         "run_budget_exceeded": ("Aisha nådde grensen for dette svaret. Prøv et kortere spørsmål. Ingen nytt svar ble lagret.", False),
         "run_input_limit": ("Det er for mye informasjon å behandle på én gang. Prøv et kortere spørsmål.", False),
         "run_deadline_exceeded": ("Det tok for lang tid å lage svaret. Du kan prøve igjen senere. Behandlingen kan fortsette i bakgrunnen; ingen nytt svar blir lagret fra dette forsøket.", True),
@@ -325,6 +332,7 @@ class WebApplication:
                 return _json(400, {"error": "Reset requires an empty JSON object."})
             with self.lock:
                 session.topic_terms = ()
+                session.municipality_id = None
                 session.turns = 0
                 session.revision += 1
             return _json(200, {"reset": True})
@@ -435,6 +443,7 @@ class WebApplication:
         with self.lock:
             request_revision = session.revision
             prior_terms = session.topic_terms if session.turns < MAX_CONVERSATION_TURNS else ()
+            prior_municipality = session.municipality_id if prior_terms else None
         try:
             request = json.loads(body.decode("utf-8"))
             allowed = {"query", "category"} if path == "/api/search" else {"query", "category", "provider", "model"}
@@ -483,7 +492,7 @@ class WebApplication:
                     _check_source_binding(search)
                     return _json(200,search)
             answer = self.portal.answer(query, category=category, workflow_service=selected_workflow,
-                                        prior_terms=prior_terms)
+                                        prior_terms=prior_terms,prior_municipality=prior_municipality)
         except SourceRefreshError:
             raise
         except (OllamaError, OpenAIProviderError, RealSourceError) as error:
@@ -505,7 +514,9 @@ class WebApplication:
                     # BaseException (including user interruption) still propagates.
                     pass
         try:
-            current_terms = validate_query(query, real_sources=True, allow_followup=bool(prior_terms))
+            policy=getattr(selected_workflow,'request_sources',None)
+            query_terms=policy.search_query(query) if callable(getattr(policy,'search_query',None)) else query
+            current_terms = validate_query(query_terms, real_sources=True, allow_followup=bool(prior_terms))
         except ValueError:
             current_terms = []
         effective_terms = tuple(current_terms or prior_terms)
@@ -520,9 +531,11 @@ class WebApplication:
             current_run().finish()  # Deadline crossing must not leave a stored result/context.
             if answer.get("answer_status") in {"evidence_checked", "demo"} and answer.get("result"):
                 session.topic_terms = effective_terms[:16]
+                session.municipality_id=answer.get('municipality_id')
                 session.turns = (session.turns + 1) if prior_terms else 1
             else:
                 session.topic_terms = ()
+                session.municipality_id=None
                 session.turns = 0
             self.results[run_id] = payload
             self.result_owners[run_id] = token
