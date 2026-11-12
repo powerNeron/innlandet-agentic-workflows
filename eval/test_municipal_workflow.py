@@ -37,7 +37,7 @@ def document():
 
 def service(transport=None):
     client=OllamaClient(OllamaConfig(),transport=transport or Mock(return_value=envelope([record()])))
-    return MunicipalWorkflowService(SearchIndex([document()]),client)
+    return MunicipalWorkflowService(SearchIndex([document()]),client, historical_baseline=True)
 
 
 class MunicipalTests(unittest.TestCase):
@@ -47,6 +47,90 @@ class MunicipalTests(unittest.TestCase):
 
     def approval(self, html):
         return PageApproval("fictional-test",URL,"Fictional service test","teknisk",date.today().isoformat(),(date.today()+timedelta(days=1)).isoformat(),hashlib.sha256(html.encode()).hexdigest(),sha(TEXT),hashlib.sha256(ROBOTS).hexdigest(),"Synthetic offline excerpt policy test",True,review_scope="service_excerpts",paragraph_sha256=(sha(TEXT),))
+
+    def test_reviewed_policy_rejects_multiple_exact_claims_from_either_provider(self):
+        from types import SimpleNamespace
+        from hamar_agent.openai_provider import OpenAIClient, OpenAIConfig
+        for provider in ('ollama', 'openai'):
+            for count in (2, 3):
+                with self.subTest(provider=provider, count=count):
+                    records = [{**record(), 'id': 'c' + str(i)} for i in range(count)]
+                    if provider == 'ollama':
+                        calls = Mock(return_value=envelope(records))
+                        client = OllamaClient(OllamaConfig(), transport=calls)
+                    else:
+                        calls = Mock(return_value=SimpleNamespace(status='completed',error=None,output_text=json.dumps({'claims': records})))
+                        client = OpenAIClient(OpenAIConfig(model='synthetic-cloud', api_key='synthetic-only',
+                            enabled=True, privacy_authorized=True), sdk_client=SimpleNamespace(responses=SimpleNamespace(create=calls)))
+                    workflow = MunicipalWorkflowService(SearchIndex([document()]), client, provider=provider, historical_baseline=True)
+                    with self.assertRaises(RealSourceError):
+                        workflow.run('fictional-test')
+                    self.assertEqual(calls.call_count, 1)
+
+    def test_strict_verifier_rejects_multiple_claims_even_with_an_injected_summarizer(self):
+        source = document().source
+        claims = tuple(Claim('c' + str(i), TEXT, 'p1', TEXT) for i in range(2))
+        with self.assertRaises(RealSourceError):
+            strict_verify(source, claims)
+
+    def test_openai_completion_states_gate_both_stages_and_all_public_exports(self):
+        from types import SimpleNamespace
+        from hamar_agent.openai_provider import OpenAIClient,OpenAIConfig
+        for stage in ('initial','correction'):
+            for status,error in (('incomplete',None),('failed',None),('in_progress',None),
+                                 ('completed',{'code':'synthetic'}),('completed',None)):
+                with self.subTest(stage=stage,status=status,error=error):
+                    def respond(**kwargs):
+                        paragraphs=json.loads(kwargs['input'].split('SOURCE_PARAGRAPHS=',1)[1].splitlines()[0])
+                        p=paragraphs[0]
+                        claim=record(text=p['text'],quote=p['text'],paragraph=p['id'])
+                        first_bad=stage=='correction' and create.call_count==1
+                        if first_bad:claim['text']='Fictional unsupported claim'
+                        return SimpleNamespace(status='completed' if first_bad else status,
+                            error=None if first_bad else error,output_text=json.dumps({'claims':[claim]}))
+                    create=Mock(side_effect=respond)
+                    sdk=SimpleNamespace(responses=SimpleNamespace(create=create),close=Mock())
+                    client=OpenAIClient(OpenAIConfig(model='synthetic-cloud',api_key='synthetic-only',enabled=True,
+                        privacy_authorized=True),sdk_client=sdk)
+                    workflow=MunicipalWorkflowService(SearchIndex([document()]),client,provider='openai',historical_baseline=True)
+                    app=WebApplication(workflow)
+                    headers={'Host':'127.0.0.1:8000','Origin':'http://127.0.0.1:8000',
+                             'Content-Type':'application/json','X-Hamar-Token':app.token}
+                    response=app.dispatch('POST','/api/answer',headers,b'{"query":"service"}')
+                    if status=='completed' and error is None:
+                        self.assertEqual(response.status,200,response.body)
+                        self.assertTrue(app.results)
+                    else:
+                        self.assertEqual(response.status,422,response.body)
+                        self.assertFalse(app.results);self.assertFalse(app.result_owners)
+                        self.assertNotIn(b'"run_id"',response.body)
+                        self.assertEqual(app.sessions[app.token].turns,0)
+                    self.assertEqual(create.call_count,2 if stage=='correction' else 1)
+
+    def test_multiple_claims_cannot_be_published_initially_or_after_correction(self):
+        from types import SimpleNamespace
+        for provider in ('ollama', 'openai'):
+            for correcting in (False, True):
+                with self.subTest(provider=provider, correcting=correcting):
+                    def generate(system, prompt):
+                        paragraphs = json.loads(prompt.split('SOURCE_PARAGRAPHS=', 1)[1].splitlines()[0])
+                        p = paragraphs[0]
+                        exact = record(text=p['text'], quote=p['text'], paragraph=p['id'])
+                        if correcting and calls.call_count == 1:
+                            return {'claims': [{**exact, 'text': 'Fictional unsupported claim'}]}
+                        return {'claims': [{**exact, 'id': 'c1'}, {**exact, 'id': 'c2'}]}
+                    calls = Mock(side_effect=generate)
+                    client = SimpleNamespace(config=SimpleNamespace(model='synthetic-test-model'), generate=calls)
+                    workflow = MunicipalWorkflowService(SearchIndex([document()]), client, provider=provider, historical_baseline=True)
+                    app = WebApplication(workflow)
+                    headers = {'Host': '127.0.0.1:8000', 'Origin': 'http://127.0.0.1:8000',
+                               'Content-Type': 'application/json', 'X-Hamar-Token': app.token}
+                    response = app.dispatch('POST', '/api/answer', headers, b'{"query":"service"}')
+                    self.assertEqual(response.status, 422)
+                    self.assertNotIn(b'"run_id"', response.body)
+                    self.assertFalse(app.results)
+                    self.assertFalse(app.result_owners)
+                    self.assertEqual(calls.call_count, 2 if correcting else 1)
 
     def test_reviewed_excerpts_exclude_names_contacts_photo_and_hidden_text(self):
         html='<main><figcaption>Photo: Fictional Photographer</figcaption><p>'+TEXT+'</p><p>Fictional Employee</p><p>person@example.invalid</p><p hidden>Secret</p><script>doBad()</script></main>'
@@ -133,6 +217,28 @@ class MunicipalTests(unittest.TestCase):
             service(transport).run("fictional-test")
         self.assertEqual(transport.call_count,2)  # initial generation plus the single correction
         self.assertNotIn("999999",str(error.exception))
+
+    def test_provider_failure_during_correction_preserves_safe_category_and_refuses(self):
+        transport = Mock(side_effect=[envelope([record(text="Wrong fee 999", quote=TEXT)]),
+            OllamaError("synthetic-secret", code="provider_timeout")])
+        with self.assertRaises(RealSourceError) as caught:
+            service(transport).run("fictional-test")
+        self.assertEqual(caught.exception.code, "provider_timeout")
+        self.assertEqual(transport.call_count, 2)
+        self.assertNotIn("synthetic-secret", str(caught.exception))
+
+    def test_malformed_claim_shape_is_a_safe_provider_failure_for_both_adapters(self):
+        from types import SimpleNamespace
+        for provider in ('ollama', 'openai'):
+            with self.subTest(provider=provider):
+                generate = Mock(return_value={'claims': 'synthetic-secret'})
+                client = SimpleNamespace(config=SimpleNamespace(model='synthetic-test-model'), generate=generate)
+                workflow = MunicipalWorkflowService(SearchIndex([document()]), client, provider=provider, historical_baseline=True)
+                with self.assertRaises(RealSourceError) as caught:
+                    workflow.run('fictional-test')
+                self.assertEqual(caught.exception.code, 'provider_response_invalid')
+                self.assertNotIn('synthetic-secret', str(caught.exception))
+                self.assertEqual(generate.call_count, 1)
 
     def test_verifier_failure_aborts_before_correction(self):
         transport=Mock(return_value=envelope([record()]))

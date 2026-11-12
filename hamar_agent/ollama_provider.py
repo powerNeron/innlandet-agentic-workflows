@@ -10,10 +10,15 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 from .schemas import Claim, Source
 from .summarize import SummaryResponseError, parse_claim_response
 from .verify import VerificationReport, verify_response
+from .run_control import guarded_generation, remaining_seconds
 
 
 class OllamaError(RuntimeError):
     """Sanitized local provider failure."""
+
+    def __init__(self, message, *, code="provider_unavailable"):
+        super().__init__(message)
+        self.code = code
 
 
 @dataclass(frozen=True)
@@ -59,16 +64,17 @@ def _local_post(url: str, headers: dict[str, str], body: bytes, timeout: float, 
             data = response.read(limit + 1)
     except HTTPError as exc:
         if exc.code == 404:
-            raise OllamaError("Ollama model is unavailable; pull the configured model first") from None
+            raise OllamaError("Ollama model is unavailable; pull the configured model first", code="provider_model_unavailable") from None
         if exc.code == 500:
             raise OllamaError("Ollama inference failed; check the local Ollama server and model runtime") from None
-        raise OllamaError(f"Ollama returned HTTP {exc.code}") from None
+        code = "provider_rate_limit" if exc.code == 429 else "provider_timeout" if exc.code in (408, 504) else "provider_unavailable"
+        raise OllamaError(f"Ollama returned HTTP {exc.code}", code=code) from None
     except (URLError, TimeoutError, OSError) as exc:
-        if isinstance(exc, TimeoutError):
-            raise OllamaError("Ollama request timed out") from None
+        if isinstance(exc, TimeoutError) or isinstance(getattr(exc, "reason", None), TimeoutError):
+            raise OllamaError("Ollama request timed out", code="provider_timeout") from None
         raise OllamaError("Ollama is unavailable at the configured local endpoint") from None
     if len(data) > limit:
-        raise OllamaError("Ollama response exceeded the configured size limit")
+        raise OllamaError("Ollama response exceeded the configured size limit", code="provider_response_invalid")
     return data
 
 
@@ -80,10 +86,11 @@ class OllamaClient:
         self.config = config or OllamaConfig.from_env()
         self._transport = transport
 
+    @guarded_generation
     def generate(self, system_prompt: str, user_prompt: str) -> object:
         prompt = f"{system_prompt}\n\n{user_prompt}"
         if len(prompt) > self.config.max_request_chars:
-            raise OllamaError("Ollama prompt exceeded the configured size limit")
+            raise OllamaError("Ollama prompt exceeded the configured size limit", code="provider_configuration")
         payload = {
             "model": self.config.model,
             "messages": [{"role": "user", "content": prompt}],
@@ -95,9 +102,9 @@ class OllamaClient:
         url = self.config.base_url.rstrip("/") + "/api/chat"
         try:
             raw = self._transport(url, {"Content-Type": "application/json"}, body,
-                                  self.config.timeout_seconds, self.config.max_response_bytes)
+                                  remaining_seconds(self.config.timeout_seconds), self.config.max_response_bytes)
             if len(raw) > self.config.max_response_bytes:
-                raise OllamaError("Ollama response exceeded the configured size limit")
+                raise OllamaError("Ollama response exceeded the configured size limit", code="provider_response_invalid")
             response = json.loads(raw)
             content = response["message"]["content"]
             if not isinstance(content, str) or not content.strip():
@@ -106,11 +113,11 @@ class OllamaClient:
         except OllamaError:
             raise
         except TimeoutError:
-            raise OllamaError("Ollama request timed out") from None
+            raise OllamaError("Ollama request timed out", code="provider_timeout") from None
         except OSError:
             raise OllamaError("Ollama is unavailable at the configured local endpoint") from None
         except (KeyError, TypeError, ValueError, UnicodeDecodeError):
-            raise OllamaError("Ollama returned malformed structured output") from None
+            raise OllamaError("Ollama returned malformed structured output", code="provider_response_invalid") from None
 
 
 def _source_prompt(source: Source) -> str:

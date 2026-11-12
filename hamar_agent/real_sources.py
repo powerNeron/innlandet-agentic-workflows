@@ -1,28 +1,36 @@
 """Reviewed municipal excerpts, real local inference and fail-closed output.
 
-JeppeGs's synthetic adapters remain unchanged. This additive application adapter
-uses his OllamaClient, claim parser, verifier and CorrectionResult contracts.
+The existing claim, verifier and CorrectionResult contracts are preserved.
+This application adapter reuses the existing clients and their safe errors.
 """
 from dataclasses import dataclass, replace
+from copy import copy
 import json
 import time
 
 from .application import WorkflowService
 from .correction import CorrectionResult
 from .html_extract import privacy_check
-from .ollama_provider import OllamaClient, OllamaConfig, _local_post
+from .ollama_provider import OllamaClient, OllamaConfig, OllamaError, _local_post
+from .openai_provider import OpenAIProviderError
 from .portal_sources import load_approvals, load_catalog
 from .revision import OneRevisionGate
 from .schemas import Source, EvidenceStatus
 from .search import SearchIndex
-from .summarize import parse_claim_response
+from .summarize import SummaryResponseError, parse_claim_response
 from .verify import verify_claims, VerificationReport, VerificationFinding, FindingCode
 from .workflow import WorkflowResult, CorrectionOutcome, _check_claims
 from .historical_sources import HISTORICAL_WARNING
+from .run_control import controlled_run, checkpoint
+from .source_updates import RequestBoundSources, BoundWorkflowResult, SourceRefreshError
 
 
 class RealSourceError(RuntimeError):
     """No unverified model content is included in the error message."""
+
+    def __init__(self, message, *, code=None):
+        super().__init__(message)
+        self.code = code
 
 
 def reviewed_transport(base_transport=_local_post):
@@ -68,6 +76,8 @@ def strict_verify(source, claims):
     approved paragraph. It establishes traceability, not real-world truth.
     """
     _check_claims(claims)
+    if len(claims) != 1:
+        raise RealSourceError("Exactly one reviewed paragraph is required; no answer published", code="provider_response_invalid")
     report = verify_claims(source, claims)  # Exceptions must fail closed.
     if not isinstance(report, VerificationReport) or tuple(c.id for c in report.claims) != tuple(c.id for c in claims):
         raise RealSourceError("Verifier returned an incomplete report; no answer published")
@@ -97,7 +107,7 @@ class ReviewedOllamaAdapter:
         # Source text is already retained/excerpt-approved; never send raw HTML.
         paragraphs = [{"id": p.id, "text": p.text} for p in source.paragraphs]
         prompt = ("Velg ett relevant tjenesteavsnitt fra SOURCE_PARAGRAPHS. "
-                  "Returner JSON med claims. Hver claim skal ha id c1, c2 eller c3, "
+                  "Returner JSON med akkurat én claim med id c1, "
                   "paragraph_id som er identisk med avsnittets id, og text OG evidence_quote "
                   "som begge er HELE avsnittets text, ordrett. Ikke forkort, omformuler, "
                   "endre tall, datoer, priser, frister eller vilkaar. "
@@ -106,9 +116,12 @@ class ReviewedOllamaAdapter:
         if feedback:
             prompt += "\nVERIFIER_FINDINGS=" + json.dumps([{"code": f.code.value, "claim_ids": f.claim_ids} for f in feedback])
         payload = self.client.generate("Du velger ordrette, kildebaserte norske tjenesteutdrag.", prompt)
-        claims = parse_claim_response(payload)
-        if len(claims) > 3:
-            raise RealSourceError("Too many model claims; no answer published")
+        try:
+            claims = parse_claim_response(payload)
+        except SummaryResponseError:
+            raise RealSourceError("Model returned an invalid claim structure", code="provider_response_invalid") from None
+        if len(claims) != 1:
+            raise RealSourceError("Exactly one model claim is required; no answer published", code="provider_response_invalid")
         # Application record IDs are assigned locally, never evidence IDs.
         return tuple(replace(claim, id=f"c{i}") for i, claim in enumerate(claims, 1))
 
@@ -122,11 +135,16 @@ class ReviewedOllamaAdapter:
 
 
 class MunicipalWorkflowService(WorkflowService):
-    """Catalog-only real mode. No fixture fallback and no query-time fetching."""
+    """Request-bound production, with explicit frozen historical evaluation only."""
     real_sources = True
 
-    def __init__(self, index, client, *, provider="ollama"):
+    def __init__(self, index, client, *, provider="ollama", request_sources=None, historical_baseline=False):
         self.index = index
+        if type(historical_baseline) is not bool:
+            raise ValueError('Explicit evaluation baseline flag required')
+        self.historical_baseline = historical_baseline
+        self.request_sources = None if historical_baseline else (request_sources or RequestBoundSources({}))
+        self.source_snapshot = None
         self.adapter = ReviewedOllamaAdapter(client, provider)
         super().__init__(summarizer=self.adapter, provider=provider + ":" + client.config.model)
         self.corrector = lambda source, request: self.adapter.revise(source, request.prior_claims, request.findings)
@@ -134,10 +152,22 @@ class MunicipalWorkflowService(WorkflowService):
             raise ValueError("Real-source mode refuses synthetic documents")
 
     def sources(self):
+        if self.request_sources is not None:
+            return [{'id':a.source_id,'label':a.title,'kind':'request-bound official source',
+                     'approval_status':'within_recorded_period' if a.current() else 'approval_required'}
+                    for a in self.request_sources.approvals.values()]
         return [{"id": d.source.id, "label": d.source.title, "kind": "reviewed municipal excerpts",
                  "approval_status": d.provenance()["approval_status"],
                  "historical_warning": d.provenance()["historical_warning"]}
                 for d in self.index.documents.values() if self.index.eligible(d)]
+
+    def for_snapshot(self, snapshot):
+        snapshot.assert_publishable()
+        view=copy(self)
+        view.index=snapshot.index
+        view.request_sources=None
+        view.source_snapshot=snapshot
+        return view
 
     def close(self):
         close = getattr(self.adapter.client, "close", None)
@@ -173,26 +203,41 @@ class MunicipalWorkflowService(WorkflowService):
             provenance[p.id] = {"paragraph_id": p.id, **doc.provenance()}
         return tuple(provenance.values())
 
+    @controlled_run
     def run_context(self, source):
+        if self.request_sources is not None:
+            ids=(source.id,) if source.id in self.request_sources.approvals else tuple(dict.fromkeys(
+                p.id.rpartition(':')[0] for p in source.paragraphs))
+            return self.for_snapshot(self.request_sources.retrieve(ids)).run_context(source)
+        if self.source_snapshot is not None:
+            self.source_snapshot.assert_publishable()
         started = time.perf_counter()
+        checkpoint('source_admission')
         provenance = self._context_provenance(source)
         # Query text never enters the model title; only reviewed paragraphs do.
         if source.id not in self.index.documents:
             source = replace(source, title="Godkjente kommunale tjenesteutdrag")
         try:
             claims = self.summarizer.summarize(source)
+            checkpoint('verification')
             report = strict_verify(source, claims)
+        except (OllamaError, OpenAIProviderError, RealSourceError) as error:
+            raise RealSourceError("Model failed; no answer published", code=error.code) from None
         except Exception:
             raise RealSourceError("Model or mandatory verifier failed; no answer published") from None
         initial = report
         correction = CorrectionOutcome()
         if report.has_findings:
+            checkpoint('correction')
             request = OneRevisionGate().request(source, report.claims, report.findings)
             try:
                 revised = self.corrector(source, request)
+            except (OllamaError, OpenAIProviderError, RealSourceError) as error:
+                raise RealSourceError("Single correction failed; no answer published", code=error.code) from None
             except Exception:
                 raise RealSourceError("Single correction failed; no answer published") from None
             try:
+                checkpoint('re_verification')
                 report = strict_verify(source, revised.claims)
             except Exception:
                 raise RealSourceError("Mandatory re-verification failed; no answer published") from None
@@ -201,17 +246,27 @@ class MunicipalWorkflowService(WorkflowService):
                 ("Rejected candidate text omitted from history for privacy.",), revised.provider, ())
         if report.has_findings:
             raise RealSourceError("Insufficient evidence after at most one correction; no answer published")
-        return MunicipalResult(source=source, claims=report.claims, provider=self.provider,
+        result = MunicipalResult(source=source, claims=report.claims, provider=self.provider,
             warnings=("Verbatim reviewed excerpts only; not semantic fact-checking or a guarantee of truth.",
                       "Limited source coverage. Consult the official page for context and current conditions.")
                      + ((HISTORICAL_WARNING,) if any(p["approval_status"] == "historical_expired" for p in provenance) else ()),
             verification=report, correction=correction, source_provenance=provenance,
             provider_latency_ms=round((time.perf_counter() - started) * 1000))
+        if self.source_snapshot is not None:
+            self.source_snapshot.assert_publishable()
+            return BoundWorkflowResult(result,self.source_snapshot)
+        return result
 
+    @controlled_run
     def run(self, source_id):
+        if self.request_sources is not None:
+            return self.for_snapshot(self.request_sources.retrieve((source_id,))).run(source_id)
         return self.run_context(self.load(source_id))
 
+    @controlled_run
     def run_prepared(self, source):
+        if self.request_sources is not None:
+            return self.run_context(source)
         # Only actual catalog documents are valid direct prepared inputs.
         if source != self.load(source.id):
             raise RealSourceError("Prepared source does not match approved catalog")
@@ -219,11 +274,15 @@ class MunicipalWorkflowService(WorkflowService):
 
 
 def create_municipal_service(catalogs, approvals_path, *, model=None, timeout=90.0, client=None,
-                             provider="ollama"):
-    approvals = load_approvals(approvals_path)
-    documents = [doc for path in catalogs for doc in load_catalog(path, approvals).documents.values()]
-    if not documents:
-        raise ValueError("Real-source mode requires a nonempty reviewed catalog")
+                             provider="ollama", historical_baseline=False, request_sources=None):
+    if historical_baseline:
+        approvals = load_approvals(approvals_path)
+        documents = [doc for path in catalogs for doc in load_catalog(path, approvals).documents.values()]
+        if not documents:
+            raise ValueError("Historical evaluation requires a nonempty reviewed catalog")
+    else:
+        request_sources = request_sources or RequestBoundSources.from_manifest(approvals_path)
+        documents = []  # Historical content cannot become production context.
     if client is None:
         if provider == "ollama":
             selected = model or OllamaConfig.from_env().model
@@ -239,4 +298,5 @@ def create_municipal_service(catalogs, approvals_path, *, model=None, timeout=90
             client = OpenAIClient(config)
         else:
             raise ValueError("Choose ollama or openai for reviewed municipal sources")
-    return MunicipalWorkflowService(SearchIndex(documents), client, provider=provider)
+    return MunicipalWorkflowService(SearchIndex(documents), client, provider=provider,
+        request_sources=request_sources,historical_baseline=historical_baseline)

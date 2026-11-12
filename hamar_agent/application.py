@@ -6,6 +6,7 @@ from .sources import APPROVED_SOURCES, load_source
 from .retrieval import HTTP_APPROVALS, HttpApproval, fetch_document
 from .summarize import MockSummarizer, Summarizer
 from .workflow import CorrectionCallback, WorkflowResult, run_workflow
+from .run_control import controlled_run
 
 
 class WorkflowService:
@@ -14,13 +15,14 @@ class WorkflowService:
     def __init__(self, *, summarizer: Summarizer | None = None, provider: str = "mock",
                  corrector: CorrectionCallback | None = None, enable_http: bool = False,
                  http_registry: Mapping[str, HttpApproval] = HTTP_APPROVALS,
-                 fixture_loader: Callable[[str], Source] = load_source) -> None:
+                 fixture_loader: Callable[[str], Source] = load_source, run_policy=None) -> None:
         self.summarizer = summarizer if summarizer is not None else MockSummarizer()
         self.provider = provider
         self.corrector = corrector
         self.enable_http = enable_http
         self.http_registry = http_registry
         self.fixture_loader = fixture_loader
+        self.run_policy = run_policy
 
     def sources(self) -> list[dict[str, str]]:
         entries = [{"id": key, "label": key, "kind": "synthetic fixture"} for key in APPROVED_SOURCES]
@@ -40,11 +42,13 @@ class WorkflowService:
                            enumerate(document.text.split("\n\n"), 1) if part.strip())
         return Source(document.source_id, document.source_id, paragraphs, False, document.url)
 
+    @controlled_run
     def run(self, source_id: str) -> WorkflowResult:
         return run_workflow(source_id, self.summarizer, provider=self.provider,
                             loader=self.load, corrector=self.corrector,
                             allow_non_synthetic=self.enable_http)
 
+    @controlled_run
     def run_prepared(self, source: Source) -> WorkflowResult:
         # CLI path input has already passed the guarded fixture loader.
         return run_workflow(source.id, self.summarizer, provider=self.provider,

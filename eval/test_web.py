@@ -1,9 +1,11 @@
 """Route and HTTP-wire tests without opening sockets or calling paid APIs."""
 import io
 import json
+import subprocess
 from pathlib import Path
 from threading import Barrier, Event, Thread
 import unittest
+from html.parser import HTMLParser
 from unittest.mock import Mock, patch
 
 from hamar_agent.application import WorkflowService
@@ -42,6 +44,49 @@ class WebTests(unittest.TestCase):
     def run_source(self, source_id=SOURCE_ID):
         return self.app.dispatch("POST", "/api/run", self.headers, json.dumps({"source_id": source_id}).encode())
 
+    def test_actual_insufficient_evidence_api_response_uses_public_message_without_indexing_jargon(self):
+        from hamar_agent.portal import PortalService
+        from hamar_agent.search import SearchIndex
+        summarizer=Mock(side_effect=AssertionError('Insufficient sources must not call a model'))
+        service=WorkflowService(summarizer=summarizer)
+        app=WebApplication(service,portal=PortalService(service,index=SearchIndex()))
+        headers={**self.headers,'X-Hamar-Token':app.token}
+        response=app.dispatch('POST','/api/answer',headers,b'{"query":"vann"}')
+        self.assertEqual(response.status,200)
+        payload=json.loads(response.body)
+        self.assertEqual(payload['answer']['answer_status'],'insufficient_evidence')
+        self.assertIsNone(payload['answer']['result'])
+        self.assertIn('indeksert',payload['answer']['message'].casefold())  # Real backend wording remains unchanged.
+        original=response.body
+        root=Path(__file__).resolve().parents[1]
+        try:
+            rendered=subprocess.run(['node',str(root/'harness/browser_smoke.cjs'),'--render-api-answer'],
+                input=response.body.decode('utf-8'),cwd=root,capture_output=True,text=True,encoding='utf-8',timeout=15)
+        except FileNotFoundError:
+            self.skipTest('Node unavailable; actual-JS rendering regression requires the existing Node runtime')
+        self.assertEqual(rendered.returncode,0,rendered.stdout+rendered.stderr)
+        view=json.loads(rendered.stdout)
+        self.assertNotIn('indeksert',view['text'].casefold())
+        self.assertIn('Vi fant ikke nok informasjon til å svare. Prøv et annet spørsmål eller se kommunens nettside.',view['text'])
+        self.assertFalse(view['has_claim']);self.assertEqual(view['generation_requests'],0)
+        self.assertTrue(view['initial_hidden']);self.assertFalse(view['panel_hidden'])
+        self.assertIn('https://www.hamar.kommune.no/meny/',view['links'])
+        self.assertTrue(view['payload_unchanged']);self.assertEqual(response.body,original)
+        self.assertNotIn('indeksert',app.dispatch('GET','/',headers).body.decode('utf-8').casefold())
+        summarizer.summarize.assert_not_called()
+
+    def test_initial_answer_panel_is_hidden_without_empty_waiting_text(self):
+        from html.parser import HTMLParser
+        class Elements(HTMLParser):
+            def handle_starttag(parser,tag,attributes):
+                if dict(attributes).get('id')=='ai-result':parser.panel=dict(attributes)
+        html=self.app.dispatch('GET','/',self.headers).body.decode('utf-8')
+        parsed=Elements();parsed.feed(html)
+        self.assertIn('hidden',parsed.panel)
+        self.assertLess(html.index('id="reset-conversation"'),html.index('id="ai-result"'))
+        self.assertNotIn('Venter på spørsmål',html)
+        self.assertIn('id="answer-content" aria-live="polite"',html)
+
     def wire(self, raw):
         conn = FakeConnection(raw)
         make_handler(self.app)(conn, ("127.0.0.1", 12345), Mock())
@@ -58,8 +103,18 @@ class WebTests(unittest.TestCase):
         self.assertIn(b"<title>Aisha Agent</title>", page.body)
         self.assertNotIn(b"KommuneAgent", page.body)
         html = page.body.decode("utf-8")
-        self.assertIn("<h1>Aisha Agent</h1>", html)
-        self.assertEqual(html.count("<h1>"), 1)
+        self.assertIn('<h1 id="municipal-title">Aisha Agent</h1>', html)
+        self.assertIn('<h1 id="chat-title">Hei, jeg er Aisha</h1>', html)
+        self.assertEqual(html.count('<h1 '), 2)  # One per mutually exclusive mode.
+        self.assertIn('id="municipal-mode" role="region" aria-labelledby="municipal-title" hidden', html)
+        self.assertIn('<h2 id="categories-title">Hvordan kan vi hjelpe deg?</h2>',html)
+        self.assertIn('href="https://www.hamar.kommune.no/meny/" target="_blank" rel="noopener noreferrer">Kommunens tjenestemeny',html)
+        self.assertIn('<h2>Hva kan jeg hjelpe deg med?</h2>',html)
+        self.assertIn('id="municipal-model-choices" class="model-choices" role="group"',html)
+        self.assertIn('id="chat-model-choices" class="model-choices" role="group"',html)
+        self.assertIn('id="provider-model" hidden',html)
+        self.assertIn('<p class="eyebrow">Svar fra Aisha</p>',html)
+        self.assertIn('<p id="answer-help">Kildene vises sammen med svaret.</p>',html)
         hero = html.split('<section class="hero glass">', 1)[1].split('<form id="search-form"', 1)[0]
         expected_hero = ("Aisha Agent", "Din AI-guide til informasjon og kommunale tjenester i Hamar.",
                          "Hva kan vi hjelpe deg med?", "Søk etter informasjon om Hamar og kommunale tjenester.")
@@ -183,6 +238,112 @@ class WebTests(unittest.TestCase):
         self.assertNotIn(b"secret adapter details", response.body)
         self.assertFalse(self.app.results)
 
+    def test_page_accessibility_references_and_recovery_controls_are_well_formed(self):
+        class Elements(HTMLParser):
+            def __init__(self):
+                super().__init__(); self.elements = []
+            def handle_starttag(self, tag, attrs):
+                self.elements.append((tag, dict(attrs)))
+        page = self.app.dispatch("GET", "/", self.headers).body.decode()
+        parser = Elements(); parser.feed(page)
+        identified = [attrs['id'] for tag, attrs in parser.elements if 'id' in attrs]
+        self.assertEqual(len(identified), len(set(identified)))
+        for tag, attrs in parser.elements:
+            for reference in attrs.get('aria-describedby', '').split():
+                self.assertIn(reference, identified)
+            if tag == 'label' and 'for' in attrs:
+                self.assertIn(attrs['for'], identified)
+        controls = {attrs.get('id'): (tag, attrs) for tag, attrs in parser.elements}
+        for name in ('refresh-providers', 'retry-answer', 'reset-conversation'):
+            self.assertEqual(controls[name][0], 'button')
+            self.assertEqual(controls[name][1]['type'], 'button')
+        self.assertIn('hidden', controls['retry-answer'][1])
+        self.assertLess(page.index('id="privacy"'), page.index('id="about-service"'))
+
+    def test_unknown_provider_diagnostics_are_not_exposed_or_saved(self):
+        from hamar_agent.real_sources import RealSourceError
+        self.app.portal.answer = Mock(side_effect=RealSourceError('synthetic-secret', code='synthetic-secret'))
+        response = self.app.dispatch('POST', '/api/answer', self.headers, b'{"query":"vann"}')
+        self.assertEqual(response.status, 422)
+        self.assertEqual(json.loads(response.body)['error_code'], 'workflow_failed')
+        self.assertNotIn(b'synthetic-secret', response.body)
+        self.assertFalse(self.app.results)
+
+    def test_provider_cleanup_failure_cannot_leak_diagnostics(self):
+        from hamar_agent.provider_registry import ProviderRegistry
+        from hamar_agent.openai_provider import OpenAIConfig
+        registry = ProviderRegistry(ollama_models=lambda: (), openai_config_factory=OpenAIConfig,
+            sdk_available=lambda: False, include_mock=True)
+        service = WorkflowService()
+        service.close = Mock(side_effect=KeyError('synthetic-secret'))
+        app = WebApplication(provider_registry=registry, service_factory=lambda *args: service)
+        headers = {**self.headers, 'X-Hamar-Token': app.token}
+        response = app.dispatch('POST', '/api/answer', headers,
+            b'{"query":"vann","provider":"mock","model":"mock"}')
+        self.assertEqual(response.status, 200)
+        self.assertNotIn(b'synthetic-secret', response.body)
+        self.assertEqual(json.loads(response.body)['answer']['answer_status'], 'demo')
+        service.close.assert_called_once()
+
+    def test_registry_free_selection_only_reuses_the_configured_service(self):
+        for provider, model, processing in (('mock', 'mock', 'local'), ('ollama', 'synthetic-local', 'local'),
+                                             ('openai', 'synthetic-cloud', 'external')):
+            with self.subTest(provider=provider):
+                name = provider if provider == 'mock' else provider + ':' + model
+                service = WorkflowService(provider=name, summarizer=MockSummarizer())
+                app = WebApplication(service=service)
+                headers = self.headers | {'X-Hamar-Token': app.token}
+                choice, = json.loads(app.dispatch('GET', '/api/providers', headers).body)['choices']
+                self.assertEqual((choice['provider'], choice['model'], choice['processing']), (provider, model, processing))
+                self.assertTrue(choice['available'])
+                self.assertFalse(choice['generation_verified'])
+                self.assertEqual(choice['connection_status'], 'not_applicable' if provider == 'mock' else 'not_checked')
+                original_answer = app.portal.answer
+                app.portal.answer = Mock(wraps=original_answer)
+                response = app.dispatch('POST', '/api/answer', headers,
+                    json.dumps({'query': 'vann', 'provider': provider, 'model': model}).encode())
+                self.assertEqual(response.status, 200)
+                self.assertIs(app.portal.answer.call_args.kwargs['workflow_service'], service)
+                calls, results = app.portal.answer.call_count, len(app.results)
+                for selection in ({'provider': provider, 'model': 'unconfigured'}, {'provider': 'other', 'model': model}, {'provider': provider}):
+                    rejected = app.dispatch('POST', '/api/answer', headers, json.dumps({'query': 'vann', **selection}).encode())
+                    self.assertEqual(rejected.status, 400)
+                self.assertEqual(app.portal.answer.call_count, calls)
+                self.assertEqual(len(app.results), results)
+        for name in ('ollama', 'openai'):
+            app = WebApplication(service=WorkflowService(provider=name))
+            choice, = json.loads(app.dispatch('GET', '/api/providers', self.headers).body)['choices']
+            self.assertFalse(choice['available'])
+            self.assertEqual(choice['model'], '')
+
+    def test_cleanup_lookup_failure_preserves_primary_error_and_interrupts_propagate(self):
+        from hamar_agent.provider_registry import ProviderRegistry
+        from hamar_agent.openai_provider import OpenAIConfig, OpenAIProviderError
+        class LookupFailure(WorkflowService):
+            @property
+            def close(self):
+                raise KeyError('synthetic-secret-lookup')
+        registry = ProviderRegistry(ollama_models=lambda: (), openai_config_factory=OpenAIConfig,
+            sdk_available=lambda: False, include_mock=True)
+        for failure in (None, OpenAIProviderError('synthetic-secret-primary', code='provider_authentication')):
+            with self.subTest(primary_failure=bool(failure)):
+                app = WebApplication(provider_registry=registry, service_factory=lambda *args: LookupFailure())
+                if failure:
+                    app.portal.answer = Mock(side_effect=failure)
+                headers = self.headers | {'X-Hamar-Token': app.token}
+                response = app.dispatch('POST', '/api/answer', headers, b'{"query":"vann","provider":"mock","model":"mock"}')
+                self.assertEqual(response.status, 422 if failure else 200)
+                self.assertNotIn(b'synthetic-secret', response.body)
+                if failure:
+                    self.assertEqual(json.loads(response.body)['error_code'], 'provider_authentication')
+                    self.assertFalse(app.results)
+        service = WorkflowService()
+        service.close = Mock(side_effect=KeyboardInterrupt())
+        app = WebApplication(provider_registry=registry, service_factory=lambda *args: service)
+        with self.assertRaises(KeyboardInterrupt):
+            app.dispatch('POST', '/api/answer', self.headers | {'X-Hamar-Token': app.token},
+                b'{"query":"vann","provider":"mock","model":"mock"}')
+
     def test_malformed_summary_does_not_create_a_result(self):
         self.app.service = WorkflowService(summarizer=MockSummarizer(MockScenario.MALFORMED_OUTPUT))
         self.assertEqual(self.run_source().status, 422)
@@ -193,6 +354,7 @@ class WebTests(unittest.TestCase):
         for _ in range(16):
             self.run_source()
         self.assertEqual(len(self.app.results), 16)
+        self.assertEqual(set(self.app.result_owners), set(self.app.results))
         self.assertEqual(self.app.dispatch("GET", "/api/results/" + first, self.headers).status, 404)
 
     def test_actual_http_handler_parses_run_and_sets_security_headers(self):
@@ -318,6 +480,52 @@ class WebTests(unittest.TestCase):
         self.assertFalse(worker.is_alive())
         self.assertEqual(response_box[0].status, 409)
         self.assertFalse(self.app.results)
+
+    def test_reset_or_expiry_at_publication_cannot_save_an_answer_or_run(self):
+        # Pause at ID allocation after inference, rather than relying on sleeps.
+        for route, body in (('/api/answer', b'{"query":"vann"}'),
+                            ('/api/run', json.dumps({'source_id': SOURCE_ID}).encode())):
+            for invalidation in ('reset', 'expiry', 'expired_registered'):
+                with self.subTest(route=route, invalidation=invalidation):
+                    app = WebApplication()
+                    headers = self.headers | {'X-Hamar-Token': app.token}
+                    entered, release = Event(), Event()
+                    responses, errors = [], []
+                    def delayed_id(*args):
+                        entered.set()
+                        if not release.wait(3):
+                            raise RuntimeError('Synthetic publication barrier timed out')
+                        return 'synthetic-race-result'
+                    def request():
+                        try:
+                            responses.append(app.dispatch('POST', route, headers, body))
+                        except Exception as error:
+                            errors.append(type(error).__name__)
+                    with patch('hamar_agent.web.secrets.token_hex', side_effect=delayed_id):
+                        worker = Thread(target=request)
+                        worker.start()
+                        try:
+                            self.assertTrue(entered.wait(2), errors)
+                            if invalidation == 'reset':
+                                self.assertEqual(app.dispatch('POST', '/api/conversation/reset', headers, b'{}').status, 200)
+                            else:
+                                app.sessions[app.token].last_seen -= 3 * 60 * 60
+                                if invalidation == 'expiry':
+                                    self.assertEqual(app.dispatch('GET', '/api/results/missing', headers).status, 403)
+                        finally:
+                            release.set()
+                            worker.join(3)
+                    self.assertFalse(worker.is_alive())
+                    self.assertFalse(errors)
+                    self.assertEqual(responses[0].status, 409)
+                    self.assertFalse(app.results)
+                    self.assertFalse(app.result_owners)
+                    if invalidation == 'reset':
+                        self.assertEqual(app.sessions[app.token].topic_terms, ())
+                        self.assertEqual(app.sessions[app.token].turns, 0)
+                    if invalidation == 'expired_registered':
+                        self.assertIn(app.token, app.sessions)
+                    self.assertNotEqual(app.dispatch('GET', '/api/results/synthetic-race-result', headers).status, 200)
 
     def test_expired_session_removes_its_saved_json_results(self):
         page = self.app.dispatch("GET", "/", self.headers).body

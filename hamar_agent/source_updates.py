@@ -1,8 +1,10 @@
-"""Privacy-bounded, proposal-only checks for manually reviewed text changes.
+"""Human-reviewed proposals and request-private source observation staging.
 
 Raw municipal HTML acquisition is intentionally unavailable under the current
 source policy. This module compares reviewer-prepared plain-text excerpts to the
 approved local catalog and writes a separate, non-authoritative proposal report.
+Request-bound staging accepts injected synthetic observations for offline tests;
+the production HTML acquisition path remains disabled. It never renews approval.
 """
 import argparse
 from datetime import date, datetime, timezone
@@ -12,12 +14,270 @@ from pathlib import Path
 import re
 import unicodedata
 from types import SimpleNamespace
+from dataclasses import asdict, dataclass
+from email.utils import parsedate_to_datetime
+from threading import RLock
+from contextlib import contextmanager
+import uuid
 
 from .html_extract import privacy_check
-from .portal_sources import PageApproval
+from .portal_sources import PageApproval, import_reviewed_bytes, validate_page_url, MAX_BYTES
+from .search import SearchIndex, RequestIndexedDocument
+from .run_control import current_run, bounded_tool_call, checkpoint
 
 MAX_CANDIDATE_BYTES = 64 * 1024
 MAX_PARAGRAPHS = 80
+
+
+class SourceRefreshError(ValueError):
+    """Only controlled codes, never response text or external diagnostics."""
+    def __init__(self, code='source_unavailable'):
+        self.code = code
+        super().__init__('Source observation was not admitted')
+
+
+@dataclass(frozen=True)
+class PageObservation:
+    source_id: str
+    url: str
+    request_id: str
+    body: bytes
+    robots: bytes
+    status: int = 200
+    content_type: str = 'text/html'
+    published_at: str | None = None
+    last_modified: str | None = None
+
+
+class RequestSearchIndex(SearchIndex):
+    """An admitted request corpus cannot use historical eligibility exceptions."""
+    binding = None
+
+    def eligible(self, doc):
+        return (isinstance(doc, RequestIndexedDocument)
+                and date.fromisoformat(doc.approval_expires) >= date.today())
+
+    def search(self, *args, **kwargs):
+        if self.binding is None:
+            raise SourceRefreshError('source_snapshot_incomplete')
+        self.binding.assert_publishable()
+        return super().search(*args, **kwargs)
+
+
+class SourceSnapshot:
+    """Capability bound to a live RunState, not a reusable date/freshness flag."""
+    def __init__(self, index, owner, source_policy, revision, request_id, started, completed, byte_count, approvals):
+        self.index, self.owner, self.source_policy = index, owner, source_policy
+        self.revision, self.request_id = revision, request_id
+        self.started_at, self.completed_at, self.byte_count = started, completed, byte_count
+        self.fingerprint = self._fingerprint()
+        self.approval_fingerprints={key:hashlib.sha256(json.dumps(asdict(approvals[key]),sort_keys=True).encode()).hexdigest()
+                                   for key in index.documents}
+
+    def _fingerprint(self):
+        return hashlib.sha256(json.dumps([asdict(doc) for doc in self.index.documents.values()],
+            ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()
+
+    def assert_publishable(self):
+        if current_run() is not self.owner or self.owner.finished or self.owner.stopped:
+            raise SourceRefreshError('source_request_mismatch')
+        self.owner.checkpoint('request_source_binding')
+        with self.source_policy.lock:
+            if self.source_policy.revoked or self.source_policy.revision != self.revision:
+                raise SourceRefreshError('source_approval_required')
+            for source_id in self.index.documents:
+                approval = self.source_policy.approvals[source_id]
+                doc=self.index.documents[source_id]
+                fingerprint=hashlib.sha256(json.dumps(asdict(approval),sort_keys=True).encode()).hexdigest()
+                if not approval.current() or fingerprint!=self.approval_fingerprints[source_id]:
+                    raise SourceRefreshError('source_approval_required')
+                if (doc.raw_sha256!=approval.raw_sha256 or doc.text_sha256!=approval.text_sha256
+                        or doc.source.url!=approval.url or doc.source.title!=approval.title
+                        or doc.category!=approval.category or doc.approval_expires!=approval.expires_on):
+                    raise SourceRefreshError('source_approval_required')
+        if self._fingerprint() != self.fingerprint:
+            raise SourceRefreshError('source_snapshot_modified')
+
+    @contextmanager
+    def publication_guard(self):
+        # Revocation and publication have a common linearization lock.
+        with self.source_policy.lock:
+            self.assert_publishable()
+            yield
+
+    def receipt(self):
+        self.assert_publishable()
+        return {'policy': 'request_bound', 'request_id': self.request_id,
+                'started_at': self.started_at, 'completed_at': self.completed_at,
+                'sources': len(self.index.documents), 'source_attempts': len(self.index.documents),
+                'received_bytes': self.byte_count, 'corpus_sha256': self.fingerprint,
+                'observation_method': self.source_policy.observation_method}
+
+
+class BoundPortalResult(dict):
+    """JSON-compatible output with a non-serialized publication capability."""
+    def __init__(self, value, binding):
+        super().__init__(value)
+        self.binding = binding
+
+    def assert_publishable(self):
+        self.binding.assert_publishable()
+
+    def publication_guard(self):
+        return self.binding.publication_guard()
+
+
+class BoundWorkflowResult:
+    def __init__(self, value, binding):
+        self.value, self.binding = value, binding
+
+    def __getattr__(self, name):
+        return getattr(self.value, name)
+
+    def assert_publishable(self):
+        self.binding.assert_publishable()
+
+    def publication_guard(self):
+        return self.binding.publication_guard()
+
+
+class RequestBoundSources:
+    """Stage a complete index or fail; never change a shared index/catalog.
+
+    Injected fetcher is a trusted testing seam, not an HTTP/query parameter.
+    Actual official HTML fetch stays fail-closed pending separate access/privacy
+    approval and an independently verified permitted transport.
+    """
+    def __init__(self, approvals, *, fetcher=None, max_sources=8, max_total_bytes=4*1024*1024,
+                 timeout_seconds=10, observation_method='disabled_production_transport'):
+        from types import MappingProxyType
+        if type(max_sources) is not int or not 1 <= max_sources <= 8:
+            raise ValueError('Invalid source count budget')
+        if type(max_total_bytes) is not int or not 1 <= max_total_bytes <= 4*1024*1024:
+            raise ValueError('Invalid source byte budget')
+        if type(timeout_seconds) not in (int,float) or not 0 < timeout_seconds <= 10:
+            raise ValueError('Invalid source timeout')
+        self.approvals = MappingProxyType(dict(approvals))
+        if any(not isinstance(a,PageApproval) or key != a.source_id for key,a in self.approvals.items()):
+            raise ValueError('Exact page approvals required')
+        if len({a.url for a in self.approvals.values()}) != len(self.approvals):
+            raise ValueError('Duplicate approved URL')
+        self.fetcher = fetcher
+        self.max_sources, self.max_total_bytes, self.timeout_seconds = max_sources,max_total_bytes,timeout_seconds
+        self.observation_method = observation_method
+        self.lock = RLock(); self.revision = 0; self.revoked = False
+
+    @classmethod
+    def from_manifest(cls, path):
+        # Read identities only. Never load the historical catalog or invoke its
+        # special eligibility exceptions in production. Expiry is checked BEFORE
+        # every observation and again before publication; it is never extended.
+        with Path(path).open('rb') as stream:
+            raw=stream.read(65537)
+        if len(raw)>65536:
+            raise ValueError('Approval manifest too large')
+        def unique_fields(pairs):
+            value={}
+            for key,item in pairs:
+                if key in value:raise ValueError('Duplicate approval field')
+                value[key]=item
+            return value
+        rows=json.loads(raw,object_pairs_hook=unique_fields)
+        if not isinstance(rows,list) or len(rows)>8:
+            raise ValueError('Bounded approval list required')
+        approvals={}
+        for row in rows:
+            approval=PageApproval(**row)
+            if approval.source_id in approvals:
+                raise ValueError('Duplicate approval')
+            approvals[approval.source_id]=approval
+        return cls(approvals)
+
+    def revoke(self):
+        with self.lock:
+            self.revoked = True; self.revision += 1
+
+    def retrieve(self, source_ids=None):
+        owner = current_run()
+        if owner is None or owner.finished or owner.stopped:
+            raise SourceRefreshError('source_request_mismatch')
+        checkpoint('source_admission')
+        ids = tuple(self.approvals) if source_ids is None else tuple(source_ids)
+        if not ids:
+            raise SourceRefreshError('source_approval_required')
+        if len(ids)>self.max_sources or len(set(ids))!=len(ids):
+            raise SourceRefreshError('source_budget_exhausted')
+        with self.lock:
+            if self.revoked:
+                raise SourceRefreshError('source_approval_required')
+            revision = self.revision
+            for source_id in ids:
+                approval = self.approvals.get(source_id)
+                if approval is None or not approval.current():
+                    raise SourceRefreshError('source_approval_required')
+                validate_page_url(approval.url)
+            batch_approvals={key:self.approvals[key] for key in ids}
+        request_id=uuid.uuid4().hex
+        started=datetime.now(timezone.utc).isoformat(); staged=[]; total=0
+        if self.fetcher is None:
+            raise SourceRefreshError('source_access_not_authorized')
+        for source_id in ids:
+            checkpoint('source_observation')
+            approval=batch_approvals[source_id]
+            timeout=min(self.timeout_seconds,owner.remaining())
+            fetcher=self.fetcher
+            def observe(source_id=source_id,approval=approval,fetcher=fetcher,timeout=timeout):
+                # Dispatch admission linearizes under policy and run locks.
+                # Release both before transport: already-admitted work may be
+                # residual, while queued/new work must respect revocation.
+                with self.lock:
+                    if (self.revoked or self.revision!=revision
+                            or self.approvals.get(source_id)!=approval or not approval.current()):
+                        raise SourceRefreshError('source_approval_required')
+                    if current_run() is not owner:
+                        raise SourceRefreshError('source_request_mismatch')
+                    owner.admit_tool('source_policy_admitted')
+                return fetcher(source_id,request_id=request_id,timeout_seconds=timeout,max_bytes=MAX_BYTES)
+            try:
+                observation=bounded_tool_call(observe,timeout_seconds=timeout)
+            except SourceRefreshError:
+                raise
+            except (OSError,TimeoutError):
+                raise SourceRefreshError('source_unavailable') from None
+            except ValueError:
+                raise SourceRefreshError('source_access_not_authorized') from None
+            if (not isinstance(observation,PageObservation) or observation.source_id!=source_id
+                    or observation.request_id!=request_id or observation.url!=approval.url
+                    or type(observation.status) is not int or observation.status!=200
+                    or observation.content_type!=approval.content_type):
+                raise SourceRefreshError('source_response_invalid')
+            if not isinstance(observation.body,bytes) or not isinstance(observation.robots,bytes):
+                raise SourceRefreshError('source_response_invalid')
+            total+=len(observation.body)+len(observation.robots)
+            if len(observation.body)>MAX_BYTES or len(observation.robots)>65536 or total>self.max_total_bytes:
+                raise SourceRefreshError('source_budget_exhausted')
+            retrieved=datetime.now(timezone.utc).isoformat()
+            try:
+                doc=import_reviewed_bytes(approval,observation.body,retrieved_at=retrieved,robots=observation.robots)
+                modified=observation.last_modified
+                if modified is not None:
+                    value=parsedate_to_datetime(modified)
+                    if value.tzinfo is None:
+                        raise ValueError('Last-Modified timezone required')
+                    modified=value.astimezone(timezone.utc).isoformat()
+                fields={k:v for k,v in asdict(doc).items() if k!='source'}
+                staged.append(RequestIndexedDocument(source=doc.source,**fields,retrieval_request_id=request_id,
+                    published_at=observation.published_at,last_modified=modified))
+            except (ValueError,TypeError,AttributeError,OverflowError):
+                raise SourceRefreshError('source_changed_review_required') from None
+        # Atomic admission: no index is exposed until every observation validates.
+        index=RequestSearchIndex(staged)
+        binding=SourceSnapshot(index,owner,self,revision,request_id,started,
+                               datetime.now(timezone.utc).isoformat(),total,batch_approvals)
+        index.binding=binding
+        binding.assert_publishable()
+        checkpoint('source_snapshot_ready')
+        return binding
 
 
 def normalize_text(text: str) -> str:

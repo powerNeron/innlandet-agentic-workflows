@@ -13,6 +13,8 @@ from .search import (FOLLOWUP_MODIFIERS, QUERY_ALIASES, REAL_SERVICE_QUERY_TERMS
                      InvalidQueryError, QueryPrivacyError, SearchIndex, UnsupportedTopicError,
                      index_document, tokens, validate_query)
 from .workflow import run_workflow
+from .run_control import controlled_run
+from .source_updates import BoundPortalResult
 
 DEMO_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "portal-synthetic.json"
 DEMO_SHA256 = "aece5c40409ebd712abc67705d1d26f77a98cf81d78a1018d1f764094bf968bf"
@@ -67,13 +69,18 @@ class PortalService:
         self.index = index if index is not None else (self.workflow.index if getattr(self.workflow, "real_sources", False) else demo_index())
 
     def overview(self):
+        policy=getattr(self.workflow,'request_sources',None)
+        configured=tuple(policy.approvals.values()) if policy is not None else ()
         return {
-            "categories": [{**asdict(c), "count": sum(d.category == c.id and self.index.eligible(d) for d in self.index.documents.values())} for c in CATEGORIES],
+            "categories": [{**asdict(c), "count": sum(a.category==c.id and a.current() for a in configured)
+                if policy is not None else sum(d.category == c.id and self.index.eligible(d) for d in self.index.documents.values())} for c in CATEGORIES],
             "official_home": OFFICIAL_HOME,
             "category_reference": MENU_REFERENCE,
             "query_contract_version": 1,
-            "documents": sum(self.index.eligible(d) for d in self.index.documents.values()),
-            "synthetic": all(d.source.synthetic for d in self.index.documents.values()),
+            "documents": 0 if policy is not None else sum(self.index.eligible(d) for d in self.index.documents.values()),
+            "synthetic": not getattr(self.workflow,'real_sources',False) and all(d.source.synthetic for d in self.index.documents.values()),
+            "source_policy": 'request_bound' if policy is not None else 'historical_evaluation' if getattr(self.workflow,'historical_baseline',False) else 'synthetic',
+            "source_transport": policy.observation_method if policy is not None else 'no_network',
             "allowed_query_terms": sorted(REAL_SERVICE_QUERY_TERMS),
             "query_stopwords": sorted(STOPWORDS),
             "query_followup_modifiers": sorted(FOLLOWUP_MODIFIERS),
@@ -82,9 +89,16 @@ class PortalService:
             "coverage": "Kun individuelt gjennomgåtte, indekserte kilder. Ikke fullstendig kommunal dekning.",
         }
 
+    @controlled_run
     def search(self, query: str, *, category: str | None = None):
         try:
             validate_query(query, real_sources=True)
+            policy=getattr(self.workflow,'request_sources',None)
+            if policy is not None:
+                snapshot=policy.retrieve()
+                view=self.workflow.for_snapshot(snapshot)
+                result=PortalService(view,index=snapshot.index).search(query,category=category)
+                return BoundPortalResult({**result,'source_observation':snapshot.receipt()},snapshot)
             hits = self.index.search(query, category=category)
         except (QueryPrivacyError, InvalidQueryError):
             return {"query": "", "category": category, "results": [], "query_status": "input_rejected",
@@ -102,6 +116,7 @@ class PortalService:
             result.update(query_status="no_results", official_menu_url=MENU_REFERENCE)
         return result
 
+    @controlled_run
     def answer(self, query: str, *, category: str | None = None, workflow_service=None,
                prior_terms=()):
         workflow = workflow_service if workflow_service is not None else self.workflow
@@ -129,6 +144,12 @@ class PortalService:
             return {"query": safe_query, "answer_status": "clarification_required", "result": None, "citations": [],
                     "message": "Skriv gjerne hvilken kommunal tjeneste spørsmålet gjelder.",
                     "official_menu_url": MENU_REFERENCE, "coverage": self.overview()["coverage"]}
+        policy=getattr(workflow,'request_sources',None)
+        if policy is not None:
+            snapshot=policy.retrieve()
+            view=workflow.for_snapshot(snapshot)
+            result=PortalService(view,index=snapshot.index).answer(query,category=category,prior_terms=prior_terms)
+            return BoundPortalResult({**result,'source_observation':snapshot.receipt()},snapshot)
         if is_follow_up:
             terms = list(allowed_prior)
             query = " ".join(terms)

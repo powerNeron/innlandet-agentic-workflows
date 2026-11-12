@@ -26,3 +26,16 @@ The user's updated workflow makes cross-review optional for now. powerNeron owns
 ## Current source-excerpt decision
 
 The user explicitly approved transient fetching of individually approved official HTTPS HTML to extract reviewed non-personal public service information. Retain/send/index/export only the exact approved excerpt paragraphs; never persist raw HTML or unrelated names, photo credits, individual contacts or personal records. This narrows the application boundary above under the user's decision; it does not assert that the course's stricter privacy requirement has been waived. See docs/real-source-workflow.md and docs/assignment-requirements-matrix.md. Preserve synthetic offline mode, but never use it as a fallback in real-source mode. Source approval is URL- and paragraph-specific and expiring; domain-wide crawling is never authorized.
+
+## Final Exam preparation agreement (2026-11-11)
+
+This agreement supplements the existing COM 2 instructions for Final Exam work.
+Keep main unchanged as the COM 2 baseline; perform approved Final Exam changes on exam/final.
+The target long-lived branches are main and exam/final. Preserve all existing branches, unique commits, worktrees, untracked files and history until separately authorized; this policy does not authorize cleanup.
+Preserve existing component ownership, source/privacy boundaries, COM 2 code, documentation and evidence.
+For Final Exam work, independent read-only Verifier review is required. Record the fixed Git revision and hashes of reviewed patches, personal profiles and raw logs; review of uncommitted changes remains provisional.
+The Implementer corrects findings and obtains re-review; the Verifier never edits or approves its own work. Final acceptance remains human.
+Keep final_exam/CHANGELOG.md as the single continuous Final Exam change log, including meaningful decisions, acceptance criteria and sanitized prompt summaries; retain historical documentation unchanged.
+Keep the requirements matrix provisional until the complete official Final Exam assignment and rubric have been supplied and checked.
+Run permission probes only in an isolated disposable environment with synthetic data; do not modify application code during testing or infer enforcement from configuration alone.
+Do not commit until tests have completed and the exact changes have been reviewed. Branch/worktree/file deletion, history rewriting, pushes, merges, resets and force-pushes are not authorized.

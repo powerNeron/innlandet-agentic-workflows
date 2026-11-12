@@ -8,6 +8,7 @@ from .summarize import Summarizer
 from .verify import VerificationFinding, VerificationReport, verify_claims
 from .revision import OneRevisionGate, RevisionRequest
 from .correction import CorrectionResult
+from .run_control import controlled_run, checkpoint
 
 
 # Orchestration-owned seam, not an assumed method on JeppeGs's future adapter.
@@ -41,6 +42,7 @@ def _check_claims(claims: tuple[Claim, ...]) -> None:
         raise ValueError("summarizer returned duplicate claim IDs")
 
 
+@controlled_run
 def run_workflow(
     source_id: str,
     summarizer: Summarizer,
@@ -56,6 +58,7 @@ def run_workflow(
     The existing verifier owns evidence classification, never semantic truth.
     Correction failures retain the initial report for review; never retry again.
     """
+    checkpoint('source_admission')
     source = loader(source_id)
     if not isinstance(source, Source) or source.id != source_id:
         raise ValueError("loader returned an unexpected source")
@@ -63,11 +66,13 @@ def run_workflow(
         raise ValueError("offline workflow accepts synthetic sources only")
     claims = summarizer.summarize(source)
     _check_claims(claims)
+    checkpoint('verification')
     report = verify_claims(source, claims)
     correction = CorrectionOutcome()
     if report.has_findings:
         correction = CorrectionOutcome("not_configured", initial_claims=report.claims, initial_findings=report.findings)
         if corrector is not None:
+            checkpoint('correction')
             request = OneRevisionGate().request(source, report.claims, report.findings)
             try:
                 revised = corrector(source, request)
@@ -76,6 +81,7 @@ def run_workflow(
                     correction_provider, provider_findings = revised.provider, revised.findings
                     revised = revised.claims
                 _check_claims(revised)
+                checkpoint('re_verification')
                 final_report = verify_claims(source, revised)
                 # Preserve provider feedback and independently recompute evidence statuses.
                 final_report = VerificationReport(final_report.claims, tuple(dict.fromkeys(

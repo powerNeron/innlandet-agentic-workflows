@@ -2,9 +2,9 @@ name: Offline tests
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, "exam/final"]
   push:
-    branches: [main, "feat/**"]
+    branches: [main, "exam/final", "feat/**"]
 
 permissions:
   contents: read

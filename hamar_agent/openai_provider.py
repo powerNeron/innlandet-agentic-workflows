@@ -13,10 +13,33 @@ from .correction import CorrectionResult
 from .schemas import Source
 from .summarize import SummaryResponseError, parse_claim_response
 from .verify import VerificationReport, verify_response
+from .run_control import guarded_generation, cleanup_provider
 
 
 class OpenAIProviderError(RuntimeError):
     """Sanitized optional cloud-provider failure."""
+
+    def __init__(self, message, *, code="provider_response_invalid"):
+        super().__init__(message)
+        self.code = code
+
+
+def _failure_code(error):
+    """Inspect only SDK status/type metadata, never response bodies or messages."""
+    status = getattr(error, "status_code", None)
+    if type(error).__name__ in {"APIResponseValidationError", "JSONDecodeError"}:
+        return "provider_response_invalid"
+    if status in (401, 403):
+        return "provider_authentication"
+    if status == 429:
+        return "provider_quota" if getattr(error, "code", None) == "insufficient_quota" else "provider_rate_limit"
+    if status in (408, 504) or isinstance(error, TimeoutError) or type(error).__name__ == "APITimeoutError":
+        return "provider_timeout"
+    if status == 404:
+        return "provider_model_unavailable"
+    if status in (400, 422):
+        return "provider_configuration"
+    return "provider_unavailable"
 
 MAX_INPUT_CHARS = 16_000
 MAX_OUTPUT_TOKENS = 512
@@ -68,9 +91,9 @@ class OpenAIConfig:
 
     def require_authorized(self):
         if not self.enabled or not self.privacy_authorized:
-            raise OpenAIProviderError("OpenAI processing is disabled or privacy authorization is missing")
+            raise OpenAIProviderError("OpenAI processing is disabled or privacy authorization is missing", code="provider_configuration")
         if not self.model or not self.api_key:
-            raise OpenAIProviderError("OpenAI model or server credential is not configured")
+            raise OpenAIProviderError("OpenAI model or server credential is not configured", code="provider_configuration")
 
 
 class OpenAIClient:
@@ -83,24 +106,25 @@ class OpenAIClient:
             try:
                 from openai import OpenAI
             except ImportError:
-                raise OpenAIProviderError("OpenAI Python SDK is not installed") from None
+                raise OpenAIProviderError("OpenAI Python SDK is not installed", code="provider_configuration") from None
             try:
                 sdk_client = OpenAI(api_key=self.config.api_key, timeout=self.config.timeout_seconds,
                                     max_retries=0)
             except Exception:
-                raise OpenAIProviderError("OpenAI client configuration failed") from None
+                raise OpenAIProviderError("OpenAI client configuration failed", code="provider_configuration") from None
         self._sdk = sdk_client
         self.last_latency_ms: int | None = None
 
     def close(self):
         close = getattr(self._sdk, "close", None)
         if callable(close):
-            close()
+            cleanup_provider(self, close)
 
+    @guarded_generation
     def generate(self, system_prompt: str, user_prompt: str):
         prompt = f"{system_prompt}\n\n{user_prompt}"
         if len(prompt) > MAX_INPUT_CHARS:
-            raise OpenAIProviderError("OpenAI input exceeds the configured privacy size limit")
+            raise OpenAIProviderError("OpenAI input exceeds the configured privacy size limit", code="provider_configuration")
         started = time.perf_counter()
         try:
             response = self._sdk.responses.create(
@@ -112,15 +136,27 @@ class OpenAIClient:
                 text={"format": {"type": "json_schema", "name": "hamar_claims",
                                  "strict": True, "schema": _CLAIM_SCHEMA}},
             )
-            raw = response.output_text
+        except Exception as error:
+            # Never propagate SDK exception text, request headers, prompts or secrets.
+            raise OpenAIProviderError("OpenAI request failed", code=_failure_code(error)) from None
+        finally:
+            self.last_latency_ms = round((time.perf_counter() - started) * 1000)
+        # Completion is a prerequisite for even reading/parsing claims. A valid
+        # JSON prefix in an incomplete response is not a completed generation.
+        status=response.get('status') if isinstance(response,dict) else getattr(response,'status',None)
+        error=response.get('error') if isinstance(response,dict) else getattr(response,'error',None)
+        if status!='completed' or error is not None:
+            raise OpenAIProviderError('OpenAI response did not complete successfully',
+                code='provider_response_incomplete' if status in ('incomplete','failed','in_progress') else 'provider_response_invalid')
+        try:
+            raw = response.get('output_text') if isinstance(response,dict) else response.output_text
             if not isinstance(raw, str) or not raw.strip() or len(raw.encode("utf-8")) > MAX_OUTPUT_BYTES:
                 raise ValueError
             payload = json.loads(raw)
-        except Exception:
-            # Never propagate SDK exception text, request headers, prompts or secrets.
-            raise OpenAIProviderError("OpenAI request failed or returned an invalid bounded response") from None
-        finally:
-            self.last_latency_ms = round((time.perf_counter() - started) * 1000)
+            if not isinstance(payload, dict):
+                raise ValueError
+        except (AttributeError, TypeError, ValueError, UnicodeError):
+            raise OpenAIProviderError("OpenAI returned an invalid bounded response", code="provider_response_invalid") from None
         return payload
 
 

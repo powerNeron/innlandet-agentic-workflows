@@ -6,7 +6,33 @@ The real-source workflow retrieves reviewed local excerpts, asks a local model t
 
 **Development status:** the walking skeleton, tests and historical evaluation evidence are retained for Compulsory 2 and continued development toward the final exam. This repository is not a completed or approved academic submission.
 
-## Current runtime policy: retained historical municipal dataset
+## Current production policy — request-bound sources (2026-11-12)
+
+Every new source-bearing municipal search/answer/direct run must use a complete,
+validated source observation from its own active request. Source admission and
+final publication reject a different, completed, aborted or revoked request.
+Historical catalogs cannot be production fallback; ordinary chat remains separate.
+Invalid/private/unsupported inputs and metadata/control requests do not retrieve
+source content or make model calls.
+
+**Real source acquisition is still disabled.** The eight old approvals are not
+renewed. Production may start with source identities, but municipal queries fail
+closed until concrete network access, a permitted non-personal input format,
+current URL/paragraph approval and source rights are resolved. No live observer is
+currently configured. No CLI/HTTP flag silently enables it. Synthetic injected
+observations prove the control mechanism, not physical official-site freshness.
+
+The immutable request corpus preserves exact approved excerpts and records
+`retrieved_at`, optional source `published_at` and HTTP `last_modified` separately.
+Unknown dates remain unknown. Public cards hide detailed timestamps and show only
+necessary cautions. Source failure publishes no answer and does not claim a new
+check. Reset stays outside the lazy answer panel and invalidates conversation
+publication; it does not cancel a remote inference or already-admitted operation.
+
+The next section records the **superseded historical policy** and evidence. Its
+contents are retained for provenance, not current production instructions.
+
+## Historical runtime policy before 2026-11-12: retained municipal dataset
 
 The owner has explicitly removed expiry as a runtime stop for the **exact eight
 existing local source records and 39 retained paragraphs**. This supersedes the
@@ -421,3 +447,557 @@ municipality website.
 Source quotation verification does not guarantee factual accuracy
 or that the information is up to date.
 
+## Final Exam run controls and synthetic scientific evaluation
+
+The application now reserves a shared **generated/output-token allowance** before
+each Ollama/OpenAI call, including the single correction. Defaults per run are
+1,400 reserved output tokens, 64,000 UTF-8 prompt bytes and two generation calls.
+The prompt bound includes system instructions, source context and correction
+feedback. Reservations are not refunded after failed or ambiguous calls. They
+are not measured token usage, total input/output tokens or a billed-cost cap.
+Actual token usage and monetary cost remain unknown in mocked evaluations.
+
+Trusted process variables `HAMAR_RUN_OUTPUT_TOKENS` (32–8192),
+`HAMAR_RUN_INPUT_BYTES` (1024–1000000) and `HAMAR_RUN_SECONDS` (0.01–180; default
+90) configure these limits. Invalid values fail closed. HTTP requests cannot
+override them. Nested stages share the original allowance; independent requests
+receive separate state.
+
+The measurable stop condition is expiry of the run's monotonic deadline, budget
+exhaustion or unavailable bounded-worker capacity. Provider waiting returns a
+safe error; no further correction or result/context publication is permitted.
+The web publication lock checks the same run state after serialization. There
+are at most four generation/cleanup workers per process; an abandoned worker
+keeps its slot until it actually finishes. Close intent is registered before
+cleanup starts, preventing generation on the same closing client. Active-owner
+close is deferred to its owning worker; nested SDK close reuses that worker.
+Otherwise cleanup waits at most 0.1 seconds and may be skipped when all slots
+are occupied. Closed clients require replacement. A blocked dependency is
+released only after the caller returns in the synthetic deadline experiment.
+
+This is **caller abandonment, not remote inference cancellation**. Existing
+provider output limits/timeouts still matter. Synchronous source loading,
+verification and serialization have checkpoints but are not forcibly preempted;
+this is not a universal hard runtime bound. The 50 ms deadline and 750 ms ceiling
+used in tests are an experimental threshold and scheduling tolerance. Web reset
+also does not cancel inference. Host Codex/MXC filesystem isolation remains
+unverified; application source admission and absence of model shell/file tools
+do not establish an operating-system sandbox.
+
+No new dependency is needed for the normal application or numerical campaign.
+From the project root, use **new output paths** for every run:
+
+```powershell
+New-Item -ItemType Directory -Path output -Force | Out-Null
+python -B -X utf8 -m hamar_agent --fixture fixtures/water-synthetic.json
+python -B -X utf8 -m harness.offline_tests --output output/exam-offline-NEW.log
+python -B -X utf8 -m eval.evaluate_verification --final-exam --output output/exam-campaign-NEW --regression-log output/exam-offline-NEW.log
+```
+
+The optional `--plots` flag uses an **already installed** Matplotlib with Agg.
+Set `MPLCONFIGDIR` to a project-local cache before using it; no package is
+installed by the campaign. Its output directory must be new and inside this
+project. The original no-argument verifier scorecard remains available.
+
+The fixed campaign runs both existing adapters with scripted responses and
+compares a one-call refusal policy with bounded two-call correction. It covers
+typical/boundary/rejected queries, full-paragraph/citation checks, output budget
+and publication stops. The two selected official stress classes are **input
+perturbation** (injection actually present in synthetic source context) and
+**dependency failure** (outage, throttling, malformed/silently wrong output and a
+blocked call). Raw responses, stage traces, reservations, actual scripted call
+counts and fresh recovery requests are retained in `raw.jsonl`.
+
+`metrics.json` defines each formula and denominator. T1–T8 CSV tables distinguish
+case checks, task completion, source grounding, query confusion, controls,
+stress, recovery and limitations. Undefined rates remain null. P95 uses nearest
+rank, `sorted_latency[ceil(0.95*n)-1]`; latencies describe this synthetic harness,
+not live model speed. Recovery requests are counted separately from primary
+cases. No real-provider comparison, semantic truth, human rating or general
+prompt-injection resistance is inferred from scripted outputs. Students must
+complete the separate qualitative review sheet themselves.
+
+The chapter-only English plan is in `final_exam/report_outline.csv`; it allocates
+7.5 planned main-text pages and lists evidence and missing human contributions.
+It is not a white-paper draft. The supplied NeurIPS 2025 preprint template,
+genuine corrected/challenged prompt excerpts, a complete raw evaluation run,
+eight authentic meeting reports and actual demonstration feedback remain
+student-controlled submission requirements. Do not tag, publish or submit
+without explicit authorization.
+
+## Final local validation and remaining submission work
+
+Bounded genuine-provider checks and the application capability/publication gates are
+documented in [provider configuration](docs/provider-configuration.md#bounded-genuine-provider-validation).
+The existing smoke harness now exercises the strict Aisha workflow with genuine
+local Ollama inference and explicitly fictional context. It preserves the generic
+synthetic CLI and does not read the ignored municipal catalog or fetch a source.
+OpenAI has a presence-only preflight and a separately gated single-call procedure;
+no live OpenAI request or installation is authorized by the test instructions alone.
+
+Evidence from 2026-11-11 is in
+`output/aisha-final-validation-9f90a3bcd57f4388b1a7bc47074c93e5/`:
+
+- `final-offline-suite.log`: 425 offline tests, zero failures/errors; sockets and DNS blocked.
+- `campaign-reviewed/`: all 56 scripted scenario checks, 20 fresh recovery requests,
+  T1–T8 tables, metric formulas/denominators, raw outputs and SVG/PNG figures.
+- `live-ollama-reviewed/`: three successful actual `llama3.2:3b` requests with exact
+  fixture citations and three correct no-model negative outcomes. Numeric usage is
+  reported by Ollama; this small sample does not measure municipal truth or quality.
+- `clean-reproduction-reviewed.json`: normal CLI, original verifier scorecard and final
+  campaign all exit 0 in a plain project-local delivery copy containing code and
+  synthetic context, without Git metadata, credentials, municipal catalog or prior
+  outputs. This is not a fresh Git clone, clean OS install or host-isolation test.
+- `loopback-integration-reviewed.json`: nine actual HTTP integration checks against
+  an ephemeral loopback server, using the existing synthetic mock workflow. UI assets,
+  owner export, refusal of another token and reset behavior pass; the server stops.
+- `review-counterexamples.json`: two independently identified smoke-harness defects
+  reproduced against the exact pre-fix hash, then covered by passing regressions.
+
+The evidence is local/ignored and has not been published. Preserve it explicitly
+with the selected submission evidence; a repository URL alone will not deliver
+ignored logs. Re-run the commands above to produce a new independent run. Historical
+395-test and 416-test snapshots and their review evidence remain preserved.
+
+The requirements matrix retains unresolved human and submission obligations:
+source/privacy/reuse clearance, qualitative assessment, authentic demonstration
+feedback, eight genuine meeting reports, prompt corrections/challenges, the supplied
+English NeurIPS preprint template and student-written 7–8-page main text. The existing
+chapter outline is unchanged. No public repository readiness, tag, final paper or
+submission approval is inferred from passing technical tests.
+
+## Separate general AI chat
+
+**Chat med Aisha** opens first, with Norwegian conversation bubbles, a robot avatar, bounded
+follow-up history, reset, loading and explicit retry alongside the existing
+**Kommunal informasjon** mode. It preserves the municipal verification workflow.
+General chat is visibly AI-generated and unverified. No municipal document or
+municipal conversation is attached automatically. Use non-personal content only.
+
+Choose an installed local Ollama model or a separately authorized OpenAI model.
+OpenAI is never selected as a paid fallback. Both paid chat and optional web search
+have separate server gates, default OFF. Search citations are displayed only from
+actual completed search-tool annotations; they are not municipal approvals.
+See [chat setup, limits and the first bounded API test](docs/provider-configuration.md#chat-med-aisha-ai--separate-general-conversation).
+
+Use `.\.venv\Scripts\python.exe` for this project's environment, detected as
+Python 3.13.7. The approved SDK installation is recorded in the setup update below.
+The prepared genuine OpenAI smoke makes at most one call/512 output tokens and no
+search, and must not run without explicit spending approval for the chosen model.
+The key stays in the user's terminal/backend environment, never in Codex or frontend
+code. No genuine OpenAI call has been made for this batch.
+
+Evidence is retained in `output/aisha-chat-1ff51a8921d2405e9f2fcd5424fe6f8d/`.
+Backend/offline tests, deterministic Node UI behavior, actual mocked HTTP checks
+and a genuine local Ollama chat smoke are distinguished. Chrome startup failed
+before rendering, so mobile/desktop rendering and actual accessibility-tree results
+for this new mode remain unverified. The guide includes the synthetic browser
+command for the user to run without paid calls. Prior exam evidence and the report
+outline remain unchanged; this addition is not a final-paper draft or submission.
+
+### OpenAI setup update — 2026-11-11
+
+After explicit owner approval and a missing-SDK preflight, official OpenAI SDK
+**2.54.0** was installed only in the project's `.venv` (Python 3.13.7). This supersedes
+the earlier pending-installation note. `pip check`, six installed-SDK offline cases,
+34 chat methods and all 459 offline regressions pass. No genuine OpenAI call was made.
+
+The selected first model is **`gpt-4.1-mini`**. The public `.env.example` is a reference
+only, with paid chat and web search OFF. Set the non-secret model variable in the
+user's existing PyCharm terminal; do not move or print the temporary key. See the
+[model-specific setup and one-call plan](docs/provider-configuration.md#sdk-installed-first-model-prepared-2026-11-11).
+The proposed test is one request, 512 output tokens, 2048 prompt-text bytes and 20 seconds,
+without retries or search. It still requires separate spending approval; these
+limits are not a verified monetary billing cap. Application code, earlier review
+evidence and the original Ollama/municipal budgets remain unchanged.
+
+### Friendly interface and manual model choices — 2026-11-11
+
+The main navigation is **Chat med Aisha / Kommunal informasjon**. General chat has
+left/right bubbles, a robot avatar, keyboard-scrollable history, suggested prompts
+that only fill the composer, a rounded send control, typing feedback, **Ny samtale**
+and explicit **Prøv igjen**. Municipal search, verified excerpts, citations and
+recorded source dates remain in the municipal mode. Raw JSON, model IDs, request
+budgets and technical answer details stay out of the ordinary interface; existing
+authenticated exports and CLI evidence remain available separately.
+
+Only an installed, allowed **Lokal AI (Ollama)** can be selected automatically.
+An activated OpenAI option requires a manual choice. If only OpenAI is available,
+the selector starts empty. Disabled OpenAI is explained as an optional feature,
+not a failure of local chat. Configuration is not proof of working connectivity.
+`gpt-4.1-mini` remains the reference cloud model. A separately authorized advanced
+choice can be prepared in backend settings; no advanced model is named or activated
+by default. See the [configuration guide](docs/provider-configuration.md#manual-advanced-chat-model-default-off).
+
+Start the existing application from the project root, with Ollama running and the
+existing approved local catalog available:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web --real-sources --provider ollama --model llama3.2:3b --ollama-timeout 90 --port 8000
+```
+
+Open **http://127.0.0.1:8000**. Restart an older running server first. With no approved
+catalog, use the same application in explicit fictional demo mode instead:
+`.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web --demo --provider mock --port 8000`.
+The demo's municipal answers are synthetic; it does not fetch municipal pages.
+
+This patch's commands, exact source hashes, complete test logs and failed browser
+startup log are retained under `output/aisha-friendly-ui-826d3947a1b548b180668d1055f884f2/`.
+The owner's reported completed API call is user-confirmed, not a newly observed
+experiment. No paid call or live search was performed by the agent. Browser rendering
+still needs a successful user-side check; Node DOM tests do not establish visual
+or screen-reader correctness. These changes do not establish exam submission readiness.
+
+### Category, chat welcome and safety corrections — 2026-11-11
+
+Municipal mode retains all eight working topics and the official service-menu link.
+Circular icons sit above their labels in a centered four-column/two-column layout.
+The same local/cloud chat welcomes users with a robot and four icon suggestions:
+**Forklar et tema**, **Hjelp meg å skrive**, **Hjelp med læring**, **Still et spørsmål**.
+Each suggestion only fills/focuses the composer; sending remains an explicit action.
+
+The configured `gpt-4.1-mini` option is shown as **GPT-4.1 mini**. Its label distinguishes
+configured settings, owner-disabled paid access and a provider failure observed in
+this page's last attempt. Refresh alone does not prove recovery; a successful explicit
+retry clears that failure state. Disabled options remain visible but cannot be used.
+Configuration is not verified connectivity. Ollama remains the automatic default;
+paid authorization and search stay OFF unless separately approved by the owner.
+
+Chat screening checks a separate NFKC-normalized copy, removes format/default-ignorable
+markers and recognizes additional English name/contact signals, on both messages and
+replies. Accepted original text is preserved. This heuristic can miss personal data
+or reject benign text; it is **not** general identity/PII detection or a privacy guarantee.
+Use non-personal content only. Search permission is rechecked before client construction,
+before generation and inside the OpenAI worker before activating a search tool.
+Revocation prevents a not-yet-dispatched search; it cannot retract an already sent request.
+
+New raw tests, baseline/repair counterexamples and the frozen review patch are under
+`output/aisha-security-categories-e897c14aa51241309b834645af00dc80/`.
+Chrome still fails before DevTools startup; actual mobile/desktop rendering remains
+unverified. No paid request, live search, dependency installation or credential inspection
+was performed. Prior exam evidence and the report outline remain intact.
+
+### OpenAI in both modes and name-field correction — 2026-11-11
+
+Both **Chat med Aisha** and **Kommunal informasjon → Spør Aisha** now use the same
+rounded provider controls: **Lokal AI (Ollama)** and the configured **OpenAI GPT-4.1 mini**.
+Disabled cloud choices remain visible with a Norwegian activation explanation.
+Only local AI can be an automatic default. Losing a selected provider disables
+sending until that same choice recovers or the user explicitly chooses another.
+
+Entering a mode refreshes local configuration metadata without inference or clearing
+the query, answer or conversation. Healthy controls hide the recovery refresh button;
+it remains available when the selected provider disappears or fails. A normal refresh
+does not reset context. An uncertain failed reset must first be confirmed by explicit
+reset/recovery before municipal questions can resume. Provider buttons never submit
+the question form. Restart the existing server to load the new code.
+
+Municipal OpenAI reuses `/api/answer`, `MunicipalWorkflowService`, whole-paragraph
+verification, bounded correction, citations and recorded source-expiry warnings.
+It does not use general-chat messages or history. Existing owner-controlled
+`HAMAR_OPENAI_ENABLED` and `HAMAR_OPENAI_PRIVACY_AUTHORIZED` gates, exact configured
+model, SDK and credential presence are required. Chat retains its additional paid-chat
+gate. No flag is enabled by these UI changes. Discovery never reads the key value,
+constructs an SDK client or checks cloud connectivity; actual authorized generation
+loads credentials only on the backend. A configured option does not prove connectivity.
+
+The shared normalized privacy check now also rejects English name fields with `:`
+or `=`, including compatibility-width punctuation. Positive learning requests remain
+covered, and AI notices use 13 px. Screening remains heuristic. New raw offline tests,
+the failing reproducer, exact patch and independent review handoff are under
+`output/aisha-name-fields-67261c1eb80f4bb9a5c5314c56e29af7/`. No new paid request,
+live search, installation or browser-rendering result is claimed.
+
+### Public source wording — 2026-11-11
+
+Municipal cards use **Kilde**, **Svar med kilder** and **Fra kilden**. Internal review/
+approval statuses and dates are kept in API/export evidence rather than the public
+cards. Historical sources instead show: **Opplysningene kan ha endret seg. Se kommunens
+nettside for siste informasjon.** Retrieval time is shown only when known; indexing
+and approval dates are hidden. Synthetic examples stay explicitly labeled.
+Source text, links, backend expiry/admission and refusal rules are unchanged.
+The cumulative v2 patch and source-bound test evidence remain in the same evidence
+directory; the frozen v1 artifacts are preserved separately.
+
+### Local general-chat quality evidence — 2026-11-11
+
+General chat now uses concise Norwegian instructions, prioritizes the most recent
+explicit user topic and supplies only relevant entries from a small vocabulary
+reference (SFO, PPT, BPA, DPS). This reference assists the model; it is not live
+municipal evidence. Recognized ambiguous abbreviation questions use a clarification
+instruction; this does not guarantee model compliance. Context routing is heuristic.
+All ordinary answers still come from the explicitly selected provider. General
+chat remains fallible and separate from the verified municipal workflow.
+
+Municipal procedural/pricing/deadline questions receive a narrowly scoped,
+zero-model-call referral to **Kommunal informasjon**. This application guidance
+is labelled separately from model-generated answers, retained in bounded history
+and still subject to privacy, authorization, rate, reset and publication guards.
+It does not retrieve sources or automatically transfer messages between modes.
+
+Reproduce the opt-in local evaluation from the project root with Ollama running:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.chat_quality_eval --check-only --output output/ollama-quality-check-unique
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.chat_quality_eval --enable-local-llm --output output/ollama-quality-primary-unique
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.chat_quality_eval --enable-local-llm --suite additional --output output/ollama-quality-additional-unique
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.offline_tests
+```
+
+Use a new output directory for each run. The harness allows only the installed,
+configured local model and loopback Ollama transport; cloud providers/search are
+disabled. Primary (13) and supplementary (4) curated cases retain separate datasets,
+raw texts, effective prompts, model digest, usage, budgets and worker-cleanup records.
+HTTP success and keyword matches do not establish answer quality. Repeated tuning
+makes these development cases, not held-out accuracy estimates. One fixed seed/model
+does not establish reliability across other models, prompts or users; a fixed seed
+also does not guarantee byte-identical replies across executions.
+
+Actual before/after evidence is under
+`output/aisha-chat-quality-fd74d11887f34a229b497efb6c10e054/`.
+The tested 3B model still gives a wrong first-turn PowerPoint expansion and a flawed
+photosynthesis explanation; some clarification questions have awkward Norwegian.
+These remain explicit quality limitations. Restart the server and start a new
+conversation before checking the new behavior. The separate insufficient-evidence
+UI regression uses an actual municipal API refusal and preserves its raw backend
+message while showing friendly public wording. No paid request, web search,
+dependency installation or Git operation was performed in this batch.
+
+
+### Request-bound evaluation and delivery — 2026-11-12
+
+Use the project environment from the root. Python 3.12+ and Node.js are required
+for the complete Python/UI regression (Node uses built-in modules). Normal
+synthetic operation and mocked source/provider comparison need no credentials,
+ignored municipal catalog or third-party Python packages. The installed optional
+OpenAI SDK is not a cloud authorization; paid calls and web search remain OFF.
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent --fixture fixtures/water-synthetic.json
+.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web --demo --provider mock --port 8000
+# Open http://127.0.0.1:8000; stop the foreground demo before reusing this port.
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.offline_tests --output output/NEW-offline-suite.log
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.request_bound_eval --output output/NEW-request-bound-evaluation --regression-log output/NEW-offline-suite.log
+node harness/browser_smoke.cjs --unit
+```
+
+All evidence destinations must be new. Evaluation blocks real sockets/DNS and uses
+fictional page bytes, approvals and URLs through the actual existing application
+routes and provider adapters. Real-schema fixture flags are not claims that these
+fictional pages exist or were fetched from Hamar. Historical-index mode is an
+explicit in-process evaluation construction, unavailable as a deployed server mode.
+This comparison is not a fresh checkout of COM 2/main or a field study.
+
+The final comparison has 28 scenarios, two scripted adapters, two architectures
+and two repeats:224 primary executions plus152 post-perturbation restoration checks.
+Repeats are not independent users/model samples. With112 primary runs per mode,
+historical/new case contracts pass64/112 versus112/112; actual task completion is
+16/44 versus20/44. Same-request support is0/64 versus20/20 published responses.
+These are scripted fixture outcomes. Correct source quotes are not truth or
+usefulness certification; source observations and model dispatches are separate.
+No-claim HTTP500 responses cannot pass a rejection test; exact status/code/call
+counts, paragraph-ID/text/link association and real recorded receipts are checked.
+Recovery statistics exclude fault-free controls and separate actually observed
+faults from restoration controls ignored by the historical architecture.
+
+Raw output, T1-T8, formulas/denominators, source hashes, red/green regressions and
+independent review snapshots are under `output/aisha-request-bound-668a33baf0354fbc934447d829bdfae9/`.
+The authoritative final run is `campaign-final-v2/`; earlier imperfect runs remain.
+Byte-accounting corrections and checker mistakes are retained as genuine failures.
+Separately, `local-ollama/` records three genuine local `llama3.2:3b` calls against
+one fictional request-bound source fixture: three exact fixture answers and no
+remaining workers. There were zero official source or cloud calls. This repeated
+integration smoke is not a representative answer-quality or model-variance study
+and is not pooled with the scripted campaign. `delivery-command-results.json`
+records the normal synthetic CLI and original verification scorecard, both exit0,
+with sockets/DNS blocked. This is not a fresh-clone test.
+Existing earlier plots keep their original datasets. No new figure is claimed:
+Matplotlib is absent from this project environment and nothing was installed.
+Actual browser rendering/accessibility and a genuine clean clone were not certified.
+
+Production source boundaries: exact approved Hamar URLs only; no model-selected
+URLs, crawling, retries/fallback or arbitrary search. Staging caps accepted source
+bodies at512KiB each, aggregate body/robots bytes at4MiB and source observations
+at8. Source waiting shares the existing four-worker pool, per-tool timeout and
+original run deadline. A queued worker rechecks active ownership and approval at
+dispatch. Already-admitted blocked work retains its slot until it exits. Real
+transport streaming/DNS/TLS/robots-wire-call limits still need implementation and
+authorized verification; mock budgets must not be relabelled as live HTTP proof.
+Generated-output reservations, prompt-byte limits and at most two model calls are
+enforced; these are not a total input+output-token or measured billing guarantee.
+
+Host isolation remains a limitation: application context/tool scoping and prompt
+instructions do not establish Windows project-only filesystem reads. No personal
+configuration, Windows setting or private file was inspected/changed. Stronger
+isolation and synthetic outside-workspace denial tests require separate approval.
+
+Before any real municipal source test, the owner must approve the exact URL scope,
+current non-personal paragraph/input format and reuse/privacy conditions. The
+documented candidates remain the eight exact URLs in `docs/real-source-workflow.md`;
+they are not renewed approvals. A possible first source is the documented
+`https://www.hamar.kommune.no/drikkevann/` plus its official robots policy, with no
+redirect/crawl or linked-page discovery. This is a proposed access scope only,
+not authorization or an existing live transport. Raw HTML may contain personal
+information before filtering; source access is not enabled merely by changing dates.
+
+The traceability matrix uses official rubric weights totaling100, without assigning
+earned marks. Owner request-bound/UI criteria are labelled separately. The outline
+contains only the eleven requested headings/keywords and a7.5-page main-text budget.
+Students still provide final prose, authentic meetings/prompt excerpts, genuine
+references, demonstration feedback and editorial judgment.
+
+### Prepared submission procedure — NOT EXECUTED
+
+Students first verify the actual public repository URL, `exam/final`, ownership of
+all staged changes, the reviewed file hashes and a genuinely clean reproduction.
+Any commit is a separate authorized action. Preserve main/COM2, all other branches,
+worktrees and unrelated work. A file snapshot review is not a commit/tag approval.
+
+```powershell
+# Human checklist only; these Git operations were not run by the agent.
+git branch --show-current
+git status --short
+git diff --check
+git show --stat REVIEWED_COMMIT
+git tag --list exam
+# Only after separate approval and confirmation that exam does not already exist:
+git tag -a exam REVIEWED_COMMIT -m "KIUA-2003 final examination"
+# Publication is separately authorized:
+git push origin exam
+```
+
+Never move or overwrite `exam`, especially after the deadline. The English paper
+must use the supplied NeurIPS2025 preprint template, omit its checklist and have
+7–8 main-text pages. Include the public repository URL and authentic appendices:
+prompt corrections/challenges, one raw full evaluation and at least eight genuine
+meeting reports. Mandatory demonstration is in weeks46–47; address real feedback.
+Submission is via WISEflow on2026-12-03 at11:59AM per the official PDF. No paper,
+meetings, feedback, publication, tag or submission is fabricated or executed here.
+
+
+### Controlled public-source research and OpenAI dispatch repairs — 2026-11-12
+
+Live acquisition is OFF. The existing municipal request-bound workflow remains
+fail-closed without a current source observer. General chat now has a separate
+approved-source research seam inside the existing backend, for both selected
+providers; its registry/observer is absent by default. A web authorization flag
+alone cannot enable it. Public chat never falls through to native SDK web search.
+No real network request, paid call, installation or Git operation was made.
+
+Research selects among exact server-approved public URLs using reviewed topic
+keywords, gets new observations in each active request, verifies URL/body/robots/
+date/nonce, compares manually scoped entity/attribute/period/geography/unit facts,
+then asks the selected model for one exact excerpt. SDK tools stay OFF. Unsupported
+quotes, source conflicts, source outages, invalid dates and revoked permissions
+publish nothing and do not extend history. Final publication retains the live
+nonserialized request capability under the existing session lock. Municipal service
+prices/conditions and their follow-ups refer to Kommunal informasjon; a supplement
+is not a municipal authority. Ordinary science/travel questions remain available.
+
+Short elliptical research turns resolve to the latest substantive user question;
+new complete topics do not inherit old sources. Current-information classification
+is an incomplete heuristic, not general semantic intent detection. With search OFF,
+representative weather/currency/current requests get explicit zero-call guidance.
+Exact quotation establishes source traceability, not factual truth, entailment,
+complete contradiction detection or usefulness. Conflicts require identical reviewed
+fact scopes; unannotated semantic conflicts can be missed. Human quality review remains
+necessary. No model receives file, shell, private-system or arbitrary-URL tools.
+
+The prepared HTTPS transport is not wired into production. It requires live owner
+authorization AND a reviewed full-response non-personal plain-text input boundary.
+It rejects mixed/private/multicast/site-local/transition DNS results, connects to a
+validated numeric address with certificate/hostname TLS checking, refuses redirects,
+compression, authentication and changed robots, and bounds streaming, rate and waits.
+Mock DNS/TLS/HTTP tests passed on Python3.12.10 and3.13.7; genuine remote behavior
+is NOT VERIFIED. Already admitted blocked I/O can outlive caller abandonment and
+retains its bounded worker slot. Prompt instructions do not establish host isolation.
+
+The old HTML excerpt approvals do not prove that a full response is non-personal.
+Filtering after receipt is not a no-processing guarantee. Resolve the input/privacy/
+reuse interpretation before any activation; do not merely extend expiry dates.
+Exact historical paragraph identities are in docs/reviewed-service-selection.json.
+The following are proposed review scopes, not renewed or domain-wide permission:
+
+| Source identity | Exact official content URL | Historical paragraph scope | Live status |
+| --- | --- | --- | --- |
+| hamar-sfo | https://www.hamar.kommune.no/skolefritidsordning/12-timer-gratis-sfo-for-1-3-trinn/ | 5 exact hashes | NOT APPROVED |
+| hamar-byggesak | https://www.hamar.kommune.no/byggesak/bygge-uten-a-soke/ | 5 exact hashes | NOT APPROVED |
+| hamar-folkehelse | https://www.hamar.kommune.no/folkehelse-kunnskapsgrunnlag/ | 4 exact hashes | NOT APPROVED |
+| hamar-bibliotek | https://www.hamar.kommune.no/kultur-og-aktivitet/hamar-bibliotek/ | 5 exact hashes | NOT APPROVED |
+| hamar-kommuneplan | https://www.hamar.kommune.no/kommuneplan/kommuneplanens-samfunnsdel/ | 5 exact hashes | NOT APPROVED |
+| hamar-drikkevann | https://www.hamar.kommune.no/drikkevann/ | 5 exact hashes | NOT APPROVED |
+| hamar-parkering | https://www.hamar.kommune.no/parkering/parkeringsplasser-og-betaling/ | 5 exact hashes | NOT APPROVED |
+| hamar-luftkvalitet | https://www.hamar.kommune.no/klima/luftkvalitet-i-hamar/ | 5 exact hashes | NOT APPROVED |
+
+The additional policy URL is https://www.hamar.kommune.no/robots.txt. Approve both
+the specific page and robots access. First propose ONE source, maximum two GETs,
+no retries/redirects/crawl,10s source wait,512KiB page/64KiB robots and at least5s
+between starts (or the stricter robots delay), within the90s run. This does not
+authorize a request. The existing all-or-nothing request index remains. General
+and supplementary source registries remain empty until exact URLs, paragraphs,
+facts/period/units, current approval dates and processing rights are reviewed.
+No supplemental site or invented feed URL has been activated. The machine-readable
+review checklist is in output/aisha-research-readiness-b83678c4/source-access-review.json.
+
+All general OpenAI dispatches now recheck live paid/enabled/privacy authorization,
+selected-model/advanced permission immediately before SDK I/O, also with search OFF.
+Injecting a client alone cannot bypass these gates; fixture policy overrides are
+explicit and used only with mocked providers. Municipal OpenAI generation and
+correction require completed with no error BEFORE reading/parsing claims JSON.
+Actual red evidence reproduces6 unauthorized dispatch/history cases and8 invalid
+completion acceptances; the same repaired regressions pass. Exact controlled-source
+verification, local default, one-call chat budgets and no paid fallback remain.
+
+Final current offline regression:556/556 methods,0 failures/errors, exit0.
+Targeted research/chat/transport/provider/municipal/run checks:219/219, exit0.
+The22-group Node model passes; this is not native browser/AX certification.
+The prior224-primary/152-restoration comparison was rerun with status-complete SDK
+fixtures and retains its headline counts. The separate new research campaign has
+20/20 declared synthetic API contracts; neither is genuine model/source accuracy.
+Old source/chat evidence, genuine failures and the earlier552-method run remain.
+
+Reproduce offline preparation using NEW destinations, without credentials:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.offline_tests --output output/NEW-offline.log
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --output output/NEW-research-preparation
+node harness/browser_smoke.cjs --unit
+```
+
+The preparation command performs only mocked research, static file/asset/dependency
+inspection, and unscored quality-review preparation. It produces32 prospective
+purposive cases, not a statistically representative sample or executed study. Two
+human reviewers should independently rate correctness, relevance and utility0–2,
+record material unsupported claims separately, and discuss uncertainty/Norwegian
+clarity. Historical17 local responses have34 empty reviewer slots with raw hashes;
+they are development evidence, not current or held-out research quality. No score,
+meeting, reference, feedback or report conclusion is invented. The chapter outline
+is unchanged: eleven English headings/keywords only; students write the paper.
+
+delivery-inventory.json records an explicit allowlisted source/assets/fixtures
+inventory, local static imports and optional/dynamic dependencies. Static coverage
+does NOT establish Git tracking, clean-clone execution, public availability or host
+isolation. Python3.12+ and Node are needed for full checks; OpenAI is optional
+with requirements-openai.txt (tested SDK2.54.0). No install was run. .venv is not
+published. output/ is ignored: raw results/manifests require a separately reviewed
+evidence export/appendix, with credentials/personal paths excluded from publication
+copies while originals and hashes remain preserved. The historical raw archive may
+need authentic originals absent from an ordinary clone. No private catalog was read.
+
+Prepared push sequence, NOT EXECUTED: human confirms exam/final/main preservation,
+the public repository URL and ownership; reviews exact source/dependency/evidence
+allowlists; separately approves a commit; reproduces from an actual clean clone;
+Verifier checks that committed revision; human separately approves the explicit
+exam/final push. Verify exam does not exist and authorize its immutable reviewed
+commit/tag/publication separately. No cleanup, all-branch push or tag overwrite.
+
+```powershell
+# Human plan only — NOT EXECUTED; each write needs separate approval.
+# git push origin exam/final:exam/final
+# git tag -a exam REVIEWED_COMMIT -m "KIUA-2003 final examination"
+# git push origin refs/tags/exam
+```
+
+The current final static inventory is `output/aisha-research-readiness-b83678c4/delivery-final-v3/delivery-inventory.json`; earlier preparation inventories retain their own source hashes.
+
+Final three-turn boundary correction: municipal admission and research selection share the latest-substantive-user resolver. Water/parking sequences through Og prisen? stay zero-observation/zero-model for both providers. Current source-bound results: `output/aisha-research-readiness-b83678c4/full-boundary-repaired-suite.log`, `output/aisha-research-readiness-b83678c4/baseline-final/`, `output/aisha-research-readiness-b83678c4/research-final/`. Earlier snapshots/results remain immutable.

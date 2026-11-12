@@ -135,6 +135,37 @@ def index_document(source: Source, category: str, *, retrieved_at=None, approval
 
 
 @dataclass(frozen=True)
+class RequestIndexedDocument(IndexedDocument):
+    """Additive request observation; original historical fingerprints stay intact."""
+    retrieval_request_id: str = ""
+    published_at: str | None = None
+    last_modified: str | None = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.source.synthetic or not re.fullmatch(r'[0-9a-f]{32}', self.retrieval_request_id):
+            raise ValueError('A real-source observation needs a server-owned request identifier')
+        retrieved = datetime.fromisoformat(self.retrieved_at)
+        for value in (self.published_at, self.last_modified):
+            if value is None:
+                continue
+            if not isinstance(value, str):
+                raise ValueError('Invalid source date')
+            if re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+                if date.fromisoformat(value) > retrieved.date():
+                    raise ValueError('Future source publication date')
+            else:
+                observed = datetime.fromisoformat(value)
+                if observed.tzinfo is None or observed > retrieved:
+                    raise ValueError('Source date must be aware and not future-dated')
+
+    def provenance(self):
+        return {**super().provenance(), 'retrieval_request_id': self.retrieval_request_id,
+                'freshness_status': 'request_bound', 'link_checked_at': self.retrieved_at,
+                'published_at': self.published_at, 'last_modified': self.last_modified}
+
+
+@dataclass(frozen=True)
 class SearchHit:
     document: IndexedDocument
     score: float

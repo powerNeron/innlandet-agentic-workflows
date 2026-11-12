@@ -471,13 +471,13 @@ class SourceRenewalTests(unittest.TestCase):
             return json.dumps({"message": {"content": json.dumps({"claims": [claim]})}}).encode()
         calls = Mock(side_effect=transport)
         client = OllamaClient(OllamaConfig(model="llama3.2:3b"), transport=calls)
-        service = create_municipal_service([self.catalog], self.approvals, client=client)
+        service = create_municipal_service([self.catalog], self.approvals, client=client, historical_baseline=True)
         return service, calls
 
     def test_original_october_approval_blocks_november_20_before_model_access(self):
         with runtime_date("2026-11-20"), patch("hamar_agent.provider_registry.require_installed_ollama_model") as model:
             with self.assertRaisesRegex(ValueError, "expired"):
-                create_municipal_service([self.catalog], self.approvals, model="llama3.2:3b")
+                create_municipal_service([self.catalog], self.approvals, model="llama3.2:3b", historical_baseline=True)
             model.assert_not_called()
         self.assertEqual(self.bytes(), self.originals)
 
@@ -508,7 +508,7 @@ class SourceRenewalTests(unittest.TestCase):
         self.activate()
         with runtime_date("2026-11-28"), patch("hamar_agent.provider_registry.require_installed_ollama_model") as model:
             with self.assertRaisesRegex(ValueError, "expired"):
-                create_municipal_service([self.catalog], self.approvals, model="llama3.2:3b")
+                create_municipal_service([self.catalog], self.approvals, model="llama3.2:3b", historical_baseline=True)
             model.assert_not_called()
 
     def test_already_running_service_drops_expired_search_and_AI_on_november_28(self):

@@ -7,6 +7,7 @@ from .correction import OllamaCorrectionProvider
 from .ollama_provider import OllamaClient, OllamaConfig, OllamaError, OllamaSummarizer, _local_post
 from .summarize import MockSummarizer
 from .workflow import run_workflow
+from .run_control import controlled_run
 
 
 CLAIM_RESPONSE_SCHEMA = {
@@ -57,9 +58,11 @@ class OllamaApplicationService(WorkflowService):
                 "Ollama failed. Explicit mock fallback used; this result is not real LLM output.",
             ))
 
+    @controlled_run
     def run(self, source_id):
         return self._execute(self.load(source_id))
 
+    @controlled_run
     def run_prepared(self, source):
         return self._execute(source)
 

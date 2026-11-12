@@ -96,6 +96,30 @@ class OllamaProviderTests(unittest.TestCase):
         with self.assertRaisesRegex(OllamaError, "malformed structured output"):
             OllamaClient(transport=transport).generate("system", "user")
 
+    def test_transport_status_categories_do_not_expose_provider_diagnostics(self):
+        for status, expected in ((404, "provider_model_unavailable"), (429, "provider_rate_limit"),
+                                 (504, "provider_timeout"), (500, "provider_unavailable")):
+            with self.subTest(status=status):
+                opener = Mock()
+                opener.open.side_effect = HTTPError("http://127.0.0.1:11434/api/chat", status,
+                    "synthetic-secret", {}, None)
+                with patch("hamar_agent.ollama_provider.build_opener", return_value=opener), self.assertRaises(OllamaError) as caught:
+                    _local_post("http://127.0.0.1:11434/api/chat", {}, b"{}", 1, 1024)
+                self.assertEqual(caught.exception.code, expected)
+                self.assertNotIn("synthetic-secret", str(caught.exception))
+                opener.open.assert_called_once()
+
+    def test_nested_timeout_and_malformed_output_have_safe_categories(self):
+        from urllib.error import URLError
+        opener = Mock()
+        opener.open.side_effect = URLError(TimeoutError("synthetic-secret"))
+        with patch("hamar_agent.ollama_provider.build_opener", return_value=opener), self.assertRaises(OllamaError) as caught:
+            _local_post("http://127.0.0.1:11434/api/chat", {}, b"{}", 1, 1024)
+        self.assertEqual(caught.exception.code, "provider_timeout")
+        with self.assertRaises(OllamaError) as caught:
+            OllamaClient(transport=lambda *args: b'not-json').generate("system", "synthetic source")
+        self.assertEqual(caught.exception.code, "provider_response_invalid")
+
     def test_prompt_size_is_bounded(self):
         client = OllamaClient(OllamaConfig(max_request_chars=512), transport=FakeTransport(self.payload))
         with self.assertRaisesRegex(OllamaError, "prompt exceeded"):

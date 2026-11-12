@@ -244,3 +244,125 @@ class RetrievalTests(unittest.TestCase):
         with self.assertRaises(RetrievalError):
             self.fetch()
         self.response.read.assert_not_called()
+
+
+class PreparedTransportTests(unittest.TestCase):
+    def setUp(self):
+        from unittest.mock import Mock
+        import io
+        import socket
+        from email.message import Message
+        from eval.test_research import approval,ROBOTS
+        from hamar_agent.retrieval import PreparedPublicTransport
+        self.approval=approval();self.clock_value=0.;self.calls=[];self.allowed=True
+        self.responses=[]
+        for body in (ROBOTS,self.approval.body):
+            headers=Message();headers['Content-Type']='text/plain; charset=utf-8'
+            headers['Content-Length']=str(len(body))
+            response=Mock(status=200,headers=headers)
+            response.read=Mock(side_effect=io.BytesIO(body).read)
+            self.responses.append(response)
+        self.resolver=Mock(return_value=[(socket.AF_INET,socket.SOCK_STREAM,socket.IPPROTO_TCP,'',('93.184.216.34',443))])
+        self.connections=[]
+        def connect(host,address,timeout):
+            self.calls.append((host,address,timeout))
+            connection=Mock();connection.getresponse.return_value=self.responses[len(self.connections)]
+            self.connections.append(connection);return connection
+        def sleep(seconds):self.clock_value+=seconds
+        self.transport=PreparedPublicTransport({self.approval.source_id:self.approval},authorized=lambda:self.allowed,
+            input_authorized=lambda:True,resolver=self.resolver,connection_factory=connect,
+            clock=lambda:self.clock_value,sleep=sleep)
+
+    def fetch(self):
+        from hamar_agent.run_control import run_scope
+        with run_scope():
+            return self.transport(self.approval.source_id,request_id='a'*32,timeout_seconds=10,max_bytes=16384)
+
+    def test_default_and_revoked_authorization_denies_before_dns(self):
+        from hamar_agent.retrieval import PreparedPublicTransport
+        from hamar_agent.run_control import run_scope
+        self.allowed=False
+        with self.assertRaises(RetrievalError):self.fetch()
+        self.resolver.assert_not_called()
+        with run_scope(),self.assertRaises(RetrievalError):
+            PreparedPublicTransport({self.approval.source_id:self.approval})(self.approval.source_id,
+                request_id='a'*32,timeout_seconds=10,max_bytes=16384)
+
+    def test_exact_two_requests_numeric_pinning_rate_and_cleanup(self):
+        value=self.fetch()
+        self.assertEqual(value['body'],self.approval.body)
+        self.assertEqual(len(self.calls),2);self.assertGreaterEqual(self.clock_value,5)
+        self.assertTrue(all(call[1]=='93.184.216.34' for call in self.calls))
+        self.assertEqual(self.connections[0].request.call_args.args,('GET','/robots.txt'))
+        self.assertEqual(self.connections[1].request.call_args.args,('GET','/synthetic-offline-public-a/'))
+        for connection in self.connections:
+            connection.close.assert_called_once()
+            self.assertNotIn('Authorization',connection.request.call_args.kwargs['headers'])
+
+    def test_mixed_private_mapped_and_nonpublic_dns_never_connects(self):
+        import socket
+        for address in ('127.0.0.1','10.0.0.1','169.254.169.254','::ffff:127.0.0.1','::1',
+                        '2002:7f00:1::','64:ff9b::a00:1','2001:0000:4136:e378:8000:63bf:3fff:fdd2',
+                        '224.0.0.1','ff02::1','fec0::1'):
+            with self.subTest(address=address):
+                self.transport.next_start=0
+                family=socket.AF_INET6 if ':' in address else socket.AF_INET
+                self.resolver.return_value.append((family,socket.SOCK_STREAM,socket.IPPROTO_TCP,'',(address,443)))
+                with self.assertRaises(RetrievalError):self.fetch()
+                self.resolver.return_value.pop()
+        self.assertEqual(self.calls,[])
+
+    def test_public_ipv6_positive_control_uses_exact_validated_address(self):
+        import socket
+        self.resolver.return_value=[(socket.AF_INET6,socket.SOCK_STREAM,socket.IPPROTO_TCP,'',('2606:4700:4700::1111',443,0,0))]
+        self.assertEqual(self.fetch()['body'],self.approval.body)
+        self.assertEqual([call[1] for call in self.calls],['2606:4700:4700::1111']*2)
+
+    def test_revocation_during_dns_prevents_connection(self):
+        addresses=self.resolver.return_value
+        def resolve(*args,**kwargs):self.allowed=False;return addresses
+        self.resolver.side_effect=resolve
+        with self.assertRaises(RetrievalError):self.fetch()
+        self.assertEqual(self.calls,[])
+
+    def test_changed_robots_prevents_source_body_request(self):
+        self.responses[0].read.side_effect=[b'changed',b'']
+        self.responses[0].headers.replace_header('Content-Length','7')
+        with self.assertRaises(RetrievalError):self.fetch()
+        self.assertEqual(len(self.calls),1)
+        self.connections[0].close.assert_called_once()
+
+    def test_redirect_html_compression_duplicate_charset_rejected_before_body(self):
+        for name,value in (('Location','https://www.ssb.no/other/'),('Content-Type','text/html'),
+            ('Content-Encoding','gzip'),('Content-Type','text/plain; charset=utf-8; charset=latin-1')):
+            with self.subTest(name=name,value=value):
+                self.setUp()
+                headers=self.responses[0].headers
+                if name in headers:headers.replace_header(name,value)
+                else:headers[name]=value
+                with self.assertRaises(RetrievalError):self.fetch()
+                self.responses[0].read.assert_not_called()
+                self.connections[0].close.assert_called_once()
+
+    def test_streamed_size_and_length_mismatch_are_bounded(self):
+        for body in (b'x'*65537,b'short'):
+            with self.subTest(size=len(body)):
+                self.setUp()
+                import io
+                del self.responses[0].headers['Content-Length']
+                if body==b'short':self.responses[0].headers['Content-Length']='50'
+                self.responses[0].read.side_effect=io.BytesIO(body).read
+                with self.assertRaises(RetrievalError):self.fetch()
+                self.assertTrue(all(call.args[0]<=4096 for call in self.responses[0].read.call_args_list))
+                self.assertEqual(len(self.calls),1)
+
+    def test_pinned_tls_uses_numeric_socket_and_original_hostname(self):
+        from unittest.mock import Mock
+        from hamar_agent.retrieval import _pinned_public_connection
+        raw=Mock();wrapped=Mock();context=Mock();context.wrap_socket.return_value=wrapped
+        with patch('socket.socket',return_value=raw),patch('ssl.create_default_context',return_value=context),patch('socket.getaddrinfo') as dns:
+            connection=_pinned_public_connection('www.ssb.no','93.184.216.34',2)
+            connection.connect()
+            raw.connect.assert_called_once_with(('93.184.216.34',443))
+            context.wrap_socket.assert_called_once_with(raw,server_hostname='www.ssb.no')
+            dns.assert_not_called();connection.close()
