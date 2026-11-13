@@ -30,10 +30,16 @@ def _place_text(value):
     return ''.join(c for c in unicodedata.normalize('NFKC',value) if unicodedata.category(c)!='Cf').casefold()
 
 
+_SOFTWARE_CONTEXT=frozenset(('powerpoint','python','javascript','typescript','excel','word'))
+
+
 def explicit_place(question):
     """An unregistered explicit place must not silently become Hamar."""
-    match=re.search(r'\b(?:i|for|fra)\s+([A-ZÆØÅ][\w-]*(?:\s+[A-ZÆØÅ][\w-]*){0,2})(?:\s+kommune)?\b',question)
-    if match:return match[1]
+    for match in re.finditer(r'\b(?:i|for|fra)\s+([A-ZÆØÅ][\w-]*(?:\s+[A-ZÆØÅ][\w-]*){0,2})(?:\s+kommune)?\b',question):
+        # These service abbreviations can follow a preposition before the actual
+        # location ("plass i SFO i Hamar"). Keep checking all explicit locations.
+        if match[1].casefold() in _SOFTWARE_CONTEXT|{'sfo','ppt','nav'} and not match[0].endswith('kommune'):continue
+        return match[1]
     match=re.search(r'\b(?:i|for|fra)\s+([\w-]+(?:\s+[\w-]+)?)\s+kommune\b',question,re.I)
     return match[1] if match else None
 
@@ -49,16 +55,21 @@ class Municipality:
     evidence_sha256: str
     aliases: tuple = ()
     requires_region: bool = False
+    municipality_number: str | None = None
 
     def __post_init__(self):
         _validate_url('https://'+self.official_host+'/')
         if (not re.fullmatch('[a-z][a-z0-9-]{1,59}',self.id)
+                or urlsplit('https://'+self.official_host+'/').netloc!=self.official_host
                 or not isinstance(self.name,str) or not 2<=len(self.name)<=60
                 or type(self.aliases) is not tuple or any(not isinstance(a,str) or not 2<=len(a)<=60 for a in self.aliases)
                 or type(self.requires_region) is not bool
                 or self.official_host.endswith(('.local','.internal','.localhost','.lan','.home','.home.arpa'))
                 or not isinstance(self.evidence_reference,str) or not self.evidence_reference.strip()
                 or not re.fullmatch('[0-9a-f]{64}',self.evidence_sha256)
+                or self.municipality_number is not None and (
+                    not isinstance(self.municipality_number,str)
+                    or not re.fullmatch(r'34[0-9]{2}',self.municipality_number))
                 or date.fromisoformat(self.reviewed_on)>date.fromisoformat(self.expires_on)):
             raise ValueError('Reviewed municipality identity, exact host and provenance required')
 
@@ -76,6 +87,8 @@ class MunicipalityRegistry:
         values=tuple(municipalities)
         if (len(values)>64 or any(not isinstance(m,Municipality) for m in values)
                 or len({m.id for m in values})!=len(values)
+                or len({m.municipality_number for m in values if m.municipality_number is not None})
+                    !=sum(m.municipality_number is not None for m in values)
                 or len({m.official_host for m in values})!=len(values)):
             raise ValueError('Distinct bounded municipality records required')
         self.entries=MappingProxyType({m.id:m for m in values})
@@ -156,12 +169,76 @@ def information_need(question):
     return 'stable_or_unspecified'
 
 
+_REGULATED_MUNICIPAL_SERVICE=re.compile(r'\b(?:sykehjem\w*|aldershjem\w*|hjemmesykepleie\w*|hjemmehjelp\w*|'
+    r'hjemmetjenest\w*|omsorgsbolig\w*|kommunalbolig\w*|bpa|barnevern\w*|sosialhjelp\w*|'
+    r'gravferd\w*|gravplass\w*|gravfeste\w*|feiing\w*|feiegebyr\w*|brannvesen\w*|'
+    r'eiendomsskatt\w*|trygghetsalarm\w*)\b',re.I)
+
+FEE_INTENT=re.compile(r'\b(?:\w*pris\w*|kost(?:er|ar|nad\w*)|\w*betal\w*|\w*egenandel\w*|'
+    r'\w*avgift\w*|sats\w*|takst\w*|tariff\w*|leie\w*|\w*gebyr\w*|beløp\w*|utgift\w*|gratis)\b',re.I)
+RULE_INTENT=re.compile(r'\b(?:frist\w*|vilkår\w*|vedtak\w*|'
+    r'regel\w*|regler|reglene|forskrift\w*|åpningstid\w*|åpner|stenger|tilbyr)\b',re.I)
+DETAIL_INTENT=re.compile(FEE_INTENT.pattern+'|'+RULE_INTENT.pattern+r'|\b(?:søknad\w*|søk\w*)\b',re.I)
+
+
+def detail_request(question):
+    return bool(DETAIL_INTENT.search(question))
+
+
 def municipal_service_topic(question):
-    return bool(re.search(r'\b(?:sfo|skole|barnehage|byggesak|parkering|drikkevann|vann|avløp|renovasjon|bibliotek|kommuneplan|helsetjeneste)\b',question,re.I))
+    # Source duty is broader than the currently implemented discovery topics.
+    # Unsupported municipal services must clarify/refuse before model dispatch.
+    return bool(_REGULATED_MUNICIPAL_SERVICE.search(question) or re.search(r'\b(?:sfo|skolefritidsordning\w*|kulturskol\w*|skole|barnehag\w*|byggesak|parkering|drikkevann|vann|avløp|renovasjon|bibliotek|kommuneplan|planer|politikk|helsetjenest\w*|helse|omsorg|folkehelse|luftkvalitet|miljø|miljo)\b',question,re.I))
+
+
+def price_followup(question):
+    # Historical name retained for callers. Resolve short detail ellipses using
+    # the same vocabulary as source duty, not a second fee/rule word list.
+    match=re.fullmatch(r'\s*(?:(?:hva|kva|når)\s+(?:er\s+(?P<detail>[\w-]{2,40})|'
+        r'koster\s+(?:det|dette))|hvordan\s+søker\s+(?:jeg|vi)(?:\s+om\s+(?:det|dette))?|'
+        r'(?:(?:og|hva\s+med)\s+)?(?P<short>[\w-]{2,40}))'
+        r'(?:\s+(?:nå|i dag))?(?:\s+i\s+(?P<place>[\w -]{2,80}))?\s*[?!.]?\s*',question,re.I)
+    if match:
+        place=_place_text(match['place'] or '').strip()
+        if place in _SOFTWARE_CONTEXT or re.match(r'^(?:en|et)\s+',place):return None
+        noun=match['detail'] or match['short']
+        if noun is None or DETAIL_INTENT.fullmatch(noun):return match
+    return None
 
 
 def municipal_question(question):
-    task=re.search(r'\b(?:koster|pris\w*|gebyr\w*|søknad\w*|søk\w*|frist\w*|vilkår\w*|vedtak|regler|åpningstid\w*|tilbyr)\b',question,re.I)
+    text=_place_text(question).strip()
+    if price_followup(question):return True
+    # Bare service/price requests must clarify rather than invite invented facts.
+    if re.fullmatch(r'(?:kulturskol\w*|sfo|skolefritidsordning\w*|barnehag\w*|pris(?:er|en)?|gebyr(?:er)?)\s*[?!.]?',text):
+        return True
+    task=detail_request(question)
+    artifact_help=re.search(r'^\s*(?:hjelp(?:\s+meg)?\s+med|lag|skriv|utform)\b.*\b'
+        r'(?:powerpoint|presentasjon\w*|programmer\w*|kode)\b',question,re.I)
+    if artifact_help and not task:return False
+    municipal_owner=re.search(r'\b(?:kommune|kommunen|kommunens|kommunal|kommunale|kommunalt)\b',question,re.I)
+    regulated=_REGULATED_MUNICIPAL_SERVICE.search(question)
+    concept=bool(re.fullmatch(r'\s*(?:hva|kva)\s+(?:er|betyr)\s+(?:(?:en|et)\s+)?'+_REGULATED_MUNICIPAL_SERVICE.pattern+r'\s*[?!.]?\s*',question,re.I))
+    known_definition=bool(re.match(r'^\s*(?:hva|kva)\s+(?:er|betyr)\s+(?:sfo|ppt|bpa|dps)\b',question,re.I))
+    if regulated and not (concept and not task):return True
+    if municipal_owner and not (known_definition and not task):return True
+    # An unclassified local fee/condition request is ambiguous, not permission
+    # for an unsourced numeric answer. Supported private travel/market topics
+    # remain general; unknown local services clarify/refuse before generation.
+    general_market=re.search(r'\b(?:koster|pris(?:en|er)?\s+(?:på|for))\s+(?:(?:en|et|ny|nye)\s+)?'
+        r'(?:fly\w*|airport\w*|hotell\w*|restaurant\w*|pizza\w*|togbillett\w*|reise\w*|powerpoint)\b',question,re.I)
+    trailing=re.search(r'\bi\s+([\w-]+(?:\s+[\w-]+)?)\s*[?!.]*\s*$',text)
+    local_place=explicit_place(question) or (trailing[1] if trailing else None)
+    if local_place and _place_text(local_place) in _SOFTWARE_CONTEXT:local_place=None
+    local_sensitive=bool(FEE_INTENT.search(question) or RULE_INTENT.search(question)
+        or re.search(r'\bsøknad\w*\b|\bsøk\w*\b.{0,40}\bom\b',question,re.I))
+    if local_sensitive and local_place and not general_market:return True
+    specific=re.search(r'\b(?:sfo|skolefritidsordning\w*|kulturskol\w*|barnehag\w*)\b',question,re.I)
+    definition=re.search(r'^\s*(?:hva|kva)\s+(?:er|betyr)\b|\b(?:begrepet|forkortelsen|betydningen)\b',question,re.I)
+    other=re.search(r'\b(?:flyplass\w*|airport\w*|flybillet\w*|powerpoint)\b',question,re.I)
+    if specific and not definition and not other:return True
+    if not task and re.search(r'\b(?:forklar|kjemisk\w*|kretsløp|molekyl\w*)\b',question,re.I):
+        return False
     return bool(municipal_service_topic(question) and (task or explicit_place(question) or re.search(r'\bkommun\w*\b',question,re.I)))
 
 
@@ -323,6 +400,18 @@ class ResearchBinding:
 
 
 class ResearchService:
+    @classmethod
+    def from_reviewed_policy(cls,path,*,fetcher=None,municipal_authorized=lambda:False):
+        """Load reviewed identities/approvals; loading never enables networking.
+
+        Review metadata is an owner attestation, not independent domain proof.
+        The separate authoritative membership must match all 46 domain records.
+        Legacy small synthetic registries keep their existing loading contract.
+        """
+        municipalities,approvals=load_research_policy(path)
+        return cls(approvals,fetcher=fetcher,municipalities=municipalities,
+                   municipal_authorized=municipal_authorized)
+
     def __init__(self,approvals=(),*,fetcher=None,municipalities=None,municipal_authorized=lambda:False):
         values=tuple(approvals)
         if (len(values)>256 or any(not isinstance(a,ResearchApproval) for a in values)
@@ -356,9 +445,9 @@ class ResearchService:
             try:entry=self.municipalities.resolve(question,context)
             except ResearchError as error:
                 if municipal or error.code!='research_municipality_unknown':raise
-        if entry is not None and municipal_service_topic(question):municipal=True
         if municipal and entry is None:raise ResearchError('research_municipality_required')
         matches=[a for a in self.approvals.values() if terms.intersection(_place_text(w) for w in a.keywords)
+            and (municipal or a.authority_tier!=1)
             and (a.municipality_id is None or entry is not None and a.municipality_id==entry.id)]
         primary=[a for a in matches if a.authority_tier==1]
         if municipal and not primary:raise ResearchError('research_no_official_sources')
@@ -378,7 +467,11 @@ class ResearchService:
         except ResearchError:return False
 
     def search_query(self,query):
-        return self.municipalities.strip_names(query) if self.municipalities else query
+        if self.municipalities is None:return query
+        # Validate original geography before projecting names/region out of the
+        # legacy topic vocabulary. A foreign region must never be stripped away.
+        self.municipalities.resolve(query)
+        return re.sub(r'\bInnlandet\b',' ',self.municipalities.strip_names(query),flags=re.I)
 
     def retrieve_for_query(self,question,*,provider='ollama',municipality_context=None):
         return self.prepare(question,provider=provider.split(':',1)[0],authorized=self.municipal_authorized,
@@ -518,3 +611,159 @@ class ResearchService:
             authority='official_municipal' if binding.municipal else 'public_supplement' if source.authority_tier==2 else 'general_source',
             municipality_id=binding.municipality.id if binding.municipality else None,
             source_receipts=list(binding.observations),response_origin='model'),binding)
+
+
+INNLANDET_REFERENCES = (
+    'https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/',
+    'https://www.ssb.no/befolkning/regioner/statistikk/regionale-inndelingar',
+)
+MAX_POLICY_BYTES = 512 * 1024
+
+
+def policy_digest(value):
+    """Canonical UTF-8 JSON digest for reviewed projections, never a truth proof."""
+    return hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False,
+        separators=(',',':'),allow_nan=False).encode('utf-8')).hexdigest()
+
+
+def municipality_evidence_digest(row):
+    return policy_digest({key:row[key] for key in (
+        'municipality_number','name','official_host','evidence_reference')})
+
+
+def load_research_policy(path,*,details=False):
+    """Strict server-owned combined policy; no downloads, imports or activation.
+
+    The two reference hashes attest retained review evidence. Independent review
+    must compare every projected row with those authorities before marking REVIEWED.
+    Hashes only bind the recorded decision; changing remote facts are not inferred.
+    """
+    from pathlib import Path
+    def reject():
+        raise ValueError('Invalid or unreviewed Innlandet research policy')
+    def exact(value,keys):
+        if type(value) is not dict or set(value)!=set(keys):reject()
+    def unique(pairs):
+        result={}
+        for key,value in pairs:
+            if key in result:reject()
+            result[key]=value
+        return result
+    def digest(value):
+        if not isinstance(value,str) or not re.fullmatch('[0-9a-f]{64}',value):reject()
+    def current(reviewed,expires):
+        if (not isinstance(reviewed,str) or not isinstance(expires,str)
+                or date.fromisoformat(reviewed).isoformat()!=reviewed
+                or date.fromisoformat(expires).isoformat()!=expires
+                or not date.fromisoformat(reviewed)<=date.today()<=date.fromisoformat(expires)):
+            reject()
+    with Path(path).open('rb') as stream:raw=stream.read(MAX_POLICY_BYTES+1)
+    if len(raw)>MAX_POLICY_BYTES:reject()
+    try:
+        data=json.loads(raw,object_pairs_hook=unique,parse_constant=lambda _:reject())
+        if type(data) is not dict:reject()
+        version=data.get('schema_version')
+        keys=('schema_version','region','verification','municipalities','public_authorities','sources')
+        exact(data,(*keys,'supplementary_sites') if version==2 else keys)
+        if type(version) is not int or version not in (1,2) or data['region']!='Innlandet':reject()
+        supplements=data.get('supplementary_sites',[])
+        if type(supplements) is not list or len(supplements)>16:reject()
+        if len({s['url'] for s in map(validate_supplementary_site,supplements)})!=len(supplements):reject()
+        if any(type(data[key]) is not list for key in ('municipalities','public_authorities','sources')):reject()
+        if len(data['municipalities'])>46 or len(data['sources'])>256 or len(data['public_authorities'])>64:reject()
+        review=data['verification']
+        exact(review,('status','reviewed_on','expires_on','references','members','roster_sha256'))
+        if type(review['references']) is not list or len(review['references'])!=2 or type(review['members']) is not list:reject()
+        references={}
+        for reference in review['references']:
+            exact(reference,('url','sha256'))
+            if reference['url'] not in INNLANDET_REFERENCES or reference['url'] in references:reject()
+            references[reference['url']]=reference['sha256']
+        municipalities=None
+        if review['status']=='NOT VERIFIED':
+            if (data['municipalities'] or review['members']
+                    or any(review[key] is not None for key in ('reviewed_on','expires_on','roster_sha256'))
+                    or any(value is not None for value in references.values())):reject()
+        elif review['status']=='REVIEWED':
+            current(review['reviewed_on'],review['expires_on'])
+            for value in references.values():digest(value)
+            digest(review['roster_sha256'])
+            if review['roster_sha256']!=policy_digest(data['municipalities']):reject()
+            if len(review['members'])!=46 or len(data['municipalities'])!=46:reject()
+            members={}
+            for row in review['members']:
+                exact(row,('municipality_number','name'))
+                number,name=row['municipality_number'],row['name']
+                if (not isinstance(number,str) or not re.fullmatch(r'34[0-9]{2}',number)
+                        or number in members or not isinstance(name,str) or not name.strip()
+                        or _place_text(name) in ('jevnaker','lunner')):reject()
+                members[number]=name
+            if len({_place_text(name) for name in members.values()})!=46:reject()
+            values=[]
+            for row in data['municipalities']:
+                if type(row) is not dict or type(row.get('aliases',[])) is not list:reject()
+                entry=Municipality(**{**row,'aliases':tuple(row.get('aliases',[]))})
+                current(entry.reviewed_on,entry.expires_on)
+                if (entry.municipality_number not in members or members[entry.municipality_number]!=entry.name
+                        or _place_text(entry.name) in ('jevnaker','lunner') or not entry.current()
+                        or entry.evidence_reference!=INNLANDET_REFERENCES[0]
+                        or entry.evidence_sha256!=municipality_evidence_digest(row)
+                        or entry.reviewed_on<review['reviewed_on'] or entry.expires_on>review['expires_on']):reject()
+                values.append(entry)
+            municipalities=MunicipalityRegistry(values)
+            if {m.municipality_number for m in values}!=set(members):reject()
+        else:reject()
+        authorities={}
+        for row in data['public_authorities']:
+            exact(row,('official_host','evidence_reference','evidence_sha256','reviewed_on','expires_on'))
+            host=row['official_host']
+            _validate_url('https://'+host+'/')
+            if urlsplit('https://'+host+'/').netloc!=host or host in authorities:reject()
+            _validate_url(row['evidence_reference']);digest(row['evidence_sha256'])
+            current(row['reviewed_on'],row['expires_on'])
+            authorities[host]=row
+        approvals=[]
+        for row in data['sources']:
+            if type(row) is not dict or type(row.get('keywords')) is not list or type(row.get('excerpts')) is not list:reject()
+            excerpts=[]
+            for paragraph in row['excerpts']:
+                if type(paragraph) is not dict or type(paragraph.get('fact_scope',[])) is not list:reject()
+                excerpts.append(ResearchExcerpt(**{**paragraph,'fact_scope':tuple(paragraph.get('fact_scope',[]))}))
+            approval=ResearchApproval(**{**row,'keywords':tuple(row['keywords']),'excerpts':tuple(excerpts)})
+            current(approval.reviewed_on,approval.expires_on)
+            if review['status']=='REVIEWED' and approval.expires_on>review['expires_on']:reject()
+            if approval.municipality_id is not None and (municipalities is None or approval.municipality_id not in municipalities.entries):reject()
+            if approval.authority_tier==2 and urlsplit(approval.url).hostname not in authorities:reject()
+            if approval.authority_tier==2:
+                authority=authorities[urlsplit(approval.url).hostname]
+                if (approval.reviewed_on<authority['reviewed_on']
+                        or approval.expires_on>authority['expires_on']):reject()
+            if approval.municipality_id is not None:
+                entry=municipalities.entries[approval.municipality_id]
+                if approval.expires_on>entry.expires_on:reject()
+            approvals.append(approval)
+        # Reuse the existing exact-host and distinct source/URL admission checks.
+        ResearchService(approvals,municipalities=municipalities)
+        return (municipalities,tuple(approvals),data) if details else (municipalities,tuple(approvals))
+    except (TypeError,KeyError,OverflowError,UnicodeError,RecursionError,json.JSONDecodeError):
+        raise ValueError('Invalid or unreviewed Innlandet research policy') from None
+
+
+def validate_supplementary_site(row):
+    """Exact separately permitted URL, not a discovered/unreviewed third party."""
+    required={'url','reviewed_on','expires_on','evidence_reference','evidence_sha256',
+              'transient_html_authorized','reuse_reviewed'}
+    if type(row) is not dict or set(row)!=required:raise ValueError('Exact supplementary URL review required')
+    _validate_url(row['url'])
+    host=urlsplit(row['url']).hostname
+    if host.endswith(('.local','.internal','.localhost','.lan','.home','.home.arpa')):
+        raise ValueError('Public reviewed supplementary URL required')
+    for key in ('reviewed_on','expires_on'):
+        if not isinstance(row[key],str) or date.fromisoformat(row[key]).isoformat()!=row[key]:
+            raise ValueError('Canonical supplementary review dates required')
+    if (not date.fromisoformat(row['reviewed_on'])<=date.today()<=date.fromisoformat(row['expires_on'])
+            or row['transient_html_authorized'] is not True or row['reuse_reviewed'] is not True
+            or not isinstance(row['evidence_reference'],str) or not row['evidence_reference'].strip()
+            or not isinstance(row['evidence_sha256'],str) or not re.fullmatch('[0-9a-f]{64}',row['evidence_sha256'])):
+        raise ValueError('Current input/reuse approval and evidence required')
+    return dict(row)

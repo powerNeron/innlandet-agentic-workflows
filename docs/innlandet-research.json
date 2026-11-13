@@ -1,0 +1,807 @@
+{
+  "schema_version": 2,
+  "region": "Innlandet",
+  "verification": {
+    "status": "REVIEWED",
+    "reviewed_on": "2026-11-13",
+    "expires_on": "2026-12-13",
+    "references": [
+      {
+        "url": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+        "sha256": "d79cba5b037db0299a5fb6f065ba8924ebed568d2a0d4f2848c4cb6169e61593"
+      },
+      {
+        "url": "https://www.ssb.no/befolkning/regioner/statistikk/regionale-inndelingar",
+        "sha256": "3c9adb260976ecd6fa9975d1174ec1522df47016037fab2e555e8d0f55426c7d"
+      }
+    ],
+    "members": [
+      {
+        "municipality_number": "3401",
+        "name": "Kongsvinger"
+      },
+      {
+        "municipality_number": "3403",
+        "name": "Hamar"
+      },
+      {
+        "municipality_number": "3405",
+        "name": "Lillehammer"
+      },
+      {
+        "municipality_number": "3407",
+        "name": "Gjøvik"
+      },
+      {
+        "municipality_number": "3411",
+        "name": "Ringsaker"
+      },
+      {
+        "municipality_number": "3412",
+        "name": "Løten"
+      },
+      {
+        "municipality_number": "3413",
+        "name": "Stange"
+      },
+      {
+        "municipality_number": "3414",
+        "name": "Nord-Odal"
+      },
+      {
+        "municipality_number": "3415",
+        "name": "Sør-Odal"
+      },
+      {
+        "municipality_number": "3416",
+        "name": "Eidskog"
+      },
+      {
+        "municipality_number": "3417",
+        "name": "Grue"
+      },
+      {
+        "municipality_number": "3418",
+        "name": "Åsnes"
+      },
+      {
+        "municipality_number": "3419",
+        "name": "Våler"
+      },
+      {
+        "municipality_number": "3420",
+        "name": "Elverum"
+      },
+      {
+        "municipality_number": "3421",
+        "name": "Trysil"
+      },
+      {
+        "municipality_number": "3422",
+        "name": "Åmot"
+      },
+      {
+        "municipality_number": "3423",
+        "name": "Stor-Elvdal"
+      },
+      {
+        "municipality_number": "3424",
+        "name": "Rendalen"
+      },
+      {
+        "municipality_number": "3425",
+        "name": "Engerdal"
+      },
+      {
+        "municipality_number": "3426",
+        "name": "Tolga"
+      },
+      {
+        "municipality_number": "3427",
+        "name": "Tynset"
+      },
+      {
+        "municipality_number": "3428",
+        "name": "Alvdal"
+      },
+      {
+        "municipality_number": "3429",
+        "name": "Folldal"
+      },
+      {
+        "municipality_number": "3430",
+        "name": "Os"
+      },
+      {
+        "municipality_number": "3431",
+        "name": "Dovre"
+      },
+      {
+        "municipality_number": "3432",
+        "name": "Lesja"
+      },
+      {
+        "municipality_number": "3433",
+        "name": "Skjåk"
+      },
+      {
+        "municipality_number": "3434",
+        "name": "Lom"
+      },
+      {
+        "municipality_number": "3435",
+        "name": "Vågå"
+      },
+      {
+        "municipality_number": "3436",
+        "name": "Nord-Fron"
+      },
+      {
+        "municipality_number": "3437",
+        "name": "Sel"
+      },
+      {
+        "municipality_number": "3438",
+        "name": "Sør-Fron"
+      },
+      {
+        "municipality_number": "3439",
+        "name": "Ringebu"
+      },
+      {
+        "municipality_number": "3440",
+        "name": "Øyer"
+      },
+      {
+        "municipality_number": "3441",
+        "name": "Gausdal"
+      },
+      {
+        "municipality_number": "3442",
+        "name": "Østre Toten"
+      },
+      {
+        "municipality_number": "3443",
+        "name": "Vestre Toten"
+      },
+      {
+        "municipality_number": "3446",
+        "name": "Gran"
+      },
+      {
+        "municipality_number": "3447",
+        "name": "Søndre Land"
+      },
+      {
+        "municipality_number": "3448",
+        "name": "Nordre Land"
+      },
+      {
+        "municipality_number": "3449",
+        "name": "Sør-Aurdal"
+      },
+      {
+        "municipality_number": "3450",
+        "name": "Etnedal"
+      },
+      {
+        "municipality_number": "3451",
+        "name": "Nord-Aurdal"
+      },
+      {
+        "municipality_number": "3452",
+        "name": "Vestre Slidre"
+      },
+      {
+        "municipality_number": "3453",
+        "name": "Øystre Slidre"
+      },
+      {
+        "municipality_number": "3454",
+        "name": "Vang"
+      }
+    ],
+    "roster_sha256": "5f2ee2412bc484809a7533317ce978ece4bd3c9a2700937a9679030e49ae765e"
+  },
+  "municipalities": [
+    {
+      "id": "kongsvinger",
+      "municipality_number": "3401",
+      "name": "Kongsvinger",
+      "official_host": "www.kongsvinger.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "11727d1cf04197c3d65643472a37aff2f7e2fae5b6c9f9eb39d5be1809c3ca26"
+    },
+    {
+      "id": "hamar",
+      "municipality_number": "3403",
+      "name": "Hamar",
+      "official_host": "www.hamar.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "57e9990c86057221f9ab137d38a9306081b1e9a75be0cf976a3e2f34fe1fcbf6"
+    },
+    {
+      "id": "lillehammer",
+      "municipality_number": "3405",
+      "name": "Lillehammer",
+      "official_host": "lillehammer.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "8b2d5822cd2cfc904c42546e058679eff83556cc8b1866c3ba0427ea81c12fba"
+    },
+    {
+      "id": "gjovik",
+      "municipality_number": "3407",
+      "name": "Gjøvik",
+      "official_host": "www.gjovik.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Gjovik"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "6c2655582bc2075d89e862616d3fa34d84d3581bd9cb8441dc36167e7e068470"
+    },
+    {
+      "id": "ringsaker",
+      "municipality_number": "3411",
+      "name": "Ringsaker",
+      "official_host": "www.ringsaker.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "c05f64956420a56b21062d814d2f93239106bfdd146ad46f8928a5b4b3fcae53"
+    },
+    {
+      "id": "loten",
+      "municipality_number": "3412",
+      "name": "Løten",
+      "official_host": "www.loten.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Loten"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "3fee92d2e63cb66fea962de0f62f15d81e1ab93a9f783e6277e0a928792a2da6"
+    },
+    {
+      "id": "stange",
+      "municipality_number": "3413",
+      "name": "Stange",
+      "official_host": "www.stange.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "73b578cf2d714c126ed27d039591eabe8fb28f802a494eb75ad61aed2f26c16c"
+    },
+    {
+      "id": "nord-odal",
+      "municipality_number": "3414",
+      "name": "Nord-Odal",
+      "official_host": "www.nord-odal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "c28352211db31a8f5abbbbff455ea20c0be2d186ddee64daa92e2453212ef41f"
+    },
+    {
+      "id": "sor-odal",
+      "municipality_number": "3415",
+      "name": "Sør-Odal",
+      "official_host": "www.sor-odal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Sor-Odal"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "b921bc73a0d31275a1e40022ad8f4385980019ab0bd66ee32542ec8c3df6b537"
+    },
+    {
+      "id": "eidskog",
+      "municipality_number": "3416",
+      "name": "Eidskog",
+      "official_host": "www.eidskog.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "8f80eff62bb727bdd025dc1187be81c68e4af2fa015ec24abdb23e7a03bc55c9"
+    },
+    {
+      "id": "grue",
+      "municipality_number": "3417",
+      "name": "Grue",
+      "official_host": "www.grue.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "1743c27199d61550643c005387cfe6181172c26f28a4b40928b1b3b9198846e0"
+    },
+    {
+      "id": "asnes",
+      "municipality_number": "3418",
+      "name": "Åsnes",
+      "official_host": "www.asnes.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Asnes"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "7aad543dd73b80ec91472dc69ff04dfc5fa2bbc2762db571840a18956d1ed9a1"
+    },
+    {
+      "id": "valer",
+      "municipality_number": "3419",
+      "name": "Våler",
+      "official_host": "www.vaaler-he.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Valer",
+        "Våler (Innlandet)"
+      ],
+      "requires_region": true,
+      "evidence_sha256": "30d034b540960c0977af4f0c8a4ac908dc4a34ba04400867ec4ee74e4ec0fe50"
+    },
+    {
+      "id": "elverum",
+      "municipality_number": "3420",
+      "name": "Elverum",
+      "official_host": "www.elverum.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "b5edd452b5cccc9971710dec8dfafcd40a09aedbfb8989b986e284740428b7bd"
+    },
+    {
+      "id": "trysil",
+      "municipality_number": "3421",
+      "name": "Trysil",
+      "official_host": "www.trysil.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "bd9469d4f5e840c146206cc7557eae7431aa38dc50060db72f1225661d36281e"
+    },
+    {
+      "id": "amot",
+      "municipality_number": "3422",
+      "name": "Åmot",
+      "official_host": "www.amot.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Amot"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "1ea62945024e07f74f5eced7a3892831e1d07a6c1d4ffb8f88045d1b5b43a5cf"
+    },
+    {
+      "id": "stor-elvdal",
+      "municipality_number": "3423",
+      "name": "Stor-Elvdal",
+      "official_host": "www.stor-elvdal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "b79f36c420a1f061a2851c99204de9eac6d5edd106fcaa126bf72b4124f914ab"
+    },
+    {
+      "id": "rendalen",
+      "municipality_number": "3424",
+      "name": "Rendalen",
+      "official_host": "www.rendalen.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "e20b4a5864f01023ef77d911c2ce9f0f2f23711b5ca4f1ac78aee34467fc5ca3"
+    },
+    {
+      "id": "engerdal",
+      "municipality_number": "3425",
+      "name": "Engerdal",
+      "official_host": "www.engerdal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "db3a50a26568bdcb69548ae26aae03a793cf74cb486f4231c7d09a8d1f5ce2a6"
+    },
+    {
+      "id": "tolga",
+      "municipality_number": "3426",
+      "name": "Tolga",
+      "official_host": "www.tolga.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "0809ce503e001c9afe5622c13aefc60e5ba2e8aded5f0b8eb90e7d3698cc448e"
+    },
+    {
+      "id": "tynset",
+      "municipality_number": "3427",
+      "name": "Tynset",
+      "official_host": "www.tynset.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "34072b67b706622b17aacbdcba5fca132ab3dec3ae60a2d04cc3ccc6af2058d5"
+    },
+    {
+      "id": "alvdal",
+      "municipality_number": "3428",
+      "name": "Alvdal",
+      "official_host": "www.alvdal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "26cead00903be1e058302400d7e876558754b5d2e2639c992387429781e8904d"
+    },
+    {
+      "id": "folldal",
+      "municipality_number": "3429",
+      "name": "Folldal",
+      "official_host": "www.folldal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "bd98dae317b09b9d1de9140625f876fd83e197294e9a7442a711836f39659c4a"
+    },
+    {
+      "id": "os",
+      "municipality_number": "3430",
+      "name": "Os",
+      "official_host": "www.os.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": true,
+      "evidence_sha256": "930f601d790b8896b6606c84a443689798c892ff28d744f374ea21e3ca2ef2dc"
+    },
+    {
+      "id": "dovre",
+      "municipality_number": "3431",
+      "name": "Dovre",
+      "official_host": "www.dovre.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "3e69d76c826b21b3f1a5c5d9d424d72a519bc45bb7f75a64f82c6c9687e61836"
+    },
+    {
+      "id": "lesja",
+      "municipality_number": "3432",
+      "name": "Lesja",
+      "official_host": "www.lesja.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "c3764a7bc9345f3451fe36162ef076ac1b1751f35b2b001fc252b595608200b8"
+    },
+    {
+      "id": "skjak",
+      "municipality_number": "3433",
+      "name": "Skjåk",
+      "official_host": "www.skjaak.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Skjak"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "7503fdff3cd8e3542b45b4149fc31e5f348cbdc3300138e958fe08dc5bbb7569"
+    },
+    {
+      "id": "lom",
+      "municipality_number": "3434",
+      "name": "Lom",
+      "official_host": "www.lom.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "7e0b75e8ab01d07e5321cbfde7c56ebe43440115456a54ff8acae6d7155574e3"
+    },
+    {
+      "id": "vaga",
+      "municipality_number": "3435",
+      "name": "Vågå",
+      "official_host": "www.vaga.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Vaga"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "62278adfd3b48d4cf73e31f320dda0c2d964ab4f1696543593a00037ba467dce"
+    },
+    {
+      "id": "nord-fron",
+      "municipality_number": "3436",
+      "name": "Nord-Fron",
+      "official_host": "www.nord-fron.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "0054488aeaff1c0be52bdf7f2c7aa2650f29ae83a9f8b046e4172a2a3f13c4d2"
+    },
+    {
+      "id": "sel",
+      "municipality_number": "3437",
+      "name": "Sel",
+      "official_host": "www.sel.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "8784f354d905c6728b31f58e3e885c2021bfb533d2df46e8172a4efa720c9b69"
+    },
+    {
+      "id": "sor-fron",
+      "municipality_number": "3438",
+      "name": "Sør-Fron",
+      "official_host": "www.sor-fron.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Sor-Fron"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "174a2a8632682fcb6e57e95c3942c3fb0ecbe8a3cf5558bbfae285c26d364d59"
+    },
+    {
+      "id": "ringebu",
+      "municipality_number": "3439",
+      "name": "Ringebu",
+      "official_host": "www.ringebu.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "173e1502d1698c86725003e3ff2333781bb8b5204056dbeb6fedcb8f2c4fe6e7"
+    },
+    {
+      "id": "oyer",
+      "municipality_number": "3440",
+      "name": "Øyer",
+      "official_host": "oyer.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Oyer"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "0e580f3bd3bc1b952e9efbebcea0d0261f95b1b6e5390792600c796208612674"
+    },
+    {
+      "id": "gausdal",
+      "municipality_number": "3441",
+      "name": "Gausdal",
+      "official_host": "gausdal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "ff81ade3edfb11d1ac6dfe64af6b9ec3cbb5912cfc757805f3766c144b5aa726"
+    },
+    {
+      "id": "ostre-toten",
+      "municipality_number": "3442",
+      "name": "Østre Toten",
+      "official_host": "www.ototen.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Ostre Toten"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "853a109c31f3dd2828b3bb397e3088cf2ca871fa11ab19082820a19c2596337a"
+    },
+    {
+      "id": "vestre-toten",
+      "municipality_number": "3443",
+      "name": "Vestre Toten",
+      "official_host": "vestre-toten.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "19053534cfddd2899cded607f94e7db82c9f73ad5e0c77044acf839403bbca5a"
+    },
+    {
+      "id": "gran",
+      "municipality_number": "3446",
+      "name": "Gran",
+      "official_host": "www.gran.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "eec09efcf5944e1a6ba987432b96d260d2341dbd38b3ec36b7e766bf2adfa1ae"
+    },
+    {
+      "id": "sondre-land",
+      "municipality_number": "3447",
+      "name": "Søndre Land",
+      "official_host": "www.sondre-land.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Sondre Land"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "28d1ce6efa2836e83622d5ff550d9668f9335b4b19f1fd7dd3800c0e097f7c02"
+    },
+    {
+      "id": "nordre-land",
+      "municipality_number": "3448",
+      "name": "Nordre Land",
+      "official_host": "www.nordre-land.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "00c2e34a3eeb51d91472570ae6223db7a54749d593a7ce24ece8c0679e29779e"
+    },
+    {
+      "id": "sor-aurdal",
+      "municipality_number": "3449",
+      "name": "Sør-Aurdal",
+      "official_host": "www.sor-aurdal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Sor-Aurdal"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "e61d7cfcd80b67bcd77916603b53f038e82c270ed1610d61136947cd5937ca53"
+    },
+    {
+      "id": "etnedal",
+      "municipality_number": "3450",
+      "name": "Etnedal",
+      "official_host": "www.etnedal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "9dfd9e37f3572db2ef1268dbdf8b7cb6d0d40c2a8761a2039f49e651dfc8438b"
+    },
+    {
+      "id": "nord-aurdal",
+      "municipality_number": "3451",
+      "name": "Nord-Aurdal",
+      "official_host": "www.nord-aurdal.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "fd2c86b0b6994899e725ba5be59c15326997b0d2a14f8c3cfafe7b7f941ec0e3"
+    },
+    {
+      "id": "vestre-slidre",
+      "municipality_number": "3452",
+      "name": "Vestre Slidre",
+      "official_host": "www.vestre-slidre.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "3cb444694c1bc0b70c02f2e26a6482ef10425ed365bfe17af7ae34301568e3f2"
+    },
+    {
+      "id": "oystre-slidre",
+      "municipality_number": "3453",
+      "name": "Øystre Slidre",
+      "official_host": "www.oystre-slidre.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [
+        "Oystre Slidre"
+      ],
+      "requires_region": false,
+      "evidence_sha256": "0102c3f4b41ad0f6461679a491989c7e6de245e614989295b5071a5f411d5d74"
+    },
+    {
+      "id": "vang",
+      "municipality_number": "3454",
+      "name": "Vang",
+      "official_host": "www.vang.kommune.no",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "aliases": [],
+      "requires_region": false,
+      "evidence_sha256": "32d796deffeb18e010a54704712882daaee6e9c1b26e7c3ded458a8c6b786dad"
+    }
+  ],
+  "public_authorities": [
+    {
+      "official_host": "innlandetfylke.no",
+      "evidence_reference": "https://innlandetfylke.no/om-fylkeskommunen/om-innlandet/kommuner-og-regioner/",
+      "evidence_sha256": "d79cba5b037db0299a5fb6f065ba8924ebed568d2a0d4f2848c4cb6169e61593",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13"
+    },
+    {
+      "official_host": "www.ssb.no",
+      "evidence_reference": "https://www.ssb.no/befolkning/regioner/statistikk/regionale-inndelingar",
+      "evidence_sha256": "3c9adb260976ecd6fa9975d1174ec1522df47016037fab2e555e8d0f55426c7d",
+      "reviewed_on": "2026-11-13",
+      "expires_on": "2026-12-13"
+    }
+  ],
+  "sources": [],
+  "supplementary_sites": []
+}

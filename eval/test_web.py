@@ -537,3 +537,55 @@ class WebTests(unittest.TestCase):
         self.app.sessions[token].last_seen -= 3 * 60 * 60
         self.assertEqual(self.app.dispatch("GET", "/api/results/" + run_id, headers).status, 403)
         self.assertNotIn(run_id, self.app.results)
+
+
+class RegionalStartupTests(unittest.TestCase):
+    def setUp(self):
+        from tempfile import TemporaryDirectory
+        self.directory=TemporaryDirectory();self.addCleanup(self.directory.cleanup)
+        self.path=Path(self.directory.name)/'synthetic-policy.json'
+        from eval.test_research import complete_policy_fixture
+        self.path.write_text(json.dumps(complete_policy_fixture()),encoding='utf-8')
+        for name in ('socket.socket','socket.getaddrinfo'):
+            guard=patch(name,side_effect=AssertionError('Startup test forbids network'))
+            guard.start();self.addCleanup(guard.stop)
+
+    def test_shared_policy_survives_startup_and_provider_model_switches(self):
+        from contextlib import contextmanager,redirect_stdout
+        from types import SimpleNamespace
+        from hamar_agent.real_sources import MunicipalWorkflowService
+        from hamar_agent.search import SearchIndex
+        from hamar_agent.web import main
+        captured={}
+        def service(*args,model=None,provider='ollama',request_sources=None,**kwargs):
+            client=SimpleNamespace(config=SimpleNamespace(model=model or 'llama3.2:3b'))
+            return MunicipalWorkflowService(SearchIndex(),client,provider=provider,request_sources=request_sources)
+        @contextmanager
+        def server(**kwargs):
+            captured.update(kwargs)
+            def stop():raise KeyboardInterrupt
+            yield SimpleNamespace(server_port=8000,serve_forever=stop)
+        for live in (False,True):
+            args=['--research-policy',str(self.path),'--provider','ollama']+(['--enable-live-research'] if live else [])
+            with patch('hamar_agent.real_sources.create_municipal_service',side_effect=service), \
+                    patch('hamar_agent.web.create_server',side_effect=server),redirect_stdout(io.StringIO()):
+                self.assertEqual(main(args),0)
+            policy=captured['chat_backend'].research_service
+            self.assertIs(captured['service'].request_sources,policy)
+            self.assertIsNone(policy.fetcher);self.assertEqual(policy.configured(),live)
+            self.assertEqual(captured['chat_backend'].search_allowed(),live)
+            for provider,model in (('ollama','llama3.2:3b'),('openai','gpt-4.1-mini')):
+                switched=captured['service_factory'](provider,model)
+                self.assertIs(switched.request_sources,policy)
+                self.assertEqual(switched.provider,provider+':'+model)
+
+    def test_bad_policy_and_demo_combination_fail_before_provider_setup(self):
+        from contextlib import redirect_stderr
+        from hamar_agent.web import main
+        for args in (['--demo','--research-policy',str(self.path)],
+                     ['--demo','--enable-live-research'],
+                     ['--research-policy',str(self.path)+'.missing']):
+            with patch('hamar_agent.real_sources.create_municipal_service') as factory, \
+                    redirect_stderr(io.StringIO()),self.assertRaises(SystemExit) as stop:
+                main(args)
+            self.assertEqual(stop.exception.code,2);factory.assert_not_called()

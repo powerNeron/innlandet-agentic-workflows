@@ -115,7 +115,7 @@ def delivery(output):
             if path.is_file() and (path.suffix in ('.py','.json','.cjs') or name.endswith('web_assets')):
                 files.append(path)
     files += [ROOT/name for name in ('README.md','AGENTS.md','SPEC.md','.gitignore','requirements-openai.txt',
-        'docs/approved-service-pages.json','docs/reviewed-service-selection.json',
+        'docs/approved-service-pages.json','docs/reviewed-service-selection.json','docs/innlandet-research.json',
         'final_exam/project_KIUA_2003.pdf','final_exam/requirements.csv','final_exam/report_outline.csv','final_exam/CHANGELOG.md')]
     delivered={path.relative_to(ROOT).as_posix() for path in files}
     records={};external=set();missing_local=set();dynamic=[]
@@ -386,13 +386,60 @@ def regional(output):
     return all(r['contract_passed'] for r in rows)
 
 
+def live_source_probe(output,policy_path,question):
+    """Opt-in real source chain only; never construct a model or paid SDK client."""
+    from datetime import datetime,timezone
+    from hamar_agent.live_research import LiveResearchService,service_topic
+    from hamar_agent.chat import validate_message
+    from hamar_agent.research import ResearchError
+    from hamar_agent.run_control import run_scope,active_workers,RunStopped
+    version_files=('hamar_agent/live_research.py','hamar_agent/research.py','hamar_agent/retrieval.py',
+        'hamar_agent/robots_policy.py','hamar_agent/run_control.py','hamar_agent/chat.py','harness/research_eval.py')
+    def source_version():return {name:sha((ROOT/name).read_bytes()) for name in version_files}
+    policy_file=Path(policy_path) if policy_path is not None else None
+    record=dict(method='Actual bounded LiveResearchService; no mocked network, provider or raw HTML persistence',
+        started_at=datetime.now(timezone.utc).isoformat(),raw_html_retained=False,model_calls=0,paid_calls=0,
+        python_version=sys.version.split()[0],source_files_sha256=source_version(),policy_sha256=None)
+    try:
+        validate_message(question)
+        service=LiveResearchService.from_reviewed_policy(policy_path,enabled=True)
+        if policy_file is not None:
+            with policy_file.open('rb') as stream:policy_bytes=stream.read(512*1024+1)
+            if len(policy_bytes)>512*1024:raise ValueError('Policy too large')
+            record['policy_sha256']=sha(policy_bytes)
+        record['service_topic']=service_topic(question)
+        with run_scope() as owner:
+            try:
+                binding=service.prepare(question,provider='ollama',authorized=lambda:True,require_municipal=True)
+                binding.assert_publishable()
+                record.update(success=True,municipality_id=binding.municipality.id,
+                    source_receipts=list(binding.observations),transport=binding.receipt())
+                owner.finish()
+            except (ResearchError,RunStopped) as error:
+                record.update(success=False,error_code=error.code,source_diagnostics=list(getattr(error,'source_diagnostics',())))
+            record['run']=owner.snapshot()
+    except (OSError,ValueError,TypeError,KeyError):
+        record.update(success=False,error_code='source_configuration_or_input_rejected')
+    record['finished_at']=datetime.now(timezone.utc).isoformat();record['remaining_workers']=active_workers()
+    record['source_version_unchanged']=record['source_files_sha256']==source_version()
+    write_json(output/'live-source-probe.json',record)
+    return record.get('success') is True
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--live-sources',action='store_true',help='Explicit owner-authorized real source probe; no inference')
+    parser.add_argument('--research-policy',type=Path,default=ROOT/'docs/innlandet-research.json')
+    parser.add_argument('--query',default='Hva koster SFO i Hamar?')
     args=parser.parse_args(argv);target=args.output.resolve()
     if target==ROOT/'output' or not target.is_relative_to(ROOT/'output'):
         parser.error('Use a new exclusive directory below project/output')
     target.mkdir(parents=True,exist_ok=False)
+    if args.live_sources:
+        okay=live_source_probe(target,args.research_policy,args.query)
+        print(json.dumps(dict(success=okay,output=str(target),mode='genuine_source_probe',model_calls=0,paid_calls=0)))
+        return 0 if okay else 1
     with patch('socket.socket',side_effect=AssertionError('Offline only')),patch('socket.getaddrinfo',side_effect=AssertionError('Offline only')):
         okay=offline(target)
         okay=regional(target) and okay

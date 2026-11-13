@@ -85,6 +85,7 @@ class PortalService:
         configured=tuple(policy.approvals.values()) if policy is not None else ()
         registry=getattr(policy,'municipalities',None)
         return {
+            "on_demand_research":bool(getattr(policy,'automatic_municipal',False)),
             "municipalities": [{"id":m.id,"name":m.name,"official_host":m.official_host,"aliases":list(m.aliases)}
                 for m in registry.entries.values() if m.current()] if registry is not None else [],
             "categories": [{**asdict(c), "count": sum(a.category==c.id and a.current() for a in configured)
@@ -106,6 +107,9 @@ class PortalService:
 
     @controlled_run
     def search(self, query: str, *, category: str | None = None):
+        policy=getattr(self.workflow,'request_sources',None)
+        if callable(getattr(policy,'portal_search',None)):
+            return policy.portal_search(query,self.workflow,category=category)
         try:
             search_query=self._query(query,self.workflow)
             validate_query(search_query, real_sources=True)
@@ -139,6 +143,10 @@ class PortalService:
     def answer(self, query: str, *, category: str | None = None, workflow_service=None,
                prior_terms=(),prior_municipality=None):
         workflow = workflow_service if workflow_service is not None else self.workflow
+        policy=getattr(workflow,'request_sources',None)
+        if callable(getattr(policy,'portal_answer',None)):
+            return policy.portal_answer(query,workflow,category=category,prior_terms=prior_terms,
+                                        prior_municipality=prior_municipality)
         safe_query = "" if getattr(workflow, "real_sources", False) else query
         try:
             allowed_prior = tuple(dict.fromkeys(term for term in prior_terms

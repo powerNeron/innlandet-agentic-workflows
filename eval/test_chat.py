@@ -180,7 +180,7 @@ class ChatTests(unittest.TestCase):
 
     def test_followup_instructions_use_effective_history_without_changing_other_sessions(self):
         from hamar_agent.chat import CONTEXT_SYSTEM,MUNICIPAL_REFERENCE
-        self.assertEqual(self.send('SFO?').status,200)
+        self.assertEqual(self.send('Hva betyr SFO?').status,200)
         self.assertIn(MUNICIPAL_REFERENCE[0][1],self.calls[-1]['kwargs']['instructions'])
         self.assertNotIn(MUNICIPAL_REFERENCE[1][1],self.calls[-1]['kwargs']['instructions'])
         self.assertEqual(self.send('Kan du forklare videre?').status,200)

@@ -38,10 +38,14 @@ let queryFollowupModifiers = new Set();
 let queryAliases = new Map();
 let officialMenuUrl = "https://www.hamar.kommune.no/meny/";
 let officialMunicipalHosts = new Set(["www.hamar.kommune.no"]);
+let onDemandResearch = false;
 function revealInView(element) {
   element.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 function isAllowedRealQuery(query, allowFollowup = false) {
+  // The live server validates service/municipality itself after the existing
+  // privacy screen. Its vocabulary is broader than the historical local index.
+  if (onDemandResearch) return query.length <= 160;
   const folded = query.normalize("NFC").toLocaleLowerCase("nb-NO").replaceAll("æ", "ae").replaceAll("ø", "o").replaceAll("å", "a");
   const terms = (folded.match(/[\p{L}\p{N}]+/gu) || [])
     .filter((term) => !queryStopwords.has(term) && !(allowFollowup && queryFollowupModifiers.has(term)))
@@ -211,6 +215,7 @@ function addTechnicalDetails(container, answer) {
 function renderAnswer(answer) {
   $("ai-result").hidden = false;
   const container = $("answer-content"); container.replaceChildren();
+  renderSourceChecks(container, answer);
   if (answer.is_follow_up) item(container, "p", "Oppfølgingsspørsmål: Kildene er søkt på nytt; tidligere svar brukes ikke som evidens.").className = "verification-note";
   // Timing, provider IDs and full verifier records remain in developer/API evidence.
   const result = answer.result;
@@ -549,6 +554,7 @@ async function loadPortal() {
     queryStopwords = new Set(data.query_stopwords || []);
     queryFollowupModifiers = new Set(data.query_followup_modifiers || []);
     queryAliases = new Map(Object.entries(data.query_aliases || {}));
+    onDemandResearch = data.on_demand_research === true;
     officialMunicipalHosts = new Set(["www.hamar.kommune.no"]);
     if (Array.isArray(data.municipalities)) data.municipalities.forEach((municipality) => {
       try {
@@ -654,6 +660,32 @@ function updateChatControls() {
   renderModelChoices("chat-model-choices", "chat-provider", chatChoices, chatLoading || chatResetting || chatChecking);
 }
 function scrollChat() { $("chat-log").scrollTop = chatMenuRequested ? 0 : $("chat-log").scrollHeight; }
+function renderSourceChecks(parent, answer) {
+  if (!Array.isArray(answer.source_receipts)) return;
+  const format = (value) => {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T.*)?$/u.test(value)) return null;
+    const parsed = new Date(value);
+    if (!Number.isFinite(parsed.getTime())) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/u.test(value)) {
+      return parsed.toISOString().slice(0, 10) === value ? parsed.toLocaleDateString("nb-NO", { timeZone: "UTC" }) : null;
+    }
+    return parsed.toLocaleString("nb-NO", { timeZone: "Europe/Oslo" });
+  };
+  answer.source_receipts.slice(0, 4).forEach((source) => {
+    const checked = format(source.retrieved_at);
+    if (!checked) return;
+    const box = item(parent, "div", ""); box.className = "source-check source-meta";
+    item(box, "p", "Kilde kontrollert: " + checked);
+    item(box, "p", "Publisert: " + (format(source.published_at) || "ikke oppgitt")
+      + " · Oppdatert på siden: " + (format(source.updated_at) || "ikke oppgitt"));
+    const periods = Array.isArray(source.effective_periods)
+      ? source.effective_periods.filter((value) => typeof value === "string" && /^20\d{2}(?:-\d{2}-\d{2}|\s*[/–-]\s*(?:20)?\d{2})?$/u.test(value)) : [];
+    item(box, "p", "Gyldighetsperiode oppgitt i kilden: " + (periods.join(", ") || "ikke oppgitt"));
+  });
+  if (Array.isArray(answer.source_cautions)) answer.source_cautions.slice(0, 2).forEach((text) => {
+    if (typeof text === "string") item(parent, "p", text.slice(0, 200)).className = "verification-note";
+  });
+}
 function renderChatMessage(message) {
   if (message.role === "user" || message.pending || !chatMenuRequested) {
     chatMenuRequested = false;
@@ -674,6 +706,7 @@ function renderChatMessage(message) {
     for (let i = 0; i < 3; i++) item(dots, "i", "");
   }
   if (message.role !== "user" && !message.pending) {
+    renderSourceChecks(bubble, message);
     item(bubble, "p", message.ai_generated === false ? "Veiledning fra Aisha · ikke kildekontrollert" : "AI-generert svar · kan inneholde feil").className = "chat-answer-label";
     if (message.web_search_used) item(bubble, "p", message.research_verified === true
       ? "Kontrollert mot oppgitte kilder · ikke kommunal verifisering eller sannhetsgaranti"

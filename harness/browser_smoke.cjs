@@ -419,6 +419,23 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   await e.ready('openai');assert.equal(e.get('chat-web-search').disabled,false);assert.equal(e.counts().posts,0);
   checks.push('approved-source research is opt-in for local/cloud; exact source links and limited verification label');
  }
+ {
+  const e=environment();
+  const receipt={retrieved_at:'2026-11-13T11:00:00+00:00',published_at:null,updated_at:null,
+   last_modified:'Wed, 01 Jan 2020 00:00:00 GMT',effective_periods:['2026']};
+  e.evaluate('renderChatMessage('+JSON.stringify({role:'assistant',text:'Fiktivt kildeutdrag.',web_search_used:true,
+   research_verified:true,source_receipts:[receipt],source_cautions:['<img src=x onerror=alert(1)>'],citations:[]})+')');
+  const all=n=>[n,...n.children.flatMap(all)],nodes=all(e.get('chat-log')),text=nodes.map(n=>n.textContent).join(' ');
+  assert(text.includes('Kilde kontrollert:'));assert(text.includes('Publisert: ikke oppgitt'));
+  assert(text.includes('Oppdatert på siden: ikke oppgitt'));assert(text.includes('Gyldighetsperiode oppgitt i kilden: 2026'));
+  assert(!text.includes('2020'),'HTTP last-modified must not become publication date');
+  assert(!nodes.some(n=>n.tagName==='IMG'));assert.equal(e.counts().posts,0);
+  const dated={...receipt,published_at:'2026-01-01'};
+  e.evaluate('renderSourceChecks($("date-only-fixture"),'+JSON.stringify({source_receipts:[dated]})+')');
+  const publication=all(e.get('date-only-fixture')).find(n=>n.textContent.startsWith('Publisert:'));
+  assert(publication);assert(!/\d{2}:\d{2}/u.test(publication.textContent),'Date-only publication must not acquire an invented clock time');
+  checks.push('live provenance separates retrieval/publication/effective period, unknown stays unknown and metadata is inert');
+ }
  console.log(JSON.stringify({method:'Deterministic Node VM/DOM model; no browser rendering, network, SDK or inference',passed:checks.length,checks}));
 }
 (async()=>{

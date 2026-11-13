@@ -516,7 +516,8 @@ class WebApplication:
         try:
             policy=getattr(selected_workflow,'request_sources',None)
             query_terms=policy.search_query(query) if callable(getattr(policy,'search_query',None)) else query
-            current_terms = validate_query(query_terms, real_sources=True, allow_followup=bool(prior_terms))
+            current_terms = (policy.context_terms(query) if callable(getattr(policy,'context_terms',None)) else
+                validate_query(query_terms, real_sources=True, allow_followup=bool(prior_terms)))
         except ValueError:
             current_terms = []
         effective_terms = tuple(current_terms or prior_terms)
@@ -631,6 +632,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--catalog", type=Path, action="append", default=[], help="Offline reviewed catalog; repeat for multiple files")
     parser.add_argument("--approvals", type=Path, help="Individually reviewed page manifest; never enables live fetching")
+    parser.add_argument("--research-policy", type=Path,
+                        help="Reviewed Innlandet identities and exact source policy; never enables network access")
+    parser.add_argument("--enable-live-research", action="store_true",
+                        help="Explicit owner-authorized bounded official HTML research; no cloud source consent")
     parser.add_argument("--empty-index", action="store_true", help="Start without synthetic demo documents")
     parser.add_argument("--provider", choices=("mock", "ollama", "openai"), default=None)
     parser.add_argument("--demo", action="store_true", help="Explicit offline synthetic demo only")
@@ -648,6 +653,17 @@ def main(argv: list[str] | None = None) -> int:
     service_factory = None
     provider_registry = ProviderRegistry(include_mock=not (args.real_sources or not (args.demo or args.empty_index)))
     try:
+        research = None
+        if args.research_policy or args.enable_live_research:
+            if not real_mode:
+                raise ValueError("Regional source policy cannot use synthetic/demo mode")
+            if args.enable_live_research:
+                from .live_research import LiveResearchService
+                research=LiveResearchService.from_reviewed_policy(
+                    args.research_policy or Path('docs/innlandet-research.json'),enabled=True)
+            else:
+                from .research import ResearchService
+                research = ResearchService.from_reviewed_policy(args.research_policy)
         if real_mode:
             selected_provider = args.provider or "ollama"
             if args.fallback_to_mock or selected_provider == "mock":
@@ -656,9 +672,10 @@ def main(argv: list[str] | None = None) -> int:
             approval_path = args.approvals or Path("docs/approved-service-pages.json")
             from .real_sources import create_municipal_service
             service = create_municipal_service(catalog_paths, approval_path, model=args.model,
-                timeout=args.ollama_timeout, provider=selected_provider)
+                timeout=args.ollama_timeout, provider=selected_provider, request_sources=research)
             service_factory = lambda selected, model: create_municipal_service(
-                catalog_paths, approval_path, model=model, timeout=args.ollama_timeout, provider=selected)
+                catalog_paths, approval_path, model=model, timeout=args.ollama_timeout, provider=selected,
+                request_sources=research)
             portal = PortalService(service, index=service.index)
         else:
             if args.catalog or args.approvals:
@@ -675,7 +692,9 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("Provider/catalog validation failed; no synthetic fallback. Use --demo only for offline testing.")
     try:
         with create_server(port=args.port, service=service, portal=portal,
-                           service_factory=service_factory, provider_registry=provider_registry) as server:
+                           service_factory=service_factory, provider_registry=provider_registry,
+                           chat_backend=ChatBackend(research_service=research,
+                               web_authorized=True if args.enable_live_research else None)) as server:
             print(f"Hamar KommuneAgent: http://127.0.0.1:{server.server_port} (provider: {service.provider})", flush=True)
             server.serve_forever()
     except KeyboardInterrupt:

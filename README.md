@@ -1085,3 +1085,409 @@ commit/tag/publication separately. No cleanup, all-branch push or tag overwrite.
 The current final static inventory is `output/aisha-research-readiness-b83678c4/delivery-final-v3/delivery-inventory.json`; earlier preparation inventories retain their own source hashes.
 
 Final three-turn boundary correction: municipal admission and research selection share the latest-substantive-user resolver. Water/parking sequences through Og prisen? stay zero-observation/zero-model for both providers. Current source-bound results: `output/aisha-research-readiness-b83678c4/full-boundary-repaired-suite.log`, `output/aisha-research-readiness-b83678c4/baseline-final/`, `output/aisha-research-readiness-b83678c4/research-final/`. Earlier snapshots/results remain immutable.
+
+### Innlandet policy loading and 46-place offline preparation — 2026-11-13
+
+**Production source access remains OFF. The real 46-municipality roster, numbers
+and individual official domains are NOT VERIFIED.** The owner supplied the
+Innlandet county directory and SSB regional-division references; no external
+lookup was performed in this phase because the requested narrow network exception
+has not been granted. `docs/innlandet-research.json` therefore honestly contains
+no municipality, authority or source records and carries `NOT VERIFIED`. No domain
+is guessed or activated. This phase is not complete real Innlandet coverage.
+
+The new combined policy loader reuses `ResearchService`, the existing prepared
+transport and both actual provider adapters. The optional `--research-policy`
+argument loads one shared policy into municipal search/answers, general chat and
+the provider/model switch factory. `fetcher` stays `None`; neither this argument
+nor an environment search flag enables source acquisition. The following startup
+example is prepared, not executed in this phase:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web --research-policy docs/innlandet-research.json
+```
+
+Municipal questions still require the selected municipality's exact reviewed host
+and tier1 excerpts. Tier2 authorities and tier3 individually permitted sources
+cannot replace missing municipal conditions or mask an outage. Independent
+general questions exclude municipal sources; approved tier2 sources precede tier3
+sources. A general-only policy can load while municipal verification is pending,
+but must contain no municipality records or municipality-bound sources. Ordinary
+chat remains independent. GPT-4.1 mini uses the existing explicit cloud selection
+and separate paid/privacy/source-processing permissions; no paid fallback or SDK
+web-search tool is enabled. Tests use mocked `gpt-4.1-mini` and Ollama adapters,
+not genuine model calls.
+
+The single new manifest has schema version1, region `Innlandet`, `verification`,
+`municipalities`, `public_authorities` and `sources`. Duplicate/unknown fields,
+nonfinite/deeply nested JSON and files over512KiB are rejected. The legacy small
+registry loader retains its64KiB contract and optional municipality-number field.
+For `REVIEWED` municipal status, all of the following are mandatory:
+
+- Exactly46 distinct four-digit Innlandet numbers, names and exact hosts, matched
+  against a separate46-row authoritative membership projection. Jevnaker and
+  Lunner are rejected. Each municipality retains its slug ID and adds
+  `municipality_number`; aliases and ambiguity requirements remain explicit.
+- Current canonical `YYYY-MM-DD` review/expiry dates, hashes of both supplied
+  authority references, and an individually reviewed domain attribution to the
+  county directory. `municipality_evidence_digest` binds number/name/host/reference;
+  `policy_digest(municipalities)` binds the complete recorded roster. These
+  canonical UTF-8 sorted-key JSON hashes bind recorded decisions, not external
+  truth. An independent reviewer must compare every row to the actual authorities.
+- Exact source URL/paragraph approvals and separate reuse, full-response
+  non-personal-input and external-processing decisions. Tier2 additionally needs
+  an exact reviewed authority host with evidence and current dates. Source expiry
+  cannot exceed its municipality, authority or reviewed-roster expiry.
+
+Raw HTML remains outside the permitted full-document `text/plain` boundary.
+Filtering received HTML is not a no-processing guarantee. A verified homepage or
+municipality directory entry is not permission to fetch its pages. The prepared
+HTTPS transport remains unused until exact page/robots access, non-personal input
+and rights are separately approved. Existing DNS/IP pinning, TLS, redirect refusal,
+robots, byte/rate/deadline limits, request receipts, exact-quote checks, source
+conflict refusal, generated-output budgets and bounded kill-switch behavior remain.
+Real transport, fresh municipal facts, paid inference and native browser rendering
+are NOT VERIFIED by this phase.
+
+Region-qualified short changes now retain their topic and selected municipality;
+the regional search projection validates geography before removing the approved
+`Innlandet` qualifier from legacy topic terms. `Våler i Østfold` remains rejected.
+The existing eight-turn municipal conversation bound is unchanged. UI assets,
+pink return buttons, manual model choice, drafts and history are unchanged.
+
+Actual evidence is in `output/innlandet-46-20261113-7648640d/`:
+590 full offline methods, zero failures/errors and one explicit skip requiring the
+unverified real roster;24 Node VM/DOM groups passed. This run used Python3.13.7 and
+Node24.14.0; Python3.12 was not rerun in this phase. The46 invented policy records
+exercise both adapters through chat, municipal search/answer and short municipality
+changes, including a region-required record. This is scale/control evidence, not
+verification of46 real municipalities. The actual-roster test will exercise every
+reviewed real record through both paths once verification is authorized/completed.
+The existing20 general and34 regional research contracts are also reproduced;
+their deterministic results are not semantic accuracy or real-network evidence.
+
+Genuine failures are retained: the extended municipal test initially reused one
+session beyond the eight-turn bound (16 failed subcases; corrected test setup,
+no bound removal). Independent review then identified region-qualified routing
+and mixed-format expiry defects:3 focused methods recorded12 failed subcases,
+then the identical3 methods passed after repair. `red-snapshot/` preserves the
+pre-repair code/hashes. `offline-final.log` is the current full run; `research-final/`
+records the current research run and `delivery-final/` its matching static inventory.
+`frozen/manifest.json` and the separate
+Verifier receipt identify the matching reviewed snapshot; absent review/permission
+must never be relabelled as acceptance. All prior logs remain untouched.
+
+Reproduce offline into a **new** destination, without installing anything:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.offline_tests --output output/NEW-46-offline.log
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --output output/NEW-46-research
+node harness/browser_smoke.cjs --unit
+```
+
+### 2026-11-13: reviewed 46-municipality register and controlled live research
+
+This later owner-authorized phase supersedes the preceding phase's pending
+network permission and empty-register status. It does **not** establish successful
+production acquisition. Work remains uncommitted on `exam/final` at `d018c2b`.
+
+`docs/innlandet-research.json` now records exactly46 distinct Innlandet numbers,
+names and individually attributable official hosts, reviewed2026-11-13 and
+expiring2026-12-13. Membership was compared with the county directory and SSB's
+**2026** classification (version3262), not its future2027 version. Jevnaker and
+Lunner are excluded; Våler's SSB qualification and ambiguous Os/Våler names are
+retained. Each county link was checked individually; only observed redirects
+were used, including Østre Toten's `www.ototen.no`. Reference digests bind reviewed
+non-personal projections, not retained raw HTML or proof of Internet truth.
+
+The complete46-row report and original evidence are in
+`output/innlandet-live-20261113-2a365fc1/`; independent attribution evidence is in
+`output/innlandet-live-verifier-6cabf1a13b64/official-46-attribution-web.json`.
+The web tool produced37 page views and9 errors. Official county links establish
+domain affiliation for all46; failed views do not establish site reachability.
+Web-tool views can be cached and are not fresh application HTTP observations.
+
+The separate `LiveResearchService` reuses the existing registry, research index,
+request-bound source verification, municipal workflow, adapters and run controls.
+Loading `--research-policy` alone still performs no live acquisition. Explicit
+`--enable-live-research` composes the same live service into chat, municipal
+search/answer and model switches. Each applicable question starts a private,
+fresh source request with a new nonce; there is no stale-cache fallback. Ordinary
+unrelated chat stays independent. Bare SFO, barnehage and kulturskole questions,
+prices and short price/municipality follow-ups require sources or return guidance
+before generation. Missing, ambiguous or foreign municipalities fail closed.
+
+Acquisition follows bounded same-host links and safe GET search forms using
+canonical service terms, never raw user messages. The relevant exact municipal
+host is first, then reviewed county/SSB hosts if needed. Optional schema2
+`supplementary_sites` require individually reviewed exact URLs and remain empty
+in the supplied policy. Other sources cannot replace absent municipal fee terms.
+This is bounded site discovery, not an unrestricted search-engine integration.
+
+The transport pins validated public DNS addresses with hostname-checked TLS,
+rejects redirects, credentials, private/mapped addresses and unapproved hosts,
+and enforces fresh robots, Crawl-delay before content, deadlines, byte/request
+budgets, revocation and publication controls. Limits include8 GETs per question,
+512KiB per HTML response,1MiB aggregate,2-second minimum per-host spacing and a
+90-second run deadline. HTML is parsed inertly, without scripts, assets or forms
+being executed. Structural/text limits reject parser amplification; navigation,
+contact sections, personal-name/contact patterns and suspicious instructions are
+excluded. Only bounded filtered service units enter the private index. This is
+conservative heuristic filtering, **not** a general anonymity or semantic-safety
+guarantee. Raw HTML is not retained; these dynamically admitted excerpts are not
+misrepresented as manually reviewed full-document non-personal input.
+
+Source receipts distinguish actual `retrieved_at`, publisher-provided publication
+and update dates, HTTP Last-Modified, and the effective fee/deadline period.
+Unknown dates stay unknown. Recent retrieval never proves current facts. Fee
+clauses must support the requested period; unrelated current school-year text
+does not renew old fees. Conflicting literal amounts or insufficient question
+support prevent publication. Exact citations/quotes are checked independently of
+generation; this does not establish truth or detect every semantic contradiction.
+The UI displays retrieval/publication/effective-period information safely while
+retaining model choice, conversation history and pink return buttons.
+
+Local Ollama can consume admissible filtered units. External processing of live
+HTML excerpts is denied before retrieval by default. It requires an explicit
+trusted policy for the exact source URL and filtered-text hash in addition to
+existing privacy, supplier and paid-provider permissions. There is no blanket
+CLI/environment cloud grant. Mocked OpenAI positives exercise this policy hook;
+no real OpenAI call was made.
+
+Actual validation:626 offline test methods passed with zero failures/errors/skips,
+using Python3.13.7;25 Node VM/DOM groups passed with Node24.14.0. Both mocked model
+adapters exercise all46 identities, source errors, V-01 routing, conflicts,
+injection, SSRF, receipts, dates, privacy and cancellation. The deterministic
+research campaign also passed20 general and34 regional contracts (44 regional
+requests). These are control tests, not real-model accuracy measurements or
+native-browser verification. Failed/intermediate runs and exact pre-repair
+snapshots are retained. `frozen/manifest.json` binds the final source snapshot;
+the separate Verifier receipt records its independent review and scope. Review
+of uncommitted files remains provisional pending human acceptance.
+
+**Actual application network result: FAIL in this runtime.** After offline checks,
+one real LiveTransport attempt reached DNS and connection admission for
+`https://www.hamar.kommune.no/robots.txt` at2026-11-13T11:47:09Z, then failed with
+`PermissionError: [WinError 10013]`. No HTTP body or successful source observation
+was obtained; no model or paid call occurred. The application refused with
+`research_unavailable`. `actual-live-probe-1.json` records this result. This is an
+execution-environment egress restriction, not missing owner network permission;
+no bypass was attempted. Successful production acquisition, actual site-format
+coverage, model answer quality, semantic conflict completeness, native browser,
+Python3.12 and clean-clone execution remain **NOT VERIFIED**. The production
+mission is **not complete** while this positive network proof is missing.
+
+Reproduce offline into new destinations without installations:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.offline_tests --output output/NEW-live-offline.log
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --output output/NEW-live-research
+node harness/browser_smoke.cjs --unit
+```
+
+In a runtime legitimately permitted outbound HTTPS, the already authorized
+source-only check makes no inference or paid SDK call:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --live-sources --research-policy docs/innlandet-research.json --query "Hva koster SFO i Hamar?" --output output/NEW-live-proof
+```
+
+The controlled startup command below is prepared, not certified or launched by
+this phase; local inference still needs an already available local model:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web --research-policy docs/innlandet-research.json --enable-live-research --provider ollama
+```
+
+### 2026-11-13: Hamar SFO discovery repair and diagnostic continuation
+
+The owner subsequently ran the source-only probe from ordinary PyCharm:
+`output/NEW-live-proof/live-source-probe.json` recorded
+`research_no_official_sources` after25.963s, with no model/paid calls and no
+remaining workers. The owner separately confirmed HTTP200 for Hamar robots.
+This supersedes any implication that the application failure in that runtime was
+merely TCP connectivity. The old sandbox WinError10013 evidence is preserved;
+its restriction was not bypassed or repeatedly probed.
+
+The original failed report lost discovery receipts, so it cannot establish its
+exact URL sequence. Independent official web views and synthetic counterexamples
+identified concrete blockers: capitalized service-question links such as
+`Hva koster SFO?` were screened out; an explicit price year in a separate heading
+was lost before individual fee rows reached relevance/freshness checks. Raising
+search depth alone would not repair either defect. The fix keeps bounded native
+GET search/discovery, prioritizes newly discovered service-price links and
+retains the existing host, robots, request, byte and deadline limits.
+
+Filtered evidence can now be a **deterministically normalized service unit**:
+exact service heading, price-period heading, complete grade/condition label and
+fee row from the same page, separated with ` | `. It is not misrepresented as
+one contiguous original paragraph. Years never come from retrieval/publication.
+Heading/section boundaries and unknown labels reset scope; explicit old row
+years, other services, wrong grades and hel/halv place mismatches refuse.
+Conditional5–7-grade entitlements preserve the complete condition. Individual
+fee rows are not calculated totals; supplements and eligibility still need
+checking at the source.
+
+Independent review caught a new HIGH error during this repair: `Gratis` could
+inherit4thgrade across an unrecognized extended5–7-grade label. It was reproduced
+for both mock adapters, repaired and covered by positive last-unit-selection
+regressions. A MEDIUM literal-conflict defect caused by long normalized heading
+prefixes was also reproduced and repaired using the full bounded prefix digest.
+Invalid visible publisher dates now produce controlled source errors. Explicit
+`div/section role="main"` is supported without admitting ambiguous/void roots.
+An SFO acronym after a preposition no longer hides the later actual municipality;
+unknown locations still refuse.
+
+Every post-discovery refusal now retains bounded, metadata-only diagnostics:
+reviewed host, URL digest, successful response hashes/counts, fixed parser/stage
+codes and rejection counters. Unadmitted URL paths, labels, names and raw HTML
+are excluded. Successful receipts expose the same diagnostic decisions. The
+source-only report also binds Python version, policy hash and source-file hashes.
+
+Current evidence is in `output/innlandet-discovery-20261113-3340a7ff/`:
+635 full offline methods pass with zero failures/errors/skips;25 Node groups and
+20 general/34 regional scripted contracts pass. The unchanged real46 register is
+still covered by both mock adapters. An actual production startup with
+`--enable-live-research --provider ollama --port8767` bound127.0.0.1 and printed
+its ready URL; it was deliberately terminated after6s with no HTTP/source request
+or generation. The preceding port0 attempt correctly failed CLI validation and
+is retained as a probe-assumption error. Startup does not certify model inference.
+The final frozen manifest and separate independent receipt bind the review.
+
+**Successful actual acquisition of admissible SFO information is still NOT
+VERIFIED for this repair until a fresh, version-bound source report succeeds.**
+The old HTTP200 robots observation does not prove price extraction. The exact
+command below is for the owner's HTTPS-enabled ordinary PyCharm terminal; no
+new permission, install, model or paid call is needed. Use new output paths:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --live-sources --research-policy docs/innlandet-research.json --query "Hva koster SFO i Hamar?" --output output/NEW-hamar-sfo-fixed
+```
+
+After Hamar, the following limited representative source-only checks are prepared
+and **NOT EXECUTED/NOT VERIFIED** here. Each independently repeats fresh robots
+and bounded retrieval, never a source cache or model call:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --live-sources --research-policy docs/innlandet-research.json --query "Hva koster barnehage i Gjøvik?" --output output/NEW-gjovik-barnehage-fixed
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --live-sources --research-policy docs/innlandet-research.json --query "Hva koster kulturskole i Lillehammer?" --output output/NEW-lillehammer-kulturskole-fixed
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --live-sources --research-policy docs/innlandet-research.json --query "Hva koster SFO i Østre Toten?" --output output/NEW-ostre-toten-sfo-fixed
+```
+
+Interpret `success`, `error_code`, `source_diagnostics`, `source_receipts`, version
+hashes and the three separate date/period concepts together. Failures never
+authorize invented prices, unreviewed domains, sandbox bypass or stale fallback.
+Actual acquisition/site-format coverage, real model quality and native browser
+rendering remain outside the offline PASS. No production-completion claim follows.
+
+Follow-on freeze v2 supersedes the provisional635-method snapshot above:
+**636/636 offline methods pass with no failures/errors/skips.** Additional red
+controls found that overlong group labels could disappear and that subordinate
+headings such as `Enkeltdag` could be omitted. Every new group boundary now resets
+scope before length screening; overlong extracted blocks produce an explicit
+scope barrier. Complete subordinate condition headings survive even when a fee
+row already has its own year. Formatting-only whitespace is handled separately.
+These fixes and new positive/negative regressions are bound in `frozen-v2/`, with
+its own matching independent Verifier receipt; `frozen/` and earlier results are
+preserved. Actual post-fix source acquisition remains NOT VERIFIED until the
+version-bound ordinary-terminal probe succeeds.
+
+The final v2 cohort is **637/637 offline methods, no failures/errors/skips**.
+The last independent counterexample placed a grade condition *above* the price
+or service heading. Monetary units now retain the **entire active safe heading
+ancestor chain**, including those parent conditions; selective heading subsets
+are never used. Both adapters' positive5thgrade and negative4thgrade regressions
+cover this, including a row with its own explicit year. This supersedes the
+preceding636-method intermediate cohort; all old evidence remains intact.
+
+Final discovery freeze **v3** supersedes v2, whose independent review correctly
+remained FAIL after finding one conditional heading still omitted. The context
+rule is now unconditional for **all** service units: preserve every active safe
+heading and group with the row, even one heading or a self-dated statement.
+Rejected/overlong ancestor headings remain explicit blocked scope markers through
+descendants. Unknown group scope refuses fees, hours, deadlines and general rules
+alike; known publisher-date metadata remains separate. The final cohort is
+**641/641 offline methods with no failures/errors/skips**, including50 live-source
+methods. `frozen-v3/` and its matching independent receipt govern this version;
+v1/v2 failures and intermediate green cohorts are retained. Actual final-module
+startup readiness is in `actual-startup-v6.json`. Current actual extraction and
+representative site coverage remain NOT VERIFIED without ordinary-terminal proof.
+
+## Reopened HIGH findings: local repair freeze (2026-11-13)
+
+This section supersedes V3 acceptance above. The four reopened HIGH findings
+invalidate its publication approval; no commit or push has been made. Current
+local work remains on `exam/final` at
+`d018c2b092794f638716e4a28085d68664480be2`. The owner reports the published chain
+`d018c2b -> c312ca3 -> f9413fc72524cc7d2f5a7fc8ba003b0f1d3a38bc`.
+The two newer commit objects are unavailable in this runtime: local `cat-file`
+fails and HTTPS access to origin fails. The cached remote ref is stale. Their
+contents, authors, committers and actual hosting push actor are **NOT VERIFIED**;
+authorship would not by itself identify who pushed. Integration is **BLOCKED**,
+not completed or inferred. Both local and upstream CHANGELOG additions must
+survive the eventual three-way integration against the shared d018c2b base.
+
+The local fixes cover:
+
+- V-01b: nursing-home and other municipal fee/condition questions require
+  sources before model dispatch, including unsupported services. Shared detail
+  vocabulary also resolves short fee/rule follow-ups and municipality changes.
+  A newer hours/deadline/application request cannot use the earlier price.
+  General definitions, private travel and ordinary software help retain their
+  general route.
+- V-02b: native and ARIA semantic containers isolate local headings, price
+  periods and publication dates. Inherited parent conditions remain immutable;
+  a child heading cannot remove them or a blocked ancestor.
+- V-02c: unresolved footnote markers, superscripts and note links cause refusal
+  of the marked unit. The application does not publish the price after silently
+  removing its condition, and does not claim automatic footnote interpretation.
+- V-03b: normalized lowercase, Unicode and invisible-character variants pass
+  through the same privacy screening. Whole service fields must additionally
+  match narrow public-service forms; a bag of permitted words is insufficient
+  to admit a person record. Unknown forms refuse before either adapter. This
+  deliberately narrows format coverage; it is not a general anonymity guarantee.
+
+Evidence is under `output/aisha-highfix-20261113-6edd00f0/`. The final guarded
+offline suite passes **653/653 methods, zero failures/errors/skips**;25 Node
+VM/DOM groups and20 general/34 regional scripted contracts also pass. The four
+negative API cases are checked against both mocked adapters with zero model
+calls. All46 unchanged registry records retain prior independent verification;
+all46 have synthetic routing/source tests, not46 actual production site tests.
+Intermediate failing candidates, their exact source copies, reopened Verifier
+counterexamples and old V3 evidence remain preserved.
+
+The latest version-bound actual Hamar SFO source-only probe is
+`actual-source-final/live-source-probe.json`: **success=false**, controlled
+`research_unavailable`, transport `PermissionError`, `WinError10013`, no HTTP
+body received, no remaining workers and zero model/paid calls. The earlier
+candidate probe is retained separately. The live transport/parser file matches
+the new local freeze; the classifier subsequently gained the procedural-follow-up
+fix. This is not a final-snapshot HTTP success. No sandbox bypass was attempted.
+Actual extraction and representative production coverage remain **NOT VERIFIED**.
+Run this exact source-only command in the ordinary HTTPS-enabled PyCharm terminal
+from the project root, using a fresh output destination:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m harness.research_eval --live-sources --research-policy docs/innlandet-research.json --query "Hva koster SFO i Hamar?" --output output/NEW-hamar-sfo-highfix
+```
+
+The obsolete `output/aisha-publish-3a0655fe4b44/publish_reviewed.py` is replaced
+with an unconditional refusal stub performing no Git operations. Its original
+versions are archived in the new evidence directory. No old V3 command can be
+used as the new publication workflow. The required future parent is f9413fc;
+publication requires an integrated snapshot and its new independent PASS.
+
+The new **local-only, NOT FOR PUBLICATION** freeze is
+`output/aisha-highfix-20261113-6edd00f0/frozen-local-v1/manifest.json`.
+It binds the exact source copies, patches, tests and preservation checks; its
+separate Verifier receipt cannot be treated as approval of unavailable remote
+changes. To unblock inspection of the published commits, the owner can run:
+
+```powershell
+git -c safe.directory=C:/Users/LINDA/PycharmProjects/innlandet-agentic-workflows-full-system-web fetch --no-tags origin exam/final
+```
+
+This fetch does not integrate files. After the objects are available, inspect
+both commits, preserve their bytes and journal entries, integrate without losing
+local work, rerun checks and freeze/review that integrated version. No paid call,
+installation, model download, tag or Git publication is authorized by this note.

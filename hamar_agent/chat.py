@@ -63,10 +63,9 @@ _DEFINE_BRIEFLY = '\nSvar med bare den relevante ordforklaringen. Ikke legg til 
 _CLARIFY_SYSTEM = ('Du er Aisha. Oppgaven din er å be om sammenheng, ikke forklare forkortelsen. '
     'Svar med ett kort spørsmål på norsk. Eksempel: Bruker: «Hva betyr XYZ?» '
     'Aisha: «I hvilken sammenheng har du sett forkortelsen?» Ikke foreslå betydninger. '+_CHAT_SAFETY)
-_MUNICIPAL_DETAILS = re.compile(r'\b(?:søk\w*|søknad\w*|pris\w*|koster|frist\w*|åpningstid\w*)\b',re.I)
 _LOCAL_SERVICE = re.compile(r'\b(?:parkering|drikkevann|vann|avløp|renovasjon|bibliotek|byggesak|sfo|skole|barnehage|luftkvalitet)\b',re.I)
 _LOCAL_PLACE = re.compile(r'\bhamar\b|\bkommun\w*\b',re.I)
-_SERVICE_TASK = re.compile(r'\b(?:koster|pris\w*|gebyr\w*|frist\w*|søk\w*|vilkår\w*|regler|vedtak|tjeneste\w*|tilbyr|åpningstid\w*)\b|hvor finner',re.I)
+_SOURCE_LOCATOR = re.compile(r'\btjeneste\w*\b|hvor finner',re.I)
 _MUNICIPAL_REFERRAL = ('Velg «Kommunal informasjon» for å finne kilder om dette. '
     'Uten oppdaterte, godkjente kommunale kilder kan jeg ikke bekrefte søknadsmåte, vilkår, priser eller frister.')
 _MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}\Z")
@@ -386,6 +385,7 @@ class ChatBackend:
         return self.instruction_plan(context)[0]
 
     def instruction_plan(self, context):
+        from .research import detail_request
         # Choose fixed instructions from effective user context, never promote
         # untrusted message text into system instructions or replace model answers.
         users=[m['content'] for m in json.loads(context)['messages'] if m['role']=='user']
@@ -413,30 +413,45 @@ class ChatBackend:
         base=CONTEXT_SYSTEM
         if selected:
             base+=_REFERENCE_HEADER+'\n'.join(value for key,value in MUNICIPAL_REFERENCE if key in selected)
-        if (topic=='municipal' or selected) and _MUNICIPAL_DETAILS.search(current):
+        if (topic=='municipal' or selected) and detail_request(current):
             return CONTEXT_SYSTEM,(),'municipal_details_need_sources'
         return base+(_DEFINE_BRIEFLY if definition else ''),selected,('explicit_other_topic' if topic=='other' else 'relevant_vocabulary' if selected else 'general')
 
     def effective_question(self,messages):
+        from .research import price_followup,DETAIL_INTENT,municipal_question
         current=messages[-1]['content']
         registry=getattr(self.research_service,'municipalities',None)
+        def followup(text):return bool(_FOLLOWUP.fullmatch(text) or price_followup(text))
         def place_only(text):
+            price=price_followup(text)
+            if registry is not None and price and price['place']:
+                return registry.resolve(text) is not None
             if registry is None or not re.match(r'\s*(?:og|hva\s+med)\b',text,re.I):return False
             residual=registry.strip_names(text)
-            if not re.fullmatch(r'\s*(?:og|hva\s+med)\s*(?:kommune)?\s*[?!.]?\s*',residual,re.I):return False
+            if not re.fullmatch(r'\s*(?:og|hva\s+med)\s*(?:kommune)?(?:\s+i\s+Innlandet)?\s*[?!.]?\s*',residual,re.I):return False
             return registry.resolve(text) is not None
         newest_place=current if place_only(current) else None
-        if not _FOLLOWUP.fullmatch(current) and newest_place is None:return current
-        prior=''
+        if not followup(current) and newest_place is None:return current
+        prior='';latest_detail=None
         for message in reversed(messages[:-1]):
             if message['role']!='user':continue
             text=message['content']
             if place_only(text):
                 if newest_place is None:newest_place=text
-            elif not _FOLLOWUP.fullmatch(text):
+            elif not followup(text):
                 prior=text;break
+            if latest_detail is None and price_followup(text):latest_detail=text
+        # Retain the topic, but let the latest explicit detail replace an older
+        # municipal price/deadline intent. A previous fee cannot answer hours.
+        current_detail=price_followup(current)
+        if (current_detail or latest_detail) and municipal_question(prior):
+            prior=DETAIL_INTENT.sub(' ',prior)
+        if not current_detail and latest_detail:prior=prior+' '+latest_detail
         if newest_place is not None:
-            prior=registry.strip_names(prior)+' '+newest_place
+            prior=registry.strip_names(prior)
+            prior=re.sub(r'\b(?:i\s+)?Innlandet\b',' ',prior,flags=re.I)
+            prior=re.sub(r'\b(?:i|for|fra)\s*[?!.]*\s*$',' ',prior,flags=re.I)
+            prior=prior+' '+newest_place
             if newest_place==current:return prior.strip()
         return (prior+' '+current).strip()
 
@@ -444,11 +459,12 @@ class ChatBackend:
         # Municipal detail needs an explicitly authorized, registered source plan.
         # Otherwise keep this zero-call guidance separate from model quality.
         current=self.effective_question(json.loads(context)['messages'])
-        from .research import municipal_question
-        if (json.loads(context).get('web_search',False) and municipal_question(current)
+        from .research import municipal_question,detail_request
+        automatic=bool(getattr(self.research_service,'automatic_municipal',False) and self.search_allowed())
+        if ((json.loads(context).get('web_search',False) or automatic) and municipal_question(current)
                 and self.research_service is not None and self.research_service.municipalities is not None):
             return None
-        local=bool(_LOCAL_PLACE.search(current) and _LOCAL_SERVICE.search(current) and _SERVICE_TASK.search(current))
+        local=bool(_LOCAL_PLACE.search(current) and _LOCAL_SERVICE.search(current) and (detail_request(current) or _SOURCE_LOCATOR.search(current)))
         if self.instruction_plan(context)[2]=='municipal_details_need_sources' or local or municipal_question(current):
             return {'text':_MUNICIPAL_REFERRAL,'citations':[],'web_search_used':False,'web_search_calls':0,
                     'response_origin':'application_guidance'}
@@ -472,7 +488,7 @@ class ChatBackend:
             if self._model(name)!=model:raise ChatError('provider_selection_invalid')
 
     def generate(self, request, context):
-        from .research import information_need
+        from .research import information_need,municipal_question
         provider = request['provider']
         if request['web_search'] and not self.search_allowed():
             raise ChatError('chat_search_unavailable', status=403)
@@ -482,7 +498,10 @@ class ChatBackend:
         binding=None
         instructions=self.instructions(context)
         generation_context=context
-        if request['web_search']:
+        question=self.effective_question(json.loads(context)['messages'])
+        automatic=bool(getattr(self.research_service,'automatic_municipal',False)
+            and municipal_question(question) and self.search_allowed())
+        if request['web_search'] or automatic:
             messages=json.loads(context)['messages']
             question=self.effective_question(messages)
             binding=self.research_service.prepare(question,provider=provider,authorized=self.search_allowed)
