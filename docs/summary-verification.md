@@ -58,3 +58,7 @@ On 2026-10-21, `ollama list` showed `llama3.2:3b` installed. The smoke invocatio
 - Correction: instantiate `OllamaCorrectionProvider()` and call `revise(source, claims, findings)`. It returns `CorrectionResult`; workflow enforces the one-revision policy.
 - Mock: `MockSummarizer` keeps its public interface and remains usable offline.
 - Do not send personal data or unapproved retrieved content to a model. Smoke source loading is restricted to approved synthetic fixtures.
+
+## Evaluation report update
+
+The deterministic verifier report now shows expected detections, missed labeled findings, recall, a clean synthetic control, and additional findings that have not been adjudicated. Additional findings are deliberately not called false positives without a labeled judgment. Run `python eval/evaluate_verification.py`. This measures synthetic verifier behavior only, not live model answer quality. Existing stress coverage includes a 1,000-claim adversarial batch in `eval/test_summary_verification.py`.

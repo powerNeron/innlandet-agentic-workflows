@@ -29,6 +29,39 @@ EXPECTED = {
 }
 
 
+def evaluate(source):
+    """Evaluate labeled synthetic failures and one clean negative control."""
+    clean_report = verify_response(source, MockSummarizer().response_payload(source))
+    cases = []
+    for scenario, expected in EXPECTED.items():
+        report = verify_response(source, MockSummarizer(scenario).response_payload(source))
+        actual = sorted({finding.code.value for finding in report.findings})
+        cases.append({
+            "scenario": scenario.value,
+            "expected_finding": expected,
+            "detected": expected in actual,
+            "actual_findings": actual,
+            "additional_findings_not_adjudicated": sorted(set(actual) - {expected}),
+            "missed_findings": [] if expected in actual else [expected],
+        })
+    detected = sum(case["detected"] for case in cases)
+    missed = sum(len(case["missed_findings"]) for case in cases)
+    additional = sum(len(case["additional_findings_not_adjudicated"]) for case in cases)
+    return {
+        "known_issue_cases": len(cases),
+        "detected_expected_findings": detected,
+        "missed_expected_findings": missed,
+        "recall": round(detected / len(cases), 3) if cases else 1.0,
+        "additional_findings_not_adjudicated": additional,
+        "clean_control": {
+            "finding_count": len(clean_report.findings),
+            "passed": not clean_report.findings,
+            "finding_codes": sorted({finding.code.value for finding in clean_report.findings}),
+        },
+        "cases": cases,
+        "limitation": "Synthetic injected-error detection only. Additional findings are not scored as false positives without adjudication; this is not semantic entailment, truth, or real-model quality.",
+    }
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--final-exam', action='store_true', help='Fixed synthetic full-workflow campaign; no real providers')
@@ -44,20 +77,10 @@ def main(argv=None) -> int:
     if args.output or args.plots or args.regression_log or args.baseline_observations:
         parser.error('Evidence options require --final-exam')
     source = load_source(SOURCE_ID)
-    cases = []
-    for scenario, expected in EXPECTED.items():
-        report = verify_response(source, MockSummarizer(scenario).response_payload(source))
-        detected = expected in {finding.code.value for finding in report.findings}
-        cases.append({"scenario": scenario.value, "expected_finding": expected, "detected": detected})
-    detected_count = sum(case["detected"] for case in cases)
-    print(json.dumps({
-        "source_id": SOURCE_ID,
-        "known_issue_cases": len(cases),
-        "expected_issue_detection_rate": round(detected_count / len(cases), 3),
-        "cases": cases,
-        "limitation": "Synthetic injected-error detection only; not a measure of model quality, semantic entailment, or truth.",
-    }, ensure_ascii=False, indent=2))
-    return 0 if detected_count == len(cases) else 1
+    report = evaluate(source)
+    report["source_id"] = SOURCE_ID
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report["missed_expected_findings"] == 0 and report["clean_control"]["passed"] else 1
 
 
 def percent(numerator, denominator):
