@@ -636,6 +636,9 @@ def main(argv: list[str] | None = None) -> int:
                         help="Reviewed Innlandet identities and exact source policy; never enables network access")
     parser.add_argument("--enable-live-research", action="store_true",
                         help="Explicit owner-authorized bounded official HTML research; no cloud source consent")
+    parser.add_argument("--enable-local-router", action="store_true",
+                        help="Opt in to one budgeted local Ollama classification helper; never grants source permissions")
+    parser.add_argument("--router-model", default="llama3.2:3b", help="Already installed local classification model; no downloads")
     parser.add_argument("--empty-index", action="store_true", help="Start without synthetic demo documents")
     parser.add_argument("--provider", choices=("mock", "ollama", "openai"), default=None)
     parser.add_argument("--demo", action="store_true", help="Explicit offline synthetic demo only")
@@ -653,6 +656,8 @@ def main(argv: list[str] | None = None) -> int:
     service_factory = None
     provider_registry = ProviderRegistry(include_mock=not (args.real_sources or not (args.demo or args.empty_index)))
     try:
+        from .question_router import QuestionRouter,LocalSemanticClassifier
+        question_router=QuestionRouter(LocalSemanticClassifier(args.router_model)) if args.enable_local_router else QuestionRouter()
         research = None
         if args.research_policy or args.enable_live_research:
             if not real_mode:
@@ -694,7 +699,7 @@ def main(argv: list[str] | None = None) -> int:
         with create_server(port=args.port, service=service, portal=portal,
                            service_factory=service_factory, provider_registry=provider_registry,
                            chat_backend=ChatBackend(research_service=research,
-                               web_authorized=True if args.enable_live_research else None)) as server:
+                               web_authorized=True if args.enable_live_research else None,question_router=question_router)) as server:
             print(f"Hamar KommuneAgent: http://127.0.0.1:{server.server_port} (provider: {service.provider})", flush=True)
             server.serve_forever()
     except KeyboardInterrupt:

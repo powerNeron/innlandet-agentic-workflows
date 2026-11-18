@@ -246,7 +246,7 @@ def offline(output):
         formula='Cases meeting exact expected HTTP/code/source/model/history contract / all executed cases *100',
         cases=list(cases),genuine_source_requests=0,genuine_model_calls=0,paid_calls=0,
         source_sha256={n:sha((ROOT/n).read_bytes()) for n in ('hamar_agent/research.py','hamar_agent/retrieval.py',
-            'hamar_agent/chat.py','hamar_agent/web.py','harness/research_eval.py')}))
+            'hamar_agent/chat.py','hamar_agent/question_router.py','hamar_agent/web.py','harness/research_eval.py')}))
     return success==len(rows)
 
 
@@ -394,7 +394,8 @@ def live_source_probe(output,policy_path,question):
     from hamar_agent.research import ResearchError
     from hamar_agent.run_control import run_scope,active_workers,RunStopped
     version_files=('hamar_agent/live_research.py','hamar_agent/research.py','hamar_agent/retrieval.py',
-        'hamar_agent/robots_policy.py','hamar_agent/run_control.py','hamar_agent/chat.py','harness/research_eval.py')
+        'hamar_agent/robots_policy.py','hamar_agent/run_control.py','hamar_agent/chat.py',
+        'hamar_agent/question_router.py','harness/research_eval.py')
     def source_version():return {name:sha((ROOT/name).read_bytes()) for name in version_files}
     policy_file=Path(policy_path) if policy_path is not None else None
     record=dict(method='Actual bounded LiveResearchService; no mocked network, provider or raw HTML persistence',
@@ -414,6 +415,11 @@ def live_source_probe(output,policy_path,question):
                 binding.assert_publishable()
                 record.update(success=True,municipality_id=binding.municipality.id,
                     source_receipts=list(binding.observations),transport=binding.receipt())
+                directories=[dict(source_id=a.source_id,url=a.url,kind=a.directory_kind,
+                    documented_names=[name for name,_,_ in a.directory_items],
+                    excerpt_sha256=sha(a.body),complete=False)
+                    for a in binding.approvals if getattr(a,'directory_kind',None)]
+                if directories:record['school_directories']=directories
                 owner.finish()
             except (ResearchError,RunStopped) as error:
                 record.update(success=False,error_code=error.code,source_diagnostics=list(getattr(error,'source_diagnostics',())))

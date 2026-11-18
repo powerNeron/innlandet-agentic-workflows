@@ -565,8 +565,9 @@ class RegionalStartupTests(unittest.TestCase):
             captured.update(kwargs)
             def stop():raise KeyboardInterrupt
             yield SimpleNamespace(server_port=8000,serve_forever=stop)
-        for live in (False,True):
+        for live,local_router in ((False,False),(True,False),(True,True)):
             args=['--research-policy',str(self.path),'--provider','ollama']+(['--enable-live-research'] if live else [])
+            if local_router:args+=['--enable-local-router','--router-model','llama3.2:3b']
             with patch('hamar_agent.real_sources.create_municipal_service',side_effect=service), \
                     patch('hamar_agent.web.create_server',side_effect=server),redirect_stdout(io.StringIO()):
                 self.assertEqual(main(args),0)
@@ -574,6 +575,8 @@ class RegionalStartupTests(unittest.TestCase):
             self.assertIs(captured['service'].request_sources,policy)
             self.assertIsNone(policy.fetcher);self.assertEqual(policy.configured(),live)
             self.assertEqual(captured['chat_backend'].search_allowed(),live)
+            self.assertEqual(captured['chat_backend'].question_router.classifier is not None,local_router)
+            self.assertEqual(captured['chat_backend'].policy().max_calls,2 if local_router else 1)
             for provider,model in (('ollama','llama3.2:3b'),('openai','gpt-4.1-mini')):
                 switched=captured['service_factory'](provider,model)
                 self.assertIs(switched.request_sources,policy)

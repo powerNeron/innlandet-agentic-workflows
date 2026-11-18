@@ -270,13 +270,24 @@ class ChatOllamaClient(OllamaClient):
 
 class ChatBackend:
     def __init__(self, *, choices_factory=None, client_factory=None, paid_authorized=None, web_authorized=None,
-                 advanced_authorized=None, research_service=None, openai_dispatch_authorized=None):
+                 advanced_authorized=None, research_service=None, openai_dispatch_authorized=None, question_router=None):
         self.choices_factory = choices_factory
         self.client_factory = client_factory
         self.paid_authorized = paid_authorized
         self.web_authorized = web_authorized
         self.advanced_authorized = advanced_authorized
         self.research_service = research_service
+        from .question_router import QuestionRouter
+        question_router=question_router or QuestionRouter()
+        if isinstance(question_router,QuestionRouter) and question_router.municipalities is None:
+            # Routing identity is useful even with search disabled. Reading the
+            # reviewed local roster grants neither transport nor source rights.
+            from pathlib import Path
+            from .research import load_research_policy
+            try:routing_registry=load_research_policy(Path(__file__).resolve().parents[1]/'docs/innlandet-research.json')[0]
+            except (OSError,ValueError,TypeError,KeyError):routing_registry=None
+            question_router.municipalities=routing_registry
+        self.question_router=question_router
         # Explicit trusted policy injection for deterministic mock fixtures. A
         # client factory alone must never bypass enabled/privacy authorization.
         self.openai_dispatch_authorized = openai_dispatch_authorized
@@ -357,8 +368,12 @@ class ChatBackend:
 
     def policy(self):
         original = RunPolicy.from_env()
+        # Opt-in local classification shares the same token/byte/time budget;
+        # it reserves one bounded call before the single answer call. Default
+        # chat retains its existing one-call ceiling.
+        calls=2 if getattr(self.question_router,'classifier',None) is not None else 1
         return RunPolicy(output_tokens=original.output_tokens, input_bytes=original.input_bytes,
-                         seconds=original.seconds, max_calls=1)
+                         seconds=original.seconds, max_calls=calls)
 
     def reserve_rates(self, page_attempts, now):
         # Caller also owns its application/session lock. All application instances
@@ -418,49 +433,27 @@ class ChatBackend:
         return base+(_DEFINE_BRIEFLY if definition else ''),selected,('explicit_other_topic' if topic=='other' else 'relevant_vocabulary' if selected else 'general')
 
     def effective_question(self,messages):
-        from .research import price_followup,DETAIL_INTENT,municipal_question
-        current=messages[-1]['content']
-        registry=getattr(self.research_service,'municipalities',None)
-        def followup(text):return bool(_FOLLOWUP.fullmatch(text) or price_followup(text))
-        def place_only(text):
-            price=price_followup(text)
-            if registry is not None and price and price['place']:
-                return registry.resolve(text) is not None
-            if registry is None or not re.match(r'\s*(?:og|hva\s+med)\b',text,re.I):return False
-            residual=registry.strip_names(text)
-            if not re.fullmatch(r'\s*(?:og|hva\s+med)\s*(?:kommune)?(?:\s+i\s+Innlandet)?\s*[?!.]?\s*',residual,re.I):return False
-            return registry.resolve(text) is not None
-        newest_place=current if place_only(current) else None
-        if not followup(current) and newest_place is None:return current
-        prior='';latest_detail=None
-        for message in reversed(messages[:-1]):
-            if message['role']!='user':continue
-            text=message['content']
-            if place_only(text):
-                if newest_place is None:newest_place=text
-            elif not followup(text):
-                prior=text;break
-            if latest_detail is None and price_followup(text):latest_detail=text
-        # Retain the topic, but let the latest explicit detail replace an older
-        # municipal price/deadline intent. A previous fee cannot answer hours.
-        current_detail=price_followup(current)
-        if (current_detail or latest_detail) and municipal_question(prior):
-            prior=DETAIL_INTENT.sub(' ',prior)
-        if not current_detail and latest_detail:prior=prior+' '+latest_detail
-        if newest_place is not None:
-            prior=registry.strip_names(prior)
-            prior=re.sub(r'\b(?:i\s+)?Innlandet\b',' ',prior,flags=re.I)
-            prior=re.sub(r'\b(?:i|for|fra)\s*[?!.]*\s*$',' ',prior,flags=re.I)
-            prior=prior+' '+newest_place
-            if newest_place==current:return prior.strip()
-        return (prior+' '+current).strip()
+        return self.question_router.resolve_context(messages,getattr(self.research_service,'municipalities',None))
 
-    def managed_reply(self, context):
+    def managed_reply(self, context, plan=None):
         # Municipal detail needs an explicitly authorized, registered source plan.
         # Otherwise keep this zero-call guidance separate from model quality.
         current=self.effective_question(json.loads(context)['messages'])
+        plan=plan or self.question_router.route(current,municipalities=getattr(self.research_service,'municipalities',None))
         from .research import municipal_question,detail_request
         automatic=bool(getattr(self.research_service,'automatic_municipal',False) and self.search_allowed())
+        if plan.kind=='clarify':
+            clarification=('Gjelder dette flere vilkår for tjenesten vi snakket om, eller et nytt tema? Presiser gjerne hva du vil vite.'
+                if plan.reason=='unresolved_sourced_follow_up' else
+                'Kan du presisere hva du vil vite, og eventuelt hvilken kommune det gjelder?')
+            return dict(text=clarification,
+                citations=[],web_search_used=False,web_search_calls=0,response_origin='application_guidance')
+        if plan.source_required:
+            has_geography=not plan.municipal or getattr(self.research_service,'municipalities',None) is not None
+            if has_geography and (json.loads(context).get('web_search',False) or automatic) and self.search_allowed():return None
+            return dict(text=_MUNICIPAL_REFERRAL if plan.municipal else
+                'Dette krever oppdaterte, godkjente kilder. Jeg kan ikke bekrefte opplysningene uten autorisert kildekontroll.',
+                citations=[],web_search_used=False,web_search_calls=0,response_origin='application_guidance')
         if ((json.loads(context).get('web_search',False) or automatic) and municipal_question(current)
                 and self.research_service is not None and self.research_service.municipalities is not None):
             return None
@@ -492,21 +485,29 @@ class ChatBackend:
         provider = request['provider']
         if request['web_search'] and not self.search_allowed():
             raise ChatError('chat_search_unavailable', status=403)
-        managed=self.managed_reply(context)
+        question=self.effective_question(json.loads(context)['messages'])
+        plan=self.question_router.plan(json.loads(context)['messages'],municipalities=getattr(self.research_service,'municipalities',None))
+        managed=self.managed_reply(context,plan)
         if managed is not None:
             return managed
         binding=None
         instructions=self.instructions(context)
         generation_context=context
-        question=self.effective_question(json.loads(context)['messages'])
         automatic=bool(getattr(self.research_service,'automatic_municipal',False)
-            and municipal_question(question) and self.search_allowed())
+            and plan.source_required and self.search_allowed())
         if request['web_search'] or automatic:
             messages=json.loads(context)['messages']
             question=self.effective_question(messages)
-            binding=self.research_service.prepare(question,provider=provider,authorized=self.search_allowed)
+            from .research import ResearchError
+            try:
+                binding=self.research_service.prepare(plan.canonical_question,provider=provider,authorized=self.search_allowed,
+                    require_municipal=plan.municipal)
+            except ResearchError as error:
+                if error.code!='research_no_sources' or plan.municipal or not plan.source_required:raise
+                return dict(text='Jeg har ingen godkjente kilder som dekker dette. Jeg kan ikke bekrefte opplysningene.',
+                    citations=[],web_search_used=False,web_search_calls=0,response_origin='application_guidance')
             instructions,generation_context=self.research_service.prompt(question,binding,messages[:-1])
-        elif information_need(request['message'])=='updated':
+        elif plan.source_required:
             return dict(text='For oppdatert informasjon må nettsøk være aktivert og godkjent. Jeg kan ikke bekrefte dette nå.',
                 citations=[],web_search_used=False,web_search_calls=0,response_origin='application_guidance')
         if self.client_factory:

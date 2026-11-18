@@ -535,7 +535,11 @@ class ResearchTests(unittest.TestCase):
                          'Forklar kjemiske egenskaper til vann.'):
             with self.subTest(question=question):
                 context=self.backend.context((),question,False)
-                self.assertIsNone(self.backend.managed_reply(context))
+                if 'flybilletter' in question:
+                    reply=self.backend.managed_reply(context)
+                    self.assertEqual(reply['response_origin'],'application_guidance')
+                    self.assertNotIn('Kommunal informasjon',reply['text'])
+                else:self.assertIsNone(self.backend.managed_reply(context))
 
     def test_v01_service_and_price_requests_without_sources_never_call_models(self):
         self.backend.research_service=None

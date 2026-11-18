@@ -46,6 +46,44 @@ PRIVACY_BYPASSES = (
 
 
 class ChatTests(unittest.TestCase):
+    def test_semantic_hint_cannot_downgrade_municipal_source_duty_or_enable_search(self):
+        from hamar_agent.question_router import QuestionRouter
+        hints=[]
+        def classify(question):hints.append(question);return dict(kind='general',confidence=1)
+        self.backend.question_router=QuestionRouter(classify)
+        for provider,model in (('openai','approved-model'),('ollama','llama3.2:3b')):
+            response=self.send('What are the nursing home fees in Hamar?',provider=provider,model=model,token=self.app._new_page_token())
+            self.assertEqual(response.status,200,response.body);self.assertEqual(self.calls,[]);self.assertEqual(hints,[])
+        self.backend.question_router=QuestionRouter(lambda q:dict(kind='current',confidence=1))
+        response=self.send('Tell me about the current situation.',token=self.app._new_page_token())
+        self.assertEqual(response.status,200);self.assertEqual(self.calls,[])
+        self.assertEqual(json.loads(response.body)['reply']['response_origin'],'application_guidance')
+
+    def test_opt_in_local_semantic_classifier_uses_existing_budget_and_not_cloud(self):
+        from hamar_agent.question_router import QuestionRouter,LocalSemanticClassifier
+        local=[]
+        def factory():
+            def wire(url,headers,body,timeout,limit):
+                local.append(json.loads(body))
+                return json.dumps(dict(message=dict(content=json.dumps(dict(kind='general',confidence=0.99))),done=True)).encode()
+            return ChatOllamaClient(OllamaConfig(model='llama3.2:3b',num_predict=128),transport=wire)
+        self.backend.question_router=QuestionRouter(LocalSemanticClassifier(client_factory=factory))
+        for provider,model in (('openai','approved-model'),('ollama','llama3.2:3b')):
+            self.calls.clear();local.clear()
+            response=self.send('Explain a new unfamiliar concept.',provider=provider,model=model,token=self.app._new_page_token())
+            self.assertEqual(response.status,200,response.body);self.assertEqual(len(self.calls),1);self.assertEqual(len(local),1)
+            self.assertEqual(self.calls[0]['state'].snapshot()['reservations'],2)
+            self.assertIn('format',local[0]);self.assertFalse(local[0]['stream'])
+
+    def test_invalid_semantic_output_produces_clarification_without_answer_dispatch(self):
+        from hamar_agent.question_router import QuestionRouter
+        for value in ({'kind':'general','confidence':False},{'kind':'general','confidence':0.2},
+                      {'kind':'general','confidence':1,'url':'https://127.0.0.1/'},{}):
+            self.backend.question_router=QuestionRouter(lambda q:value)
+            response=self.send('Explain this new term.',token=self.app._new_page_token())
+            self.assertEqual(response.status,200,response.body);self.assertEqual(self.calls,[])
+            self.assertEqual(json.loads(response.body)['reply']['response_origin'],'application_guidance')
+
     def setUp(self):
         self.process_window = ProcessRateWindow()
         guard = patch('hamar_agent.chat.PROCESS_WINDOW', self.process_window)
@@ -236,9 +274,9 @@ class ChatTests(unittest.TestCase):
                 with self.subTest(provider=provider,question=question):
                     token=self.app._new_page_token()
                     audits=[];original=self.backend.managed_reply
-                    def managed(context):
+                    def managed(context,*args,**kwargs):
                         audits.append(current_run())
-                        return original(context)
+                        return original(context,*args,**kwargs)
                     with patch.object(self.backend,'managed_reply',side_effect=managed), \
                          patch.object(self.backend,'client_factory',side_effect=AssertionError('No model or SDK client may be constructed')):
                         response=self.send(question,token=token,provider=provider,model=model)
@@ -268,9 +306,13 @@ class ChatTests(unittest.TestCase):
             with self.subTest(question=question):
                 response=self.send(question,token=self.app._new_page_token())
                 self.assertEqual(response.status,200)
-                self.assertTrue(json.loads(response.body)['reply']['ai_generated'])
-                self.assertNotIn('Oppgaven din er å be om sammenheng',self.calls[-1]['kwargs']['instructions'])
-        self.assertEqual(len(self.calls),4)
+                if question=='Hva koster reisen?':
+                    reply=json.loads(response.body)['reply']
+                    self.assertFalse(reply['ai_generated']);self.assertNotIn('Kommunal informasjon',reply['text'])
+                else:
+                    self.assertTrue(json.loads(response.body)['reply']['ai_generated'])
+                    self.assertNotIn('Oppgaven din er å be om sammenheng',self.calls[-1]['kwargs']['instructions'])
+        self.assertEqual(len(self.calls),3)
         token=self.app._new_page_token()
         self.assertEqual(self.send('Hva betyr MS?',token=token).status,200)
         self.assertEqual(self.send('Jeg mener en forkortelse i en presentasjonsfil.',token=token).status,200)

@@ -23,7 +23,7 @@ import uuid
 from .chat import validate_message, _screening_text
 from .html_extract import privacy_check, ExtractionError
 from .research import (ResearchApproval, ResearchBinding, ResearchError, ResearchExcerpt,
-                       ResearchService, load_research_policy, municipal_question,validate_supplementary_site,FEE_INTENT)
+                       ResearchService, load_research_policy, municipal_question,validate_supplementary_site,FEE_INTENT,school_overview)
 from .retrieval import _pinned_public_connection, _validate_url
 from .robots_policy import robots_interval
 from .run_control import bounded_tool_call, current_run
@@ -42,7 +42,7 @@ SERVICES = {
     'bibliotek': (('bibliotek',), 'kultur'),
     'renovasjon': (('renovasjon', 'avfall'), 'teknisk'),
     'kommuneplan': (('kommuneplan',), 'politikk'),
-    'skole': (('skole','grunnskol'), 'oppvekst'),
+    'skole': (('skole','grunnskol','barneskol','ungdomsskol'), 'oppvekst'),
     'helse': (('helse','helsetjenest','omsorg','folkehelse'), 'helse'),
     'miljo': (('miljø','miljo','luftkvalitet'), 'miljo'),
 }
@@ -200,6 +200,9 @@ class ServiceHTML(HTMLParser):
         self.scope_positions={}
         self.table_header='';self.row_header=False
         self.nodes=0;self.extracted_bytes=0
+        self.directory_links=[];self.directory_headings=[];self.directory_scopes={};self.directory_overflow=False
+        self.directory_inherited=();self.directory_excluded=set();self.directory_heading_starts={}
+        self.directory_rows={}
 
     def flush(self):
         if self.parts:
@@ -216,6 +219,19 @@ class ServiceHTML(HTMLParser):
             self.blocks.append(text)
             kind=next((tag for tag,_ in reversed(self.stack) if tag in ('h1','h2','h3','h4','h5','h6','p','tr','li')),'')
             self.block_kinds.append('barrier:'+kind if overflow else kind)
+            if re.fullmatch(r'h[1-6]',kind):
+                level=int(kind[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]
+                start=self.directory_heading_starts.pop(level,len(self.directory_links))
+                for i in range(start,len(self.directory_links)):
+                    href,label,eligible,context=self.directory_links[i]
+                    if text!=label:self.directory_links[i]=(href,label,eligible,(*context,(level,None if overflow else text)))
+                self.directory_headings.append((level,None if overflow else text))
+            elif text and not self.anchor and kind in ('p','li','tr') and not any(
+                    row['start']<len(self.directory_links) for row in self.directory_rows.values()):
+                if not re.fullmatch(r'(?:publisert|sist endret|sist oppdatert|oppdatert)\s*[:.]?\s*'+DATE_TOKEN+r'\s*\.?',text,re.I):
+                    # A standalone label/condition must not disappear between
+                    # the category heading and its institution records.
+                    self.directory_headings=[h for h in self.directory_headings if h[0]!=7]+[(7,None if overflow else text)]
 
     def active(self):
         return any(tag in ('main','article') or i in self.main_positions or i in self.article_positions for i,(tag,_) in enumerate(self.stack))
@@ -250,10 +266,19 @@ class ServiceHTML(HTMLParser):
         if semantic and not blocked and (active or article):
             self.flush();self.scope_event('scope_enter:'+semantic)
             self.scope_positions[len(self.stack)]=semantic
+            self.directory_scopes[len(self.stack)]=(tuple(self.directory_headings),self.directory_inherited)
+            self.directory_inherited=(*self.directory_inherited,*self.directory_headings);self.directory_headings=[]
         if tag=='table':self.table_header=''
         if tag=='tr':self.row_header=False
         if tag=='th':self.row_header=True
         if active and tag in ('p','li','tr','h1','h2','h3','h4','h5','h6'):self.flush()
+        if active and re.fullmatch(r'h[1-6]',tag):
+            level=int(tag[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]
+            self.directory_heading_starts[level]=len(self.directory_links)
+        if active and tag in ('p','li','tr','h1','h2','h3','h4','h5','h6') and not blocked:
+            self.directory_rows[len(self.stack)]=dict(start=len(self.directory_links),text='',dirty=False)
+        if role in ('navigation','banner','contentinfo','search') and tag not in self.VOID:
+            self.directory_excluded.add(len(self.stack))
         if tag in ('td','th','br') and active and not blocked:self.parts.append(' | ')
         if active and not blocked and (tag=='sup' or attrs.get('aria-describedby')
                 or re.search(r'(?:^|;)\s*vertical-align\s*:\s*super\b',attrs.get('style') or '',re.I)
@@ -261,7 +286,14 @@ class ServiceHTML(HTMLParser):
                     or set((attrs.get('rel') or '').casefold().split()) & {'footnote','noteref'}
                     or re.search(r'^#(?:.*(?:foot|note|fn)|\d)',attrs.get('href') or '',re.I))):
             self.parts.append(' * ')  # Explicit unsupported-note marker; this unit is refused, never cited.
-        if tag=='a' and not blocked:self.anchor=[attrs.get('href',''),[]]
+        if active and blocked and re.fullmatch(r'h[1-6]',tag):
+            level=int(tag[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]+[(level,None)]
+        if active and (blocked or tag=='sup' or attrs.get('aria-describedby')
+                or re.search(r'(?:^|;)\s*vertical-align\s*:\s*super\b',attrs.get('style') or '',re.I)):
+            for row in self.directory_rows.values():row['dirty']=True
+        if tag=='a' and not blocked:
+            eligible=active and bool(self.directory_rows) and not self.directory_excluded and not any(t in ('nav','header','form') for t,_ in self.stack)
+            self.anchor=[attrs.get('href',''),[],(eligible,(*self.directory_inherited,*self.directory_headings))]
         if tag=='form' and not blocked:
             self.form={'action':attrs.get('action',''),'method':attrs.get('method','get').casefold(),'field':None}
         if tag=='input' and self.form is not None and attrs.get('type','text').casefold() in ('text','search'):
@@ -272,10 +304,13 @@ class ServiceHTML(HTMLParser):
     def handle_endtag(self,tag):
         if tag in ('p','li','tr','h1','h2','h3','h4','h5','h6'):self.flush()
         if tag=='a' and self.anchor is not None:
-            href,parts=self.anchor
+            href,parts,context=self.anchor
             label=' '.join(''.join(parts).split())
             if self.active() and re.fullmatch(r'(?:\d{1,3}|[a-zA-Z*†‡])',label):self.parts.append(' * ')
             if len(self.links)<256:self.links.append((href,' '.join(''.join(parts).split())[:160]))
+            if context[0]:
+                if len(self.directory_links)>=256:self.directory_overflow=True
+                else:self.directory_links.append((href,label,*context))
             self.anchor=None
         if tag=='form' and self.form is not None:
             if self.form['method']=='get' and self.form['field'] and len(self.forms)<2:self.forms.append(self.form)
@@ -283,16 +318,26 @@ class ServiceHTML(HTMLParser):
         if tag=='table':self.table_header=''
         for i in range(len(self.stack)-1,-1,-1):
             if self.stack[i][0]==tag:
+                for position in sorted((p for p in self.directory_rows if p>=i),reverse=True):
+                    row=self.directory_rows.pop(position);row_text=' '.join(row['text'].split())
+                    for number in range(row['start'],len(self.directory_links)):
+                        href,label,eligible,context=self.directory_links[number]
+                        if row['dirty'] or row_text!=label:self.directory_links[number]=(href,label,False,context)
                 closing=[position for position in self.scope_positions if position>=i]
                 if closing:
                     self.flush()
                     for position in sorted(closing,reverse=True):
                         self.scope_event('scope_exit:'+self.scope_positions.pop(position))
+                        local,self.directory_inherited=self.directory_scopes.pop(position);self.directory_headings=list(local)
                 del self.stack[i:];self.main_positions={position for position in self.main_positions if position<i}
                 self.article_positions={position for position in self.article_positions if position<i};break
+        self.directory_excluded={position for position in self.directory_excluded if position<len(self.stack)}
 
     def handle_data(self,data):
         if any(item[1] for item in self.stack):return
+        for row in self.directory_rows.values():
+            if len(row['text'])+len(data)>300:row['dirty']=True
+            elif not row['dirty']:row['text']+=data
         if self.anchor is not None:self.anchor[1].append(data)
         if (self.active()
                 and not any(item[0] in ('nav','header','form') for item in self.stack)):
@@ -312,6 +357,78 @@ class ServiceHTML(HTMLParser):
         if parser.main_roots>1 or not parser.main_roots and parser.article_roots>1:
             parser.blocks=[]  # Discovery may continue, but ambiguous bodies are never evidence.
         return parser
+
+
+_SCHOOL_HEADINGS={
+    'barneskoler':'barneskole','barneskolene':'barneskole','kommunale barneskoler':'barneskole',
+    'ungdomsskoler':'ungdomsskole','ungdomsskolene':'ungdomsskole','kommunale ungdomsskoler':'ungdomsskole',
+    'skoler':'skole','skolene':'skole','grunnskoler':'skole','grunnskolene':'skole',
+    'skoler i kommunen':'skole','kommunale skoler':'skole',
+}
+_SCHOOL_NAV=frozenset((*_SCHOOL_HEADINGS,'skole','barnehage og skole','skole og utdanning','oppvekst og utdanning'))
+_DIRECTORY_QUERY_WORDS=frozenset(('hva heter hvilke finnes kan du alle i kommunen kommune innlandet gi meg vis en liste '
+    'oversikt over list opp og er det dette listen oversikten komplett fullstendig nå dag dagens oppdatert').split())
+
+
+def school_directory_query_supported(question,municipality):
+    text=_screening_text(question)
+    for name in (municipality.name,*municipality.aliases):
+        text=re.sub(r'(?<!\w)'+re.escape(name)+r'(?!\w)',' ',text,flags=re.I)
+    words=re.findall(r'\w+',text.casefold())
+    return all(word in _DIRECTORY_QUERY_WORDS or re.fullmatch(r'(?:barne|ungdoms|grunn)?skol(?:e|en|er|ene)',word)
+               for word in words)
+
+
+def school_directory(parsed,url,municipality,kind):
+    """Typed institutional link fields only; never relax ordinary text/privacy admission.
+
+    The categorical heading and same-host institution URL are mandatory. A school
+    name is not a person narrative. Unknown types/contexts are omitted, and every
+    result is explicitly partial; neither HTML structure nor an SFO list proves
+    that the municipality's primary-school population has been exhausted.
+    """
+    if parsed.directory_overflow:raise ResearchError('research_source_limit')
+    if (municipality is None or urlsplit(url).query or not parsed.blocks
+            or parsed.main_roots>1 or not parsed.main_roots and parsed.article_roots!=1):return ()
+    records={}
+    for href,label,active,headings in parsed.directory_links:
+        if not active:continue
+        category=None;unknown=False
+        for _,heading in headings:
+            if heading is None:unknown=True;continue
+            text=' '.join(heading.casefold().strip(' :').split())
+            text=re.sub(r'\s+i\s+'+re.escape(municipality.name.casefold())+r'$', '',text)
+            # Nearest heading is authoritative; unknown/private/closed/contact
+            # subsections cannot inherit a preceding primary-school category.
+            if text in _SCHOOL_HEADINGS:category=_SCHOOL_HEADINGS[text]
+            elif text not in _SCHOOL_NAV|{'tjenester','oppvekst'}:unknown=True
+        if unknown or category is None:continue
+        if (not 6<=len(label)<=100 or _screening_text(label)!=label
+                or CONTACT.search(label) or re.search(r'[*†‡\d_<>\[\]{}:/\\]',label)):continue
+        if not re.fullmatch(r"[^\W\d_]+(?:['’-][^\W\d_]+)*(?: [^\W\d_]+(?:['’-][^\W\d_]+)*){0,5} (?:skole|barneskole|ungdomsskole|oppvekstsenter)",label,re.I):continue
+        if re.search(r'\b(?:ignore|ignorer|system|assistant|instruks\w*|instruction\w*|prompt|override|hemmelig\w*|secret\w*|returner)\b',label,re.I):continue
+        named_type=re.search(r'\b(barneskole|ungdomsskole)$',label,re.I)
+        if named_type:
+            if category!='skole' and category!=named_type[1].casefold():continue
+            category=named_type[1].casefold()
+        if kind!='skole' and category!=kind:continue
+        try:privacy_check(label);validate_message(label,reply=True)
+        except ValueError:continue
+        target=urljoin(url,href)
+        try:safe_url(target,{municipality.official_host})
+        except (ResearchError,ValueError):continue
+        path=unquote(urlsplit(target).path).strip('/').casefold().split('/')
+        if not any(part in ('skole','skoler','barneskoler','grunnskoler','ungdomsskoler') for part in path[:-1]):continue
+        slug=re.sub(r"['’]",'',label.casefold()).replace(' ','-')
+        short=re.sub(r'-(?:barne|ungdoms)?skole$','',slug)
+        if path[-1] not in (slug,short):continue
+        previous=records.get(target)
+        if previous is not None and previous!=(label,category):raise ResearchError('research_source_conflict')
+        if any(name.casefold()==label.casefold() and link!=target for link,(name,_) in records.items()):
+            raise ResearchError('research_source_conflict')
+        records[target]=(label,category)
+        if len(records)>40:raise ResearchError('research_source_limit')
+    return tuple((label,target,category) for target,(label,category) in records.items())
 
 
 class LiveTransport:
@@ -555,6 +672,8 @@ class LiveApproval(ResearchApproval):
     updated_at: str | None = None
     last_modified: str | None = None
     effective_periods: tuple = ()
+    directory_kind: str | None = None
+    directory_items: tuple = ()
 
     def __post_init__(self):
         # Deliberately do not assert full-document absence of personal data.
@@ -569,6 +688,10 @@ class LiveApproval(ResearchApproval):
         _validate_url(self.url)  # Query pages are discovery, never final evidence.
         observed=datetime.fromisoformat(self.retrieved_at)
         if observed.tzinfo is None or observed>datetime.now(timezone.utc):raise ValueError('Invalid observation date')
+        if self.directory_kind is not None:
+            if (self.directory_kind not in ('barneskole','ungdomsskole','skole') or not 1<=len(self.directory_items)<=40
+                    or len(self.excerpts)!=1):raise ValueError('Bounded whole school directory required')
+        elif self.directory_items:raise ValueError('Directory type required')
 
     @property
     def raw_sha256(self):return self.raw_response_sha256
@@ -626,7 +749,7 @@ class LiveResearchService(ResearchService):
                    supplementary_sites=details.get('supplementary_sites',()))
 
     def __init__(self,municipalities,*,approvals=(),enabled=False,transport=None,authorities=(),external_policy=None,
-                 supplementary_sites=()):
+                 supplementary_sites=(),reviewed_fetcher=None,discoverer=None):
         super().__init__(approvals,municipalities=municipalities)
         self.live_enabled=enabled is True;self.transport=transport or LiveTransport()
         self.authorities=tuple(MappingProxyType(dict(a)) for a in authorities)
@@ -634,6 +757,15 @@ class LiveResearchService(ResearchService):
         self.external_policy=external_policy  # No CLI/environment blanket cloud permission.
         self.municipal_authorized=lambda:self.configured()
         self.observation_method=type(self).observation_method
+        # General cross-topic discovery uses the same reviewed catalog. Only
+        # exact full-response non-personal text approvals enter this transport;
+        # dynamic HTML still has its separate narrow typed admission profiles.
+        from .retrieval import PreparedPublicTransport
+        prepared=reviewed_fetcher or PreparedPublicTransport(dict(self.approvals),
+            authorized=lambda:self.configured(),input_authorized=lambda:self.configured())
+        self.reviewed_sources=ResearchService(approvals,fetcher=prepared,municipalities=municipalities,
+            municipal_authorized=lambda:self.configured(),discoverer=discoverer,
+            external_authorized=lambda a:self.external_policy is None or self.external_allowed(a))
 
     def configured(self):
         return bool(self.live_enabled and not self.revoked and self.municipalities is not None
@@ -652,6 +784,7 @@ class LiveResearchService(ResearchService):
         session.site(host)
         queue=[(start_url or 'https://'+host+'/',0)];seen=set();selected=[]
         words=SERVICES.get(topic,((topic,),''))[0]
+        overview=school_overview(question) if topic=='skole' and tier==1 else None
         def relevant(text):return any(word in text.casefold() for word in words)
         while queue and session.requests<8 and session.requests-first_request<max_requests and len(selected)<2:
             url,depth=queue.pop(0)
@@ -764,9 +897,22 @@ class LiveResearchService(ResearchService):
                     if not supports_question(value,question):reject('unsupported_question_or_period');continue
                     excerpts.append(value)
                 else:reject('no_service_context')
+            directory_items=()
+            if overview:
+                # Directory labels never enter the ordinary free-text allowlist.
+                # Aggregate the complete admitted set on THIS page, never the
+                # first three names or a navigation/contact/SFO substitute.
+                directory_items=school_directory(parsed,url,municipality,overview)
+                excerpts=[]
+                if directory_items:
+                    label={'barneskole':'Barneskoler','ungdomsskole':'Ungdomsskoler','skole':'Skoler'}[overview]
+                    unit=' | '.join((label,*(name for name,_,_ in directory_items)))
+                    if len(unit)>900:raise ResearchError('research_source_limit')
+                    excerpts=[unit]
+                else:reject('no_documented_school_directory')
             diagnostic=dict(depth=depth,main_roots=parsed.main_roots,article_roots=parsed.article_roots,
                 blocks=len(parsed.blocks),links=len(parsed.links),forms=len(parsed.forms),
-                retained_units=len(set(excerpts)),rejections=rejections)
+                retained_units=len(set(excerpts)),directory_items=len(directory_items),rejections=rejections)
             # Search-result snippets are navigation, never final citation evidence.
             if excerpts and not urlsplit(url).query:
                 if modified:
@@ -787,7 +933,8 @@ class LiveResearchService(ResearchService):
                     raw_response_sha256=record['raw_sha256'],retrieved_at=record['retrieved_at'],
                     published_at=source_date(parsed.published,observed),updated_at=source_date(parsed.updated,observed),
                     last_modified=modified,effective_periods=tuple(dict.fromkeys(p for text in excerpts
-                        for p in (fee_periods(text) if PRICE.search(question) else effective_periods(text)))))
+                        for p in (fee_periods(text) if PRICE.search(question) else effective_periods(text)))),
+                    directory_kind=overview,directory_items=directory_items)
                 selected.append((approval,record))
                 if len(selected)>=2:break
             if depth>=max_depth:
@@ -795,13 +942,17 @@ class LiveResearchService(ResearchService):
             links=[]
             for href,label in parsed.links[:256]:
                 if not relevant(label+' '+unquote(href)):reject('link_not_relevant');continue
-                if not safe_text(label,municipality,minimum=1):reject('link_screened');continue
+                if not safe_text(label,municipality,minimum=1) and not (overview and label.casefold() in _SCHOOL_NAV):
+                    reject('link_screened');continue
+                if overview and re.search(r'\bsfo\b|skolefritidsordning',label,re.I):
+                    reject('other_service');continue
                 candidate=urljoin(url,href).split('#',1)[0]
                 try:safe_url(candidate,session.hosts)
                 except (ResearchError,ValueError):reject('link_url_rejected');continue
                 if urlsplit(candidate).hostname!=host or re.search(r'\.(?:pdf|docx?|xlsx?|png|jpg|zip)$',urlsplit(candidate).path,re.I):
                     reject('link_host_or_format');continue
-                score=3*int(bool(PRICE.search(label+' '+href)))+int(relevant(label))
+                score=(3*int(label.casefold() in _SCHOOL_HEADINGS) if overview else
+                    3*int(bool(PRICE.search(label+' '+href))))+int(relevant(label))
                 links.append((-score,candidate))
             # Newly found service/price links precede generic queued navigation;
             # repeated global menus cannot consume the bounded request budget.
@@ -810,7 +961,8 @@ class LiveResearchService(ResearchService):
             if depth==0:
                 for form in parsed.forms[:1]:
                     target=urljoin(url,form['action']);parts=urlsplit(target)
-                    target=urlunsplit((parts.scheme,parts.netloc,parts.path or '/',urlencode({form['field']:topic}),''))
+                    term={'barneskole':'barneskoler','ungdomsskole':'ungdomsskoler'}.get(overview,topic)
+                    target=urlunsplit((parts.scheme,parts.netloc,parts.path or '/',urlencode({form['field']:term}),''))
                     if urlsplit(target).hostname!=host:continue
                     try:
                         safe_url(target,session.hosts,search=True)
@@ -823,14 +975,35 @@ class LiveResearchService(ResearchService):
         return selected
 
     def prepare(self,question,*,provider,authorized,municipality_context=None,require_municipal=False):
+        from .question_router import canonical_question
+        question=canonical_question(question)
         validate_message(question);owner=current_run()
         if owner is None or not authorized() or not self.configured():raise ResearchError('research_unavailable')
-        if provider=='openai' and self.external_policy is None:raise ResearchError('research_external_not_approved')
         municipal=require_municipal or municipal_question(question)
+        if self.approvals:
+            revision,registry,catalog=self.revision,self.municipalities,self.approvals
+            fingerprint=registry.fingerprint()
+            selected=[]
+            def still_authorized():
+                return (authorized() and self.configured() and self.revision==revision
+                    and self.municipalities is registry and registry.fingerprint()==fingerprint and self.approvals is catalog
+                    and (provider!='openai' or self.external_policy is None
+                        or all(self.external_allowed(a) for a in selected)))
+            try:
+                binding=self.reviewed_sources.prepare(question,provider=provider,authorized=still_authorized,
+                    municipality_context=municipality_context,require_municipal=municipal)
+                selected.extend(binding.approvals)
+                if provider=='openai' and self.external_policy is not None and not all(self.external_allowed(a) for a in selected):
+                    raise ResearchError('research_external_not_approved')
+                binding.assert_publishable()
+                return binding
+            except ResearchError as error:
+                if error.code not in ('research_no_official_sources','research_no_sources'):raise
         entry=self.municipalities.resolve(question,municipality_context) if municipal else None
         if municipal and entry is None:raise ResearchError('research_municipality_required')
         topic=service_topic(question)
         if topic is None:raise ResearchError('research_no_sources')
+        if provider=='openai' and self.external_policy is None:raise ResearchError('research_external_not_approved')
         authorities=[a for a in self.authorities if date.fromisoformat(a['reviewed_on'])<=date.today()<=date.fromisoformat(a['expires_on'])]
         supplements=[s for s in self.supplementary_sites if date.fromisoformat(s['reviewed_on'])<=date.today()<=date.fromisoformat(s['expires_on'])]
         hosts=([entry.official_host] if entry else [])+[a['official_host'] for a in authorities]+[urlsplit(s['url']).hostname for s in supplements]
@@ -844,6 +1017,10 @@ class LiveResearchService(ResearchService):
 
     def _prepare_session(self,session,question,provider,entry,municipal,topic,authorities,supplements):
         request_id,started=session.request_id,session.started
+        if school_overview(question) and entry and not school_directory_query_supported(question,entry):
+            # Names/type/place are the supported fields. Do not answer an
+            # unsupported ownership/status/facility/period filter with all names.
+            raise ResearchError('research_no_sources')
         selected=self._discover(session,entry.official_host,topic,entry,question,1) if entry else []
         # Supplements never substitute for absent municipal conditions.
         if municipal and not selected:raise ResearchError('research_no_official_sources')
@@ -897,8 +1074,21 @@ class LiveResearchService(ResearchService):
         result=super().verify(answer,binding)
         result['source_checked_at']=max(r['retrieved_at'] for r in binding.observations)
         result['source_cautions']=['Nylig kildekontroll beviser ikke at opplysningene gjelder nå.']
-        result['verification_scope']='Exact request-bound filtered HTML excerpt; not factual truth, anonymity or human paragraph review'
+        result['verification_scope']=('Exact request-bound filtered HTML excerpt; not factual truth, anonymity or human paragraph review'
+            if isinstance(binding,LiveBinding) else 'Exact request-bound reviewed text; not factual truth or completeness')
+        self._directory_notice(result,binding,append_text=True)
+        if result.get('overview_complete') is False:
+            result['verification_scope']='Exact request-bound official school-directory fields; not completeness, truth or general anonymity'
         return result
+
+    @staticmethod
+    def _directory_notice(value,binding,*,append_text=False):
+        if any(getattr(a,'directory_kind',None) for a in binding.approvals):
+            # One server-owned overlay for chat AND municipal search/answer.
+            notice='Dette er dokumenterte oppføringer fra kilden. Kildekontrollen bekrefter ikke at listen er komplett.'
+            value['overview_complete']=False;value['coverage']=notice
+            value['source_cautions']=[*value.get('source_cautions',()),notice]
+            if append_text:value['text']+='\n\n'+notice
 
     def portal_search(self,question,workflow,*,category=None):
         from .source_updates import BoundPortalResult
@@ -909,10 +1099,12 @@ class LiveResearchService(ResearchService):
             if category is not None and document.category!=category:continue
             results.append({**document.provenance(),'score':1.,'excerpt':document.source.paragraphs[0].text,
                 'paragraph_ids':[p.id for p in document.source.paragraphs]})
-        return BoundPortalResult(dict(query='',category=category,results=results,provider=workflow.provider,
+        value=dict(query='',category=category,results=results,provider=workflow.provider,
             municipality_id=binding.municipality.id,official_menu_url='https://'+binding.municipality.official_host+'/',
             coverage='Fersk, avgrenset kildekontroll. Ikke fullstendig kommunal dekning.',
-            source_observation=binding.receipt(),source_receipts=list(binding.observations)),binding)
+            source_observation=binding.receipt(),source_receipts=list(binding.observations))
+        self._directory_notice(value,binding)
+        return BoundPortalResult(value,binding)
 
     def portal_answer(self,question,workflow,*,category=None,prior_terms=(),prior_municipality=None):
         from .schemas import Source,Paragraph
@@ -938,11 +1130,13 @@ class LiveResearchService(ResearchService):
         data['evidence_policy']='filtered_html_excerpt_verbatim'
         binding.assert_publishable()
         if result.verification.has_findings:raise ResearchError('research_claim_unsupported')
-        return BoundPortalResult(dict(query='',answer_status='evidence_checked',result=data,citations=citations,
+        value=dict(query='',answer_status='evidence_checked',result=data,citations=citations,
             municipality_id=binding.municipality.id,official_menu_url='https://'+binding.municipality.official_host+'/',
             is_follow_up=service_topic(question) is None and bool(prior_terms),
             message='Kildebasert utdrag. Kontroller at kildens periode passer spørsmålet.',
             coverage='Fersk, avgrenset kildekontroll. Ikke fullstendig kommunal dekning.',
             source_observation=binding.receipt(),source_receipts=list(binding.observations),
             source_checked_at=max(o['retrieved_at'] for o in binding.observations),
-            source_cautions=['Nylig kildekontroll beviser ikke at opplysningene gjelder nå.']),binding)
+            source_cautions=['Nylig kildekontroll beviser ikke at opplysningene gjelder nå.'])
+        self._directory_notice(value,binding)
+        return BoundPortalResult(value,binding)

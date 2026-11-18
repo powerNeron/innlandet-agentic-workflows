@@ -35,6 +35,8 @@ _SOFTWARE_CONTEXT=frozenset(('powerpoint','python','javascript','typescript','ex
 
 def explicit_place(question):
     """An unregistered explicit place must not silently become Hamar."""
+    from .question_router import canonical_question
+    question=canonical_question(question)
     for match in re.finditer(r'\b(?:i|for|fra)\s+([A-ZÆØÅ][\w-]*(?:\s+[A-ZÆØÅ][\w-]*){0,2})(?:\s+kommune)?\b',question):
         # These service abbreviations can follow a preposition before the actual
         # location ("plass i SFO i Hamar"). Keep checking all explicit locations.
@@ -158,6 +160,8 @@ class MunicipalityRegistry:
 
 def information_need(question):
     """Conservative, incomplete routing signals; never silently enables search."""
+    from .question_router import freshness_required
+    if freshness_required(question):return 'updated'
     if re.search(r'\b(?:i dag|akkurat nå|nåværende|oppdatert|siste nytt|latest|today|current)\b',question,re.I):
         return 'updated'
     dynamic=re.search(r'\b(?:vær\w*|valuta\w*|nyhet\w*|trafikk\w*|rente\w*|åpningstid\w*)\b',question,re.I)
@@ -179,23 +183,49 @@ FEE_INTENT=re.compile(r'\b(?:\w*pris\w*|kost(?:er|ar|nad\w*)|\w*betal\w*|\w*egen
 RULE_INTENT=re.compile(r'\b(?:frist\w*|vilkår\w*|vedtak\w*|'
     r'regel\w*|regler|reglene|forskrift\w*|åpningstid\w*|åpner|stenger|tilbyr)\b',re.I)
 DETAIL_INTENT=re.compile(FEE_INTENT.pattern+'|'+RULE_INTENT.pattern+r'|\b(?:søknad\w*|søk\w*)\b',re.I)
+SCHOOL_TOPIC=re.compile(r'\b(?:barneskol\w*|ungdomsskol\w*|grunnskol\w*|skol(?:e|en|er|ene))\b',re.I)
+
+
+def school_overview(question):
+    """A directory request, not a definition, fee or individual pupil record."""
+    from .question_router import canonical_question
+    question=canonical_question(question)
+    if (not SCHOOL_TOPIC.search(question) or DETAIL_INTENT.search(question)
+            or not re.search(r'\b(?:hva\s+heter|hvilke|liste|oversikt|list\s+opp)\b',question,re.I)):
+        return None
+    if re.search(r'\bbarneskol\w*\b',question,re.I):return 'barneskole'
+    if re.search(r'\bungdomsskol\w*\b',question,re.I):return 'ungdomsskole'
+    return 'skole'
+
+
+def school_overview_followup(question):
+    from .question_router import canonical_question
+    question=canonical_question(question)
+    return bool(re.fullmatch(r'\s*(?:er\s+(?:det|dette)\s+alle|er\s+(?:listen|oversikten)\s+'
+        r'(?:komplett|fullstendig))\s*[?!.]?\s*',question,re.I))
 
 
 def detail_request(question):
+    from .question_router import canonical_question
+    question=canonical_question(question)
     return bool(DETAIL_INTENT.search(question))
 
 
 def municipal_service_topic(question):
     # Source duty is broader than the currently implemented discovery topics.
     # Unsupported municipal services must clarify/refuse before model dispatch.
-    return bool(_REGULATED_MUNICIPAL_SERVICE.search(question) or re.search(r'\b(?:sfo|skolefritidsordning\w*|kulturskol\w*|skole|barnehag\w*|byggesak|parkering|drikkevann|vann|avløp|renovasjon|bibliotek|kommuneplan|planer|politikk|helsetjenest\w*|helse|omsorg|folkehelse|luftkvalitet|miljø|miljo)\b',question,re.I))
+    from .question_router import canonical_question
+    question=canonical_question(question)
+    return bool(SCHOOL_TOPIC.search(question) or _REGULATED_MUNICIPAL_SERVICE.search(question) or re.search(r'\b(?:sfo|skolefritidsordning\w*|kulturskol\w*|skole|barnehag\w*|byggesak|parkering|drikkevann|vann|avløp|renovasjon|bibliotek|kommuneplan|planer|politikk|helsetjenest\w*|helse|omsorg|folkehelse|luftkvalitet|miljø|miljo)\b',question,re.I))
 
 
 def price_followup(question):
     # Historical name retained for callers. Resolve short detail ellipses using
     # the same vocabulary as source duty, not a second fee/rule word list.
+    from .question_router import canonical_question
+    question=canonical_question(question)
     match=re.fullmatch(r'\s*(?:(?:hva|kva|når)\s+(?:er\s+(?P<detail>[\w-]{2,40})|'
-        r'koster\s+(?:det|dette))|hvordan\s+søker\s+(?:jeg|vi)(?:\s+om\s+(?:det|dette))?|'
+        r'koster(?:\s+(?:det|dette))?)|hvordan\s+søker\s+(?:jeg|vi)(?:\s+om\s+(?:det|dette))?|'
         r'(?:(?:og|hva\s+med)\s+)?(?P<short>[\w-]{2,40}))'
         r'(?:\s+(?:nå|i dag))?(?:\s+i\s+(?P<place>[\w -]{2,80}))?\s*[?!.]?\s*',question,re.I)
     if match:
@@ -203,11 +233,20 @@ def price_followup(question):
         if place in _SOFTWARE_CONTEXT or re.match(r'^(?:en|et)\s+',place):return None
         noun=match['detail'] or match['short']
         if noun is None or DETAIL_INTENT.fullmatch(noun):return match
+    # Subject-less detail requests can contain auxiliaries, conjunctions and
+    # deictic particles in either language. Any remaining content word is a new
+    # subject, so it cannot silently inherit a municipal service.
+    if DETAIL_INTENT.search(question):
+        from .question_router import context_ellipse
+        if context_ellipse(question,detail_pattern=DETAIL_INTENT):return {'place':None}
     return None
 
 
 def municipal_question(question):
+    from .question_router import canonical_question
+    question=canonical_question(question)
     text=_place_text(question).strip()
+    if school_overview(question):return True
     if price_followup(question):return True
     # Bare service/price requests must clarify rather than invite invented facts.
     if re.fullmatch(r'(?:kulturskol\w*|sfo|skolefritidsordning\w*|barnehag\w*|pris(?:er|en)?|gebyr(?:er)?)\s*[?!.]?',text):
@@ -218,15 +257,20 @@ def municipal_question(question):
     if artifact_help and not task:return False
     municipal_owner=re.search(r'\b(?:kommune|kommunen|kommunens|kommunal|kommunale|kommunalt)\b',question,re.I)
     regulated=_REGULATED_MUNICIPAL_SERVICE.search(question)
-    concept=bool(re.fullmatch(r'\s*(?:hva|kva)\s+(?:er|betyr)\s+(?:(?:en|et)\s+)?'+_REGULATED_MUNICIPAL_SERVICE.pattern+r'\s*[?!.]?\s*',question,re.I))
+    concept=bool(re.fullmatch(r'\s*(?:(?:hva|kva)\s+(?:er|betyr)\s+|'
+        r'(?:forklar|define|definer|describe|beskriv)\s+(?:(?:hva|what)\s+)?)'
+        r'(?:(?:en|et|a|an|the)\s+)?'+_REGULATED_MUNICIPAL_SERVICE.pattern+
+        r'(?:\s+(?:er|is|generelt|i general|in general))?\s*[?!.]?\s*',question,re.I))
     known_definition=bool(re.match(r'^\s*(?:hva|kva)\s+(?:er|betyr)\s+(?:sfo|ppt|bpa|dps)\b',question,re.I))
     if regulated and not (concept and not task):return True
-    if municipal_owner and not (known_definition and not task):return True
+    owner_definition=bool(re.fullmatch(r'\s*(?:hva|kva)\s+betyr\s+'
+        r'(?:kommune|kommunal\w*)(?:\s+(?:gebyr|avgift))?\s*[?!.]?\s*',question,re.I))
+    if municipal_owner and not ((known_definition and not task) or owner_definition):return True
     # An unclassified local fee/condition request is ambiguous, not permission
     # for an unsourced numeric answer. Supported private travel/market topics
     # remain general; unknown local services clarify/refuse before generation.
-    general_market=re.search(r'\b(?:koster|pris(?:en|er)?\s+(?:på|for))\s+(?:(?:en|et|ny|nye)\s+)?'
-        r'(?:fly\w*|airport\w*|hotell\w*|restaurant\w*|pizza\w*|togbillett\w*|reise\w*|powerpoint)\b',question,re.I)
+    from .question_router import private_price_question
+    general_market=private_price_question(question)
     trailing=re.search(r'\bi\s+([\w-]+(?:\s+[\w-]+)?)\s*[?!.]*\s*$',text)
     local_place=explicit_place(question) or (trailing[1] if trailing else None)
     if local_place and _place_text(local_place) in _SOFTWARE_CONTEXT:local_place=None
@@ -412,7 +456,8 @@ class ResearchService:
         return cls(approvals,fetcher=fetcher,municipalities=municipalities,
                    municipal_authorized=municipal_authorized)
 
-    def __init__(self,approvals=(),*,fetcher=None,municipalities=None,municipal_authorized=lambda:False):
+    def __init__(self,approvals=(),*,fetcher=None,municipalities=None,municipal_authorized=lambda:False,discoverer=None,
+                 external_authorized=None):
         values=tuple(approvals)
         if (len(values)>256 or any(not isinstance(a,ResearchApproval) for a in values)
                 or len({a.source_id for a in values})!=len(values)
@@ -427,6 +472,8 @@ class ResearchService:
                     raise ValueError('Municipal sources require the exact reviewed official domain')
         self.approvals=MappingProxyType({a.source_id:a for a in values})
         self.fetcher=fetcher;self.lock=RLock();self.revision=0;self.revoked=False
+        self.discoverer=discoverer
+        self.external_authorized=external_authorized
         self.municipalities=municipalities;self.municipal_authorized=municipal_authorized
         self.observation_method='controlled_regional_request_sources; not activated by default'
 
@@ -438,7 +485,8 @@ class ResearchService:
             self.revoked=True;self.revision+=1
 
     def plan(self,question,context=None,require_municipal=False):
-        terms=set(re.findall(r'\w+',_place_text(question)))
+        from .question_router import canonical_question
+        terms=set(re.findall(r'\w+',_place_text(question)+' '+_place_text(canonical_question(question))))
         municipal=require_municipal or municipal_question(question)
         entry=None
         if self.municipalities:
@@ -446,9 +494,26 @@ class ResearchService:
             except ResearchError as error:
                 if municipal or error.code!='research_municipality_unknown':raise
         if municipal and entry is None:raise ResearchError('research_municipality_required')
-        matches=[a for a in self.approvals.values() if terms.intersection(_place_text(w) for w in a.keywords)
-            and (municipal or a.authority_tier!=1)
+        eligible=[a for a in self.approvals.values()
+            if (municipal or a.authority_tier!=1)
             and (a.municipality_id is None or entry is not None and a.municipality_id==entry.id)]
+        matches=[a for a in eligible if terms.intersection(
+            token for word in a.keywords for token in re.findall(r'\w+',_place_text(canonical_question(word))))
+            ]
+        if self.discoverer is not None:
+            # A semantic/index search adapter can nominate approved identities,
+            # never arbitrary URLs or new trust. Existing authority gates follow.
+            metadata=tuple(dict(source_id=a.source_id,title=a.title,keywords=a.keywords,
+                authority_tier=a.authority_tier,municipality_id=a.municipality_id) for a in eligible)
+            identifiers=bounded_tool_call(lambda:self.discoverer(question,metadata),timeout_seconds=5.)
+            allowed={a.source_id:a for a in eligible}
+            if (type(identifiers) not in (tuple,list) or len(identifiers)>16
+                    or any(type(key) is not str or key not in allowed for key in identifiers)
+                    or len(set(identifiers))!=len(identifiers)):
+                raise ResearchError('research_source_invalid')
+            # Semantic suggestions may broaden discovery, not hide an already
+            # matched official/public source to select a weaker authority.
+            matches=list({a.source_id:a for a in (*matches,*(allowed[key] for key in identifiers))}.values())
         primary=[a for a in matches if a.authority_tier==1]
         if municipal and not primary:raise ResearchError('research_no_official_sources')
         compare=bool(re.search(r'\b(?:sammenlign\w*|forskjell\w*|motstrid\w*|begge|compare)\b',question,re.I))
@@ -503,7 +568,8 @@ class ResearchService:
             raise ResearchError('research_no_sources')
         if any(not a.current() for a in selected):
             raise ResearchError('research_source_expired')
-        if provider=='openai' and any(not a.external_processing_reviewed for a in selected):
+        if provider=='openai' and any(not a.external_processing_reviewed
+                or self.external_authorized is not None and not self.external_authorized(a) for a in selected):
             raise ResearchError('research_external_not_approved')
         request_id=uuid.uuid4().hex
         started=datetime.now(timezone.utc)
