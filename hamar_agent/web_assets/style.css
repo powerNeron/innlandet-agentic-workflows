@@ -244,3 +244,71 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 @media(max-width:650px){.back-to-menu{font-size:15px;width:100%;box-sizing:border-box}.chat-topbar{align-items:flex-start}.chat-heading>div>p{font-size:14px}}
 @media(forced-colors:active){.back-to-menu{border-color:ButtonText;background:ButtonFace;color:ButtonText}.back-to-menu:focus-visible{outline-color:Highlight}}
 @media(forced-colors:active){.model-choice:focus-visible{outline-color:Highlight}.model-choice[aria-pressed="true"]{outline:2px solid Highlight}}
+
+
+/* Accessible pilot entrance; historical scenic/municipal components stay above. */
+.aisha-simple{background:#fff7fb;color:#111;font-size:20px;line-height:1.65}
+.aisha-simple .landscape{display:none}
+.aisha-simple main{max-width:920px}
+.aisha-simple .glass{background:#fff;border-color:#e6cbd7;box-shadow:0 6px 24px #55283c10;backdrop-filter:none}
+.aisha-simple .site-header{max-width:920px;min-height:80px;padding:20px 24px}
+.aisha-simple .site-header>.official{display:none}
+.aisha-simple .brand{font-size:1.1rem}.aisha-simple .brand small{font-size:1rem}
+.aisha-home{padding:36px clamp(20px,5vw,48px)}
+.aisha-simple h1{font-size:clamp(2rem,6vw,3rem);line-height:1.25;letter-spacing:normal}
+.aisha-simple h2{font-size:1.5rem;line-height:1.4;letter-spacing:normal;margin-top:28px}
+.welcome-lead{font-size:1.2rem;margin-bottom:24px}
+.aisha-entry-choices{display:flex;flex-direction:column;gap:16px;margin:28px 0}
+.aisha-entry-choices .entry-bubble{display:block;width:100%;min-height:88px;border:2px solid #87345b;border-radius:32px;padding:22px;background:#f8cfe0;color:#000;font-size:1.2rem;line-height:1.5;text-align:center}
+.aisha-entry-choices .entry-bubble:hover{background:#f4b5d0}
+.aisha-entry-choices p{font-size:1rem;margin:0 0 8px}
+.welcome-illustration{display:block;align-self:center;width:120px;height:100px;fill:#fbe2ed;stroke:#642550;stroke-width:4;stroke-linecap:round}
+.aisha-guide{margin:24px 0}.aisha-guide summary,#additional-navigation>summary{display:list-item;cursor:pointer;min-height:56px;padding:14px 20px;background:#f8cfe0;color:#000;border:2px solid #87345b;border-radius:20px;font-size:1.1rem;font-weight:700}
+.aisha-guide li{padding:8px 0}.aisha-guide p{padding:12px}
+.aisha-simple button{min-height:56px;font-size:1rem}
+.aisha-simple :is(button,a,input,textarea,select,summary,[tabindex]):focus-visible{outline:4px solid #642550;outline-offset:4px;box-shadow:0 0 0 7px #fff}
+.aisha-simple :is(input,textarea,select){font-size:1rem}
+.aisha-simple :is(.hint,.muted,.source-meta,.source-link,.chat-answer-label,.chat-author,.chat-heading p:last-child,.chat-text,.chat-compose-actions .hint){font-size:1rem;line-height:1.6}
+.aisha-simple .chat-bubble,.aisha-simple .chat-row.user .chat-bubble{background:#fbe2ed;color:#000;border:1px solid #b27390}
+.aisha-simple .chat-bubble :is(p,span,a,li){color:#000}
+.aisha-simple .chat-row.user .chat-bubble{background:#f8cfe0}
+.aisha-simple .chat-log{max-height:60vh;min-height:220px;padding:16px;overflow:auto}
+.aisha-simple .chat-row,.aisha-simple .chat-row.user{max-width:100%}
+.aisha-simple .chat-settings{display:none}
+.aisha-simple .chat-topbar{margin-top:24px}
+.aisha-simple .back-to-menu{background:#f8cfe0;color:#000;min-height:56px;border:2px solid #87345b;font-size:1rem}
+.selected-model{font-size:1.1rem;font-weight:700;margin:20px 0}
+.aisha-simple .chat-composer{align-items:stretch}.aisha-simple .chat-form .chat-composer textarea{min-height:100px;font-size:1rem;line-height:1.6}
+.aisha-simple .chat-prompts button{font-size:1rem;min-height:56px}
+.aisha-simple footer{font-size:1rem}
+.aisha-simple [hidden]{display:none!important}
+@media(max-width:650px){.aisha-simple{font-size:18px}.aisha-simple main{padding:0 12px}.aisha-home{padding:24px 18px}.aisha-simple .chat-mode{padding:20px 14px}.aisha-simple .chat-composer{flex-wrap:wrap}.aisha-simple .chat-composer textarea{flex-basis:100%}.aisha-simple #chat-send{width:100%}.aisha-simple .brand{font-size:1rem}.aisha-simple .brand small{font-size:1rem}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.typing-dots i{animation:none}button{transition:none}}
+
+html{font-size:20px}
+.aisha-simple .chat-settings{display:block}
+.aisha-simple #chat-provider-label,.aisha-simple #chat-model-choices{display:none}
+@media(max-width:650px){html{font-size:18px}}
+
+/* Five-step introduction: one main action, with quiet native navigation. */
+.aisha-simple .chat-mode[data-provider="ollama"]{background:#f4f0fc}
+.aisha-simple .chat-mode[data-provider="openai"]{background:#fff0f6}
+.aisha-simple #chat-send{background:#f8cfe0;color:#000;border:2px solid #87345b;min-height:64px;min-width:100px}
+.aisha-simple .chat-heading>div>p{display:none}
+.aisha-simple .chat-safety{font-size:1rem;line-height:1.6}
+.aisha-simple .chat-safety summary{min-height:56px;padding:14px 0;cursor:pointer}
+.aisha-simple .chat-mode .selected-model{font-size:1rem}
+#chat-suggestions{padding:16px 0}#chat-suggestions h2{font-size:1.15rem}
+.aisha-simple .chat-prompts button{background:#f8cfe0;color:#111;border-color:#87345b;text-align:left}
+.aisha-simple #chat-search-control{display:none!important}
+.intro-step{max-width:70ch;min-width:0;overflow-wrap:anywhere}
+.intro-progress{font-size:1rem;font-weight:700;margin-top:0;color:#4d2540}
+.aisha-simple .intro-next{display:block;width:100%;min-height:72px;margin:28px 0 12px;padding:20px;border:2px solid #87345b;border-radius:28px;background:#f8cfe0;color:#000;font:inherit;font-size:1.2rem;font-weight:700;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.intro-next:hover{background:#f4b5d0}
+.intro-navigation{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0}
+.intro-secondary{min-height:56px;max-width:100%;padding:12px 18px;background:#fff;color:#111;border:2px solid #87345b;border-radius:16px;font:inherit;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.intro-secondary:hover{background:#fff0f6}
+.aisha-home .aisha-guide summary{background:#fff;font-size:1rem}
+.aisha-home,.intro-next,.intro-secondary,.entry-bubble{box-sizing:border-box}
+@media(max-width:650px){.intro-navigation{flex-direction:column}.intro-secondary{width:100%}.intro-next{padding:16px;min-height:72px}}
+@media(forced-colors:active){.intro-next,.intro-secondary{border-color:ButtonText;background:ButtonFace;color:ButtonText}}

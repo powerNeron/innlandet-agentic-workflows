@@ -87,7 +87,8 @@ class PortalService:
         return {
             "on_demand_research":bool(getattr(policy,'automatic_municipal',False)),
             "municipalities": [{"id":m.id,"name":m.name,"official_host":m.official_host,"aliases":list(m.aliases)}
-                for m in registry.entries.values() if m.current()] if registry is not None else [],
+                for m in registry.entries.values() if m.current() and
+                (policy.active_municipalities is None or m.id in policy.active_municipalities)] if registry is not None else [],
             "categories": [{**asdict(c), "count": sum(a.category==c.id and a.current() for a in configured)
                 if policy is not None else sum(d.category == c.id and self.index.eligible(d) for d in self.index.documents.values())} for c in CATEGORIES],
             "official_home": OFFICIAL_HOME,

@@ -23,16 +23,17 @@ import uuid
 from .chat import validate_message, _screening_text
 from .html_extract import privacy_check, ExtractionError
 from .research import (ResearchApproval, ResearchBinding, ResearchError, ResearchExcerpt,
-                       ResearchService, load_research_policy, municipal_question,validate_supplementary_site,FEE_INTENT,school_overview)
+                       ResearchService, load_research_policy, municipal_question,validate_supplementary_site,FEE_INTENT,school_overview,
+                       PERIOD_TOKEN,MONTHS,DATE_TOKEN,literal_date,fee_periods,fee_period_matches)
 from .retrieval import _pinned_public_connection, _validate_url
 from .robots_policy import robots_interval
 from .run_control import bounded_tool_call, current_run
 
 AGENT = 'HamarKommuneAgent/0.3'
-PERIOD_TOKEN=r'20\d{2}(?:-\d{2}-\d{2}|\s*[/–-]\s*(?:20)?\d{2})?'
-MONTHS=('januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember')
-DATE_TOKEN=r'(?:20\d{2}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.20\d{2}|\d{1,2}\.?\s+(?:'+'|'.join(MONTHS)+r')\s+20\d{2})'
 SERVICES = {
+    'dagsenter': (('dagsenter','dagtilbud','aktivitetstilbud'), 'helse'),
+    'hjemmehjelp': (('hjemmehjelp','hjemmetjeneste'), 'helse'),
+    'transport': (('transport','skyss'), 'helse'),
     'kulturskole': (('kulturskol', 'musikk-og-kulturskol'), 'kultur'),
     'sfo': (('sfo', 'skolefritidsordning'), 'oppvekst'),
     'barnehage': (('barnehag',), 'oppvekst'),
@@ -217,7 +218,7 @@ class ServiceHTML(HTMLParser):
             self.extracted_bytes+=len(text.encode('utf-8'))
             if len(self.blocks)>=256 or self.extracted_bytes>65536:raise ResearchError('research_source_limit')
             self.blocks.append(text)
-            kind=next((tag for tag,_ in reversed(self.stack) if tag in ('h1','h2','h3','h4','h5','h6','p','tr','li')),'')
+            kind=next((tag for tag,_ in reversed(self.stack) if tag in ('h1','h2','h3','h4','h5','h6','p','tr','li','summary','legend')),'')
             self.block_kinds.append('barrier:'+kind if overflow else kind)
             if re.fullmatch(r'h[1-6]',kind):
                 level=int(kind[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]
@@ -226,6 +227,8 @@ class ServiceHTML(HTMLParser):
                     href,label,eligible,context=self.directory_links[i]
                     if text!=label:self.directory_links[i]=(href,label,eligible,(*context,(level,None if overflow else text)))
                 self.directory_headings.append((level,None if overflow else text))
+            elif kind in ('summary','legend'):
+                self.directory_headings.append((0,None if overflow else text))
             elif text and not self.anchor and kind in ('p','li','tr') and not any(
                     row['start']<len(self.directory_links) for row in self.directory_rows.values()):
                 if not re.fullmatch(r'(?:publisert|sist endret|sist oppdatert|oppdatert)\s*[:.]?\s*'+DATE_TOKEN+r'\s*\.?',text,re.I):
@@ -262,7 +265,9 @@ class ServiceHTML(HTMLParser):
         article=tag=='article' or role=='article' and tag not in self.VOID
         if article and not blocked:
             self.article_roots+=1;self.article_positions.add(len(self.stack))
-        semantic=tag if tag in ('article','section','table') else 'article' if article else 'section' if role in ('region','group','tabpanel') else None
+        # Native disclosure/form groups isolate their headings and conditions
+        # just like articles/ARIA groups; sibling groups cannot lend a price year.
+        semantic=tag if tag in ('article','section','table','details','fieldset') else 'article' if article else 'section' if role in ('region','group','tabpanel') else None
         if semantic and not blocked and (active or article):
             self.flush();self.scope_event('scope_enter:'+semantic)
             self.scope_positions[len(self.stack)]=semantic
@@ -271,24 +276,29 @@ class ServiceHTML(HTMLParser):
         if tag=='table':self.table_header=''
         if tag=='tr':self.row_header=False
         if tag=='th':self.row_header=True
-        if active and tag in ('p','li','tr','h1','h2','h3','h4','h5','h6'):self.flush()
+        if active and tag in ('p','li','tr','h1','h2','h3','h4','h5','h6','summary','legend'):self.flush()
         if active and re.fullmatch(r'h[1-6]',tag):
             level=int(tag[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]
             self.directory_heading_starts[level]=len(self.directory_links)
-        if active and tag in ('p','li','tr','h1','h2','h3','h4','h5','h6') and not blocked:
+        if active and tag in ('p','li','tr','h1','h2','h3','h4','h5','h6','summary','legend') and not blocked:
             self.directory_rows[len(self.stack)]=dict(start=len(self.directory_links),text='',dirty=False)
         if role in ('navigation','banner','contentinfo','search') and tag not in self.VOID:
             self.directory_excluded.add(len(self.stack))
         if tag in ('td','th','br') and active and not blocked:self.parts.append(' | ')
-        if active and not blocked and (tag=='sup' or attrs.get('aria-describedby')
+        # Images are never fetched or executed. A nonempty accessible annotation
+        # can carry a mandatory note; preserve a refusal cue, never its raw text.
+        image_annotation=tag=='img' and (any((attrs.get(name) or '').strip()
+            for name in ('alt','aria-label','title','aria-labelledby','aria-describedby'))
+            or role in ('doc-noteref','doc-footnote','note'))
+        if active and (image_annotation or not blocked and (tag=='sup' or attrs.get('aria-describedby')
                 or re.search(r'(?:^|;)\s*vertical-align\s*:\s*super\b',attrs.get('style') or '',re.I)
                 or tag=='a' and ((attrs.get('role') or '').casefold()=='doc-noteref'
                     or set((attrs.get('rel') or '').casefold().split()) & {'footnote','noteref'}
-                    or re.search(r'^#(?:.*(?:foot|note|fn)|\d)',attrs.get('href') or '',re.I))):
+                    or re.search(r'^#(?:.*(?:foot|note|fn)|\d)',attrs.get('href') or '',re.I)))):
             self.parts.append(' * ')  # Explicit unsupported-note marker; this unit is refused, never cited.
         if active and blocked and re.fullmatch(r'h[1-6]',tag):
             level=int(tag[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]+[(level,None)]
-        if active and (blocked or tag=='sup' or attrs.get('aria-describedby')
+        if active and (blocked or image_annotation or tag=='sup' or attrs.get('aria-describedby')
                 or re.search(r'(?:^|;)\s*vertical-align\s*:\s*super\b',attrs.get('style') or '',re.I)):
             for row in self.directory_rows.values():row['dirty']=True
         if tag=='a' and not blocked:
@@ -302,7 +312,7 @@ class ServiceHTML(HTMLParser):
         if tag not in self.VOID:self.stack.append((tag,blocked))
 
     def handle_endtag(self,tag):
-        if tag in ('p','li','tr','h1','h2','h3','h4','h5','h6'):self.flush()
+        if tag in ('p','li','tr','h1','h2','h3','h4','h5','h6','summary','legend'):self.flush()
         if tag=='a' and self.anchor is not None:
             href,parts,context=self.anchor
             label=' '.join(''.join(parts).split())
@@ -471,7 +481,7 @@ class LiveTransport:
                 session.check()
                 path=urlsplit(url).path+('?' + urlsplit(url).query if urlsplit(url).query else '')
                 connection.request('GET',path,headers={'User-Agent':AGENT,'Accept':'text/plain' if robots else 'text/html',
-                    'Accept-Encoding':'identity','Connection':'close'})
+                    'Accept-Encoding':'identity','Connection':'close','Cache-Control':'no-cache','Pragma':'no-cache'})
                 response=connection.getresponse();headers=response.headers
                 if (response.status!=200 or len(headers.get_all('Content-Type',[]))!=1
                         or headers.get_content_type() not in (('text/plain',) if robots else ('text/html',))
@@ -515,6 +525,10 @@ class LiveSession:
         self.service,self.owner,self.request_id,self.started=service,owner,request_id,started
         self.authorized=authorized;self.revision=service.revision
         self.registry=service.municipalities;self.registry_hash=self.registry.fingerprint()
+        self.active_municipalities=service.active_municipalities
+        self.reviewed_only=service.reviewed_only
+        if self.active_municipalities is not None and any(m.official_host in hosts and m.id not in self.active_municipalities
+                for m in self.registry.entries.values()):raise ResearchError('research_municipality_inactive')
         self.hosts=frozenset(hosts);self.requests=0;self.received=0;self.trace=[];self.robots={};self.diagnostics=[]
 
     def observe(self,record):
@@ -535,6 +549,8 @@ class LiveSession:
             if (current_run() is not self.owner or self.owner.finished or self.owner.stopped
                     or not self.authorized() or not self.service.live_enabled or self.service.revoked
                     or self.service.revision!=self.revision or self.service.municipalities is not self.registry
+                    or self.service.active_municipalities!=self.active_municipalities
+                    or self.service.reviewed_only!=self.reviewed_only
                     or self.registry.fingerprint()!=self.registry_hash
                     or any(not m.current() for m in self.registry.entries.values())):
                 raise ResearchError('research_permission_revoked')
@@ -592,28 +608,6 @@ def effective_periods(text):
         r'[^.\n]{0,35}?\b('+PERIOD_TOKEN+r')\b',text,re.I)))
 
 
-def fee_periods(text):
-    """Bind periods to monetary clauses, not unrelated school/application dates."""
-    periods=[]
-    for clause in re.split(r';|\n|\.(?=\s+[A-ZÆØÅ])',text):
-        if not re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\bgratis\b',clause,re.I):continue
-        found=re.findall(r'\b(?:\w*pris\w*|satser|\w*gebyr\w*|\w*avgift\w*|\w*betal\w*|gratis)'
-            r'[^;.\n]{0,60}?\b('+PERIOD_TOKEN+r')\b',clause,re.I)
-        if not found:return ()  # An undated amount is not made current by another clause.
-        periods.extend(found)
-    return tuple(dict.fromkeys(periods))
-
-
-def fee_period_matches(period,question):
-    requested=re.search(r'\b'+PERIOD_TOKEN+r'\b',question)
-    clean=lambda value:re.sub(r'\s+','',value)
-    if requested and re.search(r'[/–-]',requested[0]) and not re.fullmatch(r'\d{4}-\d{2}-\d{2}',requested[0]):
-        return clean(period)==clean(requested[0])
-    year=requested[0][:4] if requested else str(date.today().year)
-    # A spanning school year is not automatically valid throughout its end year.
-    return period[:4]==year
-
-
 def supports_question(text,question):
     def grades(value):
         result=set()
@@ -654,15 +648,6 @@ def supports_question(text,question):
     return True
 
 
-def literal_date(value):
-    if re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):return date.fromisoformat(value)
-    dotted=re.fullmatch(r'(\d{1,2})\.(\d{1,2})\.(20\d{2})',value)
-    if dotted:return date(int(dotted[3]),int(dotted[2]),int(dotted[1]))
-    words=re.fullmatch(r'(\d{1,2})\.?\s+(\w+)\s+(20\d{2})',value,re.I)
-    if words and words[2].casefold() in MONTHS:
-        return date(int(words[3]),MONTHS.index(words[2].casefold())+1,int(words[1]))
-    raise ValueError('Explicit complete source date required')
-
 
 @dataclass(frozen=True)
 class LiveApproval(ResearchApproval):
@@ -701,10 +686,10 @@ class LiveApproval(ResearchApproval):
 
 
 class LiveBinding(ResearchBinding):
-    def __init__(self,private,session,approvals,observations,municipality,municipal):
+    def __init__(self,private,session,approvals,observations,municipality,municipal,*,question=None):
         self.live_session=session
         super().__init__(private,session.owner,private.revision,approvals,session.request_id,observations,
-            session.authorized,municipality,municipal)
+            session.authorized,municipality,municipal,question=question)
         self.receipts_fingerprint=self._receipts_hash()
         self.trace_fingerprint=self._trace_hash()
 
@@ -740,18 +725,21 @@ class LiveResearchService(ResearchService):
     observation_method='opt_in_bounded_live_html; no source cache'
 
     @classmethod
-    def from_reviewed_policy(cls,path,*,enabled=False,transport=None,external_policy=None):
+    def from_reviewed_policy(cls,path,*,enabled=False,transport=None,external_policy=None,reviewed_only=False):
         municipalities,approvals,details=load_research_policy(path,details=True)
         if municipalities is None or len(municipalities.entries)!=46:
             raise ValueError('Live municipal discovery requires the complete reviewed roster')
         return cls(municipalities,approvals=approvals,enabled=enabled,transport=transport,
                    authorities=details['public_authorities'],external_policy=external_policy,
-                   supplementary_sites=details.get('supplementary_sites',()))
+                   supplementary_sites=details.get('supplementary_sites',()),active_municipalities=details.get('active_municipalities'),
+                   reviewed_only=reviewed_only)
 
     def __init__(self,municipalities,*,approvals=(),enabled=False,transport=None,authorities=(),external_policy=None,
-                 supplementary_sites=(),reviewed_fetcher=None,discoverer=None):
-        super().__init__(approvals,municipalities=municipalities)
+                 supplementary_sites=(),reviewed_fetcher=None,discoverer=None,active_municipalities=None,reviewed_only=False):
+        super().__init__(approvals,municipalities=municipalities,active_municipalities=active_municipalities)
         self.live_enabled=enabled is True;self.transport=transport or LiveTransport()
+        if type(reviewed_only) is not bool:raise ValueError('Explicit reviewed-only boundary required')
+        self.reviewed_only=reviewed_only
         self.authorities=tuple(MappingProxyType(dict(a)) for a in authorities)
         self.supplementary_sites=tuple(MappingProxyType(validate_supplementary_site(s)) for s in supplementary_sites)
         self.external_policy=external_policy  # No CLI/environment blanket cloud permission.
@@ -765,7 +753,8 @@ class LiveResearchService(ResearchService):
             authorized=lambda:self.configured(),input_authorized=lambda:self.configured())
         self.reviewed_sources=ResearchService(approvals,fetcher=prepared,municipalities=municipalities,
             municipal_authorized=lambda:self.configured(),discoverer=discoverer,
-            external_authorized=lambda a:self.external_policy is None or self.external_allowed(a))
+            external_authorized=lambda a:self.external_policy is None or self.external_allowed(a),
+            active_municipalities=self.active_municipalities)
 
     def configured(self):
         return bool(self.live_enabled and not self.revoked and self.municipalities is not None
@@ -777,7 +766,110 @@ class LiveResearchService(ResearchService):
     def context_terms(self,question):
         validate_message(question)
         topic=service_topic(question)
-        return [topic] if topic else []
+        if topic:return [topic]
+        from .question_router import canonical_question
+        words=set(re.findall(r'\w+',canonical_question(question).casefold()))
+        return list(dict.fromkeys(word for a in self.approvals.values() if a.current()
+            for word in a.keywords if words.intersection(re.findall(r'\w+',canonical_question(word).casefold()))))[:16]
+
+    @staticmethod
+    def reviewed_html_units(parsed,entry):
+        """Whole context-bearing review units, never automatic approval.
+
+        A reviewer approves the exact joined unit AND the full input snapshot.
+        Sibling articles/sections restore their parent context; screened labels
+        and scope barriers cannot silently disappear from a condition.
+        """
+        def screened(text):
+            # This is a review-candidate screen, not the typed automatic HTML
+            # allowlist. Only an exact separately reviewed input/unit may be
+            # admitted by _fetch_reviewed_html. Unknown words confer no trust.
+            if not text or len(text)>900 or CONTACT.search(_screening_text(text)):return False
+            try:privacy_check(text);validate_message(text,reply=True)
+            except ValueError:return False
+            return True
+        headings=[];inherited=();group=None;contexts=[];units=[]
+        for block,kind in zip(parsed.blocks,parsed.block_kinds):
+            if kind.startswith('scope_enter:'):
+                contexts.append((list(headings),inherited,group))
+                inherited=(*inherited,*headings,*(((-1,group),) if group else ()))
+                headings=[];group=None;continue
+            if kind.startswith('scope_exit:'):
+                if not contexts:raise ResearchError('research_source_invalid')
+                headings,inherited,group=contexts.pop();continue
+            if kind.startswith('barrier:'):
+                lost=kind.split(':',1)[1]
+                if lost in ('h1','h2','h3','h4','h5','h6'):
+                    level=int(lost[1]);headings=[h for h in headings if h[0]<level]
+                    headings.append((level,None))
+                else:
+                    # A lost non-heading condition has unknown extent. Keep a
+                    # barrier throughout this scope, including under headings.
+                    headings.append((0,None))
+                group=None;continue
+            if not block:continue
+            if kind in ('summary','legend'):
+                # Native group labels qualify this whole scope, including
+                # under child headings. They cannot be silently discarded.
+                headings.append((0,block if screened(block) else None));continue
+            if kind in ('h1','h2','h3','h4','h5','h6'):
+                level=int(kind[1]);headings=[h for h in headings if h[0]<level]
+                headings.append((level,block if screened(block) else None))
+                group=None;continue
+            if kind not in ('p','li','tr'):continue
+            if block.endswith(':'):
+                group=block if screened(block) else None
+                if group is None:headings.append((0,None))
+                continue
+            labels=[label for _,label in (*inherited,*headings)]
+            if any(label is None for label in labels):continue
+            unit=' | '.join(dict.fromkeys(x for x in (*labels,group,block) if x))
+            # Footnote conditions cannot be inferred or dropped from a unit.
+            if re.search(r'[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]|\[\s*(?:\d{1,3}|[a-zA-Z])\s*\]',unit):continue
+            if screened(unit) and len(unit.split())>=5:units.append(unit)
+        return tuple(units)
+
+    def _fetch_reviewed_html(self,approval,session,*,max_bytes):
+        """One approved URL/snapshot, same pinned transport; raw bytes die here."""
+        session.check();entry=self.municipalities.entries[approval.municipality_id]
+        self.require_active(entry)
+        if not approval.current():raise ResearchError('research_source_expired')
+        session.site(entry.official_host)
+        if hashlib.sha256(session.robots[entry.official_host]).hexdigest()!=approval.robots_sha256:
+            session.diagnose('reviewed_robots_changed',approval.url)
+            raise ResearchError('research_source_invalid')
+        raw,record,modified=session.get(approval.url)
+        try:
+            if hashlib.sha256(raw).hexdigest()!=approval.input_sha256:
+                session.diagnose('reviewed_input_changed',approval.url)
+                raise ResearchError('research_source_invalid')
+            parsed=ServiceHTML.parse(raw)
+            if ((approval.content_tag=='main' and parsed.main_roots!=1)
+                    or (approval.content_tag=='article' and (parsed.main_roots or parsed.article_roots!=1))):
+                raise ResearchError('research_source_invalid')
+            units=self.reviewed_html_units(parsed,entry)
+            if any(units.count(p.text)!=1 for p in approval.excerpts):
+                raise ResearchError('research_source_invalid')
+            for p in approval.excerpts:
+                if any(m.id!=entry.id and any(re.search(r'(?<!\w)'+re.escape(name)+r'(?!\w)',p.text,re.I)
+                        for name in (m.name,*m.aliases)) for m in self.municipalities.entries.values()):
+                    # An official host does not make another town's paragraph
+                    # evidence for this municipality. Mixed geography needs a
+                    # separately scoped comparison, not a silent substitution.
+                    raise ResearchError('research_source_invalid')
+            body=approval.body
+            if len(body)>max_bytes:raise ResearchError('research_source_limit')
+            now=datetime.now(timezone.utc)
+            result=dict(source_id=approval.source_id,url=approval.url,request_id=session.request_id,
+                body=body,robots=session.robots[entry.official_host],status=200,content_type='text/html',
+                retrieved_at=record['retrieved_at'],input_sha256=approval.input_sha256,input_bytes=len(raw),
+                publisher_published_on=source_date(parsed.published,now),updated_at=source_date(parsed.updated,now),
+                published_at=None,last_modified=modified,
+                effective_periods=list(dict.fromkeys(p for e in approval.excerpts for p in effective_periods(e.text))),
+                discovery_receipts=list(session.trace))
+        finally:del raw
+        session.check();session.diagnose('exact_reviewed_units_checked',approval.url,admitted_excerpts=len(approval.excerpts))
+        return result
 
     def _discover(self,session,host,topic,municipality,question,tier,*,start_url=None,max_requests=6,max_depth=2):
         first_request=session.requests
@@ -833,6 +925,10 @@ class LiveResearchService(ResearchService):
                     if lost_kind in ('h1','h2','h3','h4','h5','h6'):
                         level=int(lost_kind[1]);headings=[h for h in headings if h[0]<level]
                         headings.append((level,None,frozenset()))
+                    else:
+                        # A discarded condition has unknown extent. A child
+                        # heading cannot erase it; only this scope's exit can.
+                        headings.append((0,None,frozenset()))
                     group=None;group_unknown=True
                     reject('discarded_scope_barrier');continue
                 if not block:continue  # Formatting whitespace is not a lost condition.
@@ -843,6 +939,13 @@ class LiveResearchService(ResearchService):
                     # as to published-versus-updated; never infer their meaning.
                     reject('publisher_metadata_not_evidence');continue
                 mentioned=service_topics(block)
+                if kind in ('summary','legend'):
+                    label=block if safe_text(block,municipality,minimum=1) is not None else None
+                    headings.append((0,label,frozenset(mentioned)))
+                    if label is None:reject('native_group_label_screened')
+                    for _,_,topics in (*inherited,*headings):
+                        if topics:active_topic=next(iter(topics)) if len(topics)==1 else None
+                    continue
                 if kind in ('h1','h2','h3','h4','h5','h6'):
                     level=int(kind[1]);headings=[h for h in headings if h[0]<level];group=None;group_unknown=False
                     if safe_text(block,municipality,minimum=1) is None:
@@ -974,35 +1077,147 @@ class LiveResearchService(ResearchService):
             pending_candidates=len(queue),request_limit_reached=bool(queue and (session.requests>=8 or session.requests-first_request>=max_requests)))
         return selected
 
-    def prepare(self,question,*,provider,authorized,municipality_context=None,require_municipal=False):
+    def _discover_review_candidates(self,session,entry,question):
+        """Topic-neutral discovery only; unreviewed prose is NEVER evidence.
+
+        Use the existing pinned transport/robots/bounds for official navigation.
+        Keep only host/digests/counts in diagnostics; no labels, paths, raw HTML,
+        personal records or arbitrary prose cross into the model or its index.
+        An exact reviewed catalog excerpt is required to answer new content types.
+        """
         from .question_router import canonical_question
+        from .search import validate_query_privacy
+        validate_query_privacy(question)
+        text=self.municipalities.strip_names(canonical_question(question)).casefold()
+        stop=set(('hva hvilke hvor hvordan når hvem what which where how when who i in om for fra '
+            'og and the en et til er is are kan can du you jeg vi do does fortell tell me beskriv '
+            'describe finner finne kommunen kommunens kommunal kommunale kommune innlandet koster').split())
+        terms=tuple(dict.fromkeys(w for w in re.findall(r'[^\W\d_][\w-]{2,39}',text)
+            if w not in stop))[:8]
+        # Unknown user words may be names. Relevance matching stays local;
+        # only reviewed, non-personal catalog vocabulary may leave as search
+        # parameters. An empty catalog therefore permits navigation, not a
+        # remote free-text query built from the user's unreviewed wording.
+        reviewed_words={word.casefold() for a in self.approvals.values() if a.current()
+            and a.municipality_id==entry.id for word in a.keywords}
+        search_terms=tuple(word for word in terms if word in reviewed_words)
+        host=entry.official_host;session.site(host)
+        queue=[('https://'+host+'/',0)];seen=set()
+        while queue and session.requests<6:
+            url,depth=queue.pop(0)
+            if url in seen:continue
+            seen.add(url);raw,_,_=session.get(url)
+            try:parsed=ServiceHTML.parse(raw)
+            finally:del raw
+            candidates=[]
+            if depth<2:
+                for href,label in parsed.links[:256]:
+                    if not terms or not any(term in (label+' '+unquote(href)).casefold() for term in terms):continue
+                    candidate=urljoin(url,href).split('#',1)[0]
+                    try:safe_url(candidate,session.hosts)
+                    except (ResearchError,ValueError):continue
+                    if urlsplit(candidate).hostname!=host:continue
+                    if re.search(r'\.(?:pdf|docx?|xlsx?)$',urlsplit(candidate).path,re.I):
+                        session.diagnose('document_requires_reviewed_parser',candidate,admitted_excerpts=0)
+                        continue
+                    if re.search(r'\.(?:png|jpg|zip)$',urlsplit(candidate).path,re.I):continue
+                    candidates.append(candidate)
+                if depth==0 and search_terms:
+                    for form in parsed.forms[:1]:
+                        parts=urlsplit(urljoin(url,form['action']))
+                        target=urlunsplit((parts.scheme,parts.netloc,parts.path or '/',urlencode({form['field']:' '.join(search_terms)[:80]}),''))
+                        try:
+                            safe_url(target,session.hosts,search=True)
+                            robots_interval(session.robots[host],target,AGENT)
+                        except (ResearchError,ValueError):continue
+                        if parts.hostname==host:candidates.append(target)
+            queue.extend((candidate,depth+1) for candidate in sorted(set(candidates))[:8] if candidate not in seen)
+            session.diagnose('review_candidates_only',url,candidates=len(candidates),admitted_excerpts=0)
+            del parsed
+        session.diagnose('review_required',evaluated_pages=len(seen),pending_candidates=len(queue),admitted_excerpts=0)
+
+    def prepare(self,question,*,provider,authorized,municipality_context=None,require_municipal=False):
+        from .question_router import canonical_question,QuestionRouter
         question=canonical_question(question)
         validate_message(question);owner=current_run()
         if owner is None or not authorized() or not self.configured():raise ResearchError('research_unavailable')
-        municipal=require_municipal or municipal_question(question)
+        municipal=require_municipal or QuestionRouter(municipalities=self.municipalities).route(question).municipal
+        # Apply coverage BEFORE reviewed catalog selection/HTTP, including a
+        # known place in a general query. The complete identity roster remains.
+        entry=self.municipalities.resolve(question,municipality_context) if municipal else None
+        if not municipal:
+            try:entry=self.municipalities.resolve(question,municipality_context)
+            except ResearchError as error:
+                if error.code!='research_municipality_unknown':raise
+        self.require_active(entry)
         if self.approvals:
             revision,registry,catalog=self.revision,self.municipalities,self.approvals
-            fingerprint=registry.fingerprint()
+            fingerprint=registry.fingerprint();active=self.active_municipalities;reviewed_only=self.reviewed_only
             selected=[]
             def still_authorized():
-                return (authorized() and self.configured() and self.revision==revision
+                return (authorized() and self.configured() and self.revision==revision and self.reviewed_only==reviewed_only
+                    and self.active_municipalities==active
+                    and (entry is None or active is None or entry.id in active)
                     and self.municipalities is registry and registry.fingerprint()==fingerprint and self.approvals is catalog
                     and (provider!='openai' or self.external_policy is None
                         or all(self.external_allowed(a) for a in selected)))
             try:
-                binding=self.reviewed_sources.prepare(question,provider=provider,authorized=still_authorized,
+                reviewed=self.reviewed_sources
+                if any(a.content_type=='text/html' for a in catalog.values()):
+                    sessions=[]
+                    def fetch(source_id,*,request_id,timeout_seconds,max_bytes):
+                        approval=catalog[source_id]
+                        if not still_authorized():raise ResearchError('research_permission_revoked')
+                        if approval.content_type!='text/html':
+                            return self.reviewed_sources.fetcher(source_id,request_id=request_id,
+                                timeout_seconds=timeout_seconds,max_bytes=max_bytes)
+                        if not sessions:
+                            sessions.append(LiveSession(self,owner,request_id,datetime.now(timezone.utc),
+                                still_authorized,[entry.official_host]))
+                        if sessions[0].request_id!=request_id:raise ResearchError('research_source_invalid')
+                        try:return self._fetch_reviewed_html(approval,sessions[0],max_bytes=max_bytes)
+                        except ResearchError as error:
+                            sessions[0].diagnose('reviewed_source_refused',approval.url,error_code=error.code)
+                            error.source_diagnostics=tuple(sessions[0].trace+sessions[0].diagnostics)
+                            raise
+                    reviewed=ResearchService(catalog.values(),fetcher=fetch,municipalities=registry,
+                        municipal_authorized=still_authorized,discoverer=self.reviewed_sources.discoverer,
+                        external_authorized=self.reviewed_sources.external_authorized,
+                        active_municipalities=active)
+                    reviewed.observation_method='exact_reviewed_html_or_plain_text; fresh request transport'
+                binding=reviewed.prepare(question,provider=provider,authorized=still_authorized,
                     municipality_context=municipality_context,require_municipal=municipal)
                 selected.extend(binding.approvals)
+                if any(a.content_type=='text/html' and any(
+                        re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\bgratis\b',p.text,re.I)
+                        and not all(fee_period_matches(period,question) for period in fee_periods(p.text))
+                        for p in a.excerpts) for a in selected):
+                    raise ResearchError('research_period_unverified')
+                if any(a.content_type=='text/html' and any(not supports_question(p.text,question) for p in a.excerpts)
+                        for a in selected):raise ResearchError('research_source_invalid')
                 if provider=='openai' and self.external_policy is not None and not all(self.external_allowed(a) for a in selected):
                     raise ResearchError('research_external_not_approved')
                 binding.assert_publishable()
                 return binding
             except ResearchError as error:
                 if error.code not in ('research_no_official_sources','research_no_sources'):raise
+        if self.reviewed_only:
+            # Exact-source probes never broaden a missing/expired approval to
+            # navigation, typed admission or another URL/domain.
+            raise ResearchError('research_no_official_sources' if municipal else 'research_no_sources')
         entry=self.municipalities.resolve(question,municipality_context) if municipal else None
         if municipal and entry is None:raise ResearchError('research_municipality_required')
         topic=service_topic(question)
-        if topic is None:raise ResearchError('research_no_sources')
+        if topic is None:
+            if entry is None:raise ResearchError('research_no_sources')
+            session=LiveSession(self,owner,uuid.uuid4().hex,datetime.now(timezone.utc),authorized,[entry.official_host])
+            try:
+                self._discover_review_candidates(session,entry,question)
+                raise ResearchError('research_no_official_sources')
+            except ResearchError as error:
+                session.diagnose('request_refused',error_code=error.code)
+                error.source_diagnostics=tuple(session.trace+session.diagnostics)
+                raise
         if provider=='openai' and self.external_policy is None:raise ResearchError('research_external_not_approved')
         authorities=[a for a in self.authorities if date.fromisoformat(a['reviewed_on'])<=date.today()<=date.fromisoformat(a['expires_on'])]
         supplements=[s for s in self.supplementary_sites if date.fromisoformat(s['reviewed_on'])<=date.today()<=date.fromisoformat(s['expires_on'])]
@@ -1053,7 +1268,7 @@ class LiveResearchService(ResearchService):
                 last_modified=approval.last_modified,effective_periods=list(approval.effective_periods),
                 raw_sha256=approval.raw_sha256,text_sha256=approval.text_sha256,bytes=record['bytes'],
                 input_boundary=approval.review_scope,raw_content_type='text/html'))
-        private=ResearchService(approvals,municipalities=self.municipalities)
+        private=ResearchService(approvals,municipalities=self.municipalities,active_municipalities=self.active_municipalities)
         facts={}
         for approval in approvals:
             for excerpt in approval.excerpts:
@@ -1068,7 +1283,7 @@ class LiveResearchService(ResearchService):
                         scope=(topic,hashlib.sha256(prefix.encode()).hexdigest(),periods[0],approval.municipality_id,'NOK')
                         facts.setdefault(scope,set()).add(amounts[0][1].replace(' ',''))
         if any(len(values)>1 for values in facts.values()):raise ResearchError('research_source_conflict')
-        return LiveBinding(private,session,tuple(approvals),observations,entry,municipal)
+        return LiveBinding(private,session,tuple(approvals),observations,entry,municipal,question=question)
 
     def verify(self,answer,binding):
         result=super().verify(answer,binding)
@@ -1083,7 +1298,8 @@ class LiveResearchService(ResearchService):
 
     @staticmethod
     def _directory_notice(value,binding,*,append_text=False):
-        if any(getattr(a,'directory_kind',None) for a in binding.approvals):
+        if (any(getattr(a,'directory_kind',None) for a in binding.approvals)
+                or re.search(r'\b(?:alle|list\w*|oversikt\w*|hvilk\w*)\b',binding.question or '',re.I)):
             # One server-owned overlay for chat AND municipal search/answer.
             notice='Dette er dokumenterte oppføringer fra kilden. Kildekontrollen bekrefter ikke at listen er komplett.'
             value['overview_complete']=False;value['coverage']=notice
@@ -1112,11 +1328,19 @@ class LiveResearchService(ResearchService):
         from .search import validate_query_privacy
         validate_query_privacy(question);validate_message(question)
         topic=service_topic(question)
-        if topic is None:topic=next((term for term in prior_terms if term in SERVICES),None)
-        if topic is None:raise ResearchError('research_no_sources')
-        if category is not None and SERVICES[topic][1]!=category:raise ResearchError('research_no_sources')
-        effective=question if service_topic(question) else question+' '+topic
+        from .question_router import context_ellipse,canonical_question
+        from .chat import _FOLLOWUP
+        from .research import price_followup
+        city_only=bool(self.municipalities.resolve(question) and re.fullmatch(
+            r'\s*(?:og|hva med)\s*(?:kommune)?\s*[?!.]?\s*',self.municipalities.strip_names(canonical_question(question)),re.I))
+        inherit=topic is None and bool(prior_terms) and bool(context_ellipse(question)
+            or _FOLLOWUP.fullmatch(canonical_question(question)) or price_followup(question) or city_only)
+        if inherit:topic=next((term for term in prior_terms if term in SERVICES),None)
+        if category is not None and topic is not None and SERVICES[topic][1]!=category:raise ResearchError('research_no_sources')
+        effective=question+' '+' '.join(prior_terms) if inherit else question
         binding=self.retrieve_for_query(effective,provider=workflow.provider,municipality_context=prior_municipality)
+        if category is not None and any(d.category!=category for d in binding.index.documents.values()):
+            raise ResearchError('research_no_sources')
         paragraphs=[];citations=[]
         for document in binding.index.documents.values():
             for paragraph in document.source.paragraphs:
@@ -1132,7 +1356,7 @@ class LiveResearchService(ResearchService):
         if result.verification.has_findings:raise ResearchError('research_claim_unsupported')
         value=dict(query='',answer_status='evidence_checked',result=data,citations=citations,
             municipality_id=binding.municipality.id,official_menu_url='https://'+binding.municipality.official_host+'/',
-            is_follow_up=service_topic(question) is None and bool(prior_terms),
+            is_follow_up=inherit,
             message='Kildebasert utdrag. Kontroller at kildens periode passer spørsmålet.',
             coverage='Fersk, avgrenset kildekontroll. Ikke fullstendig kommunal dekning.',
             source_observation=binding.receipt(),source_receipts=list(binding.observations),

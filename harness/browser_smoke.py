@@ -46,7 +46,7 @@ def main(argv=None):
         chat_backend=ChatBackend(choices_factory=lambda provider:[
             {'provider':p,'model':m,'available':True,'label':p+' · syntetisk test','reason':'Kun mock, ingen ekte modell',
              'variant':'local' if p=='ollama' else 'standard','default':p=='ollama'}
-            for p,m in (('openai','synthetic-cloud-fixture'),('ollama','synthetic-local-fixture')) if provider in (None,p)],
+            for p,m in (('openai','gpt-4.1-mini'),('ollama','synthetic-local-fixture')) if provider in (None,p)],
             client_factory=chat_client,paid_authorized=True,web_authorized=False,openai_dispatch_authorized=lambda:True)
     else:
         chat_backend=None
@@ -79,7 +79,7 @@ def main(argv=None):
             raise RuntimeError('Chrome did not reach DevTools; rendering was not tested. See chrome-startup.log. Exit='+str(chrome.poll()))
         port=active.read_text().splitlines()[0]
         driver=Path(__file__).with_name("browser_smoke.cjs").resolve()
-        result=subprocess.run(["node",str(driver),port,"http://127.0.0.1:"+str(server.server_port),str(folder),"synthetic" if args.demo else "real"],capture_output=True,text=True,encoding="utf-8",timeout=180,env=browser_env)
+        result=subprocess.run(["node",str(driver),port,"http://127.0.0.1:"+str(server.server_port),str(folder),"synthetic-pilot" if args.demo else "real"],capture_output=True,text=True,encoding="utf-8",timeout=180,env=browser_env)
         with (folder/"browser-check.txt").open("x",encoding="utf-8") as stream:stream.write(result.stdout+result.stderr)
         print(result.stdout);print(result.stderr)
         return result.returncode

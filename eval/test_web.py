@@ -32,6 +32,99 @@ class FakeConnection:
 
 
 class WebTests(unittest.TestCase):
+    def test_pilot_welcome_model_entries_and_native_guide_have_accessible_structure(self):
+        html=self.app.dispatch('GET','/',self.headers).body.decode('utf-8')
+        class Structure(HTMLParser):
+            def __init__(self):super().__init__();self.ids=[];self.tags=[]
+            def handle_starttag(self,tag,attrs):
+                attrs=dict(attrs);self.tags.append((tag,attrs))
+                if 'id' in attrs:self.ids.append(attrs['id'])
+        parsed=Structure();parsed.feed(html)
+        self.assertEqual(len(parsed.ids),len(set(parsed.ids)))
+        home=html.split('<section id="aisha-home"',1)[1].split('</section>',1)[0]
+        entries=[attrs for tag,attrs in parsed.tags if tag=='button' and attrs.get('class')=='entry-bubble']
+        self.assertEqual([row['id'] for row in entries],['home-local','home-openai'])
+        self.assertTrue(all(row['type']=='button' and row['aria-controls']=='chat-mode' and row.get('aria-describedby') for row in entries))
+        for text in ('Velkommen til Aisha!','Din digitale veileder i en ny tid.',
+                'Men denne utviklingen skal være for alle – uansett alder eller tidligere erfaring med teknologi.',
+                'Jeg kan hjelpe deg med å finne og forstå offentlig informasjon fra Hamar, Elverum og Gjøvik kommune.',
+                'Målet vårt er å kunne hjelpe innbyggere i alle kommunene i Innlandet i fremtiden.',
+                'Velg lokal AI – Ollama','Velg ChatGPT mini – OpenAI',
+                'OpenAI','kostnader','passord','sensitive personopplysninger'):
+            self.assertIn(text,home)
+        guide=home.split('<details id="aisha-guide"',1)[1].split('</details>',1)[0]
+        self.assertIn('<summary>Slik bruker du Aisha</summary>',guide)
+        self.assertEqual(guide.count('<li>'),5)
+        self.assertIn('Trykk Enter eller Send.',guide)
+        self.assertIn('href="#welcome-title"',html)
+
+    def test_introduction_has_five_native_steps_with_one_main_action_and_safe_escape(self):
+        html=self.app.dispatch('GET','/',self.headers).body.decode('utf-8')
+        class Steps(HTMLParser):
+            def __init__(self):super().__init__();self.step=None;self.depth=0;self.steps={}
+            def handle_starttag(self,tag,attrs):
+                a=dict(attrs)
+                if a.get('class')=='intro-step':
+                    self.step=a['id'];self.steps[self.step]={'attrs':a,'buttons':[],'headings':[]}
+                if self.step:
+                    if tag=='div':self.depth+=1
+                    if tag=='button':self.steps[self.step]['buttons'].append(a)
+                    if tag=='h1':self.steps[self.step]['headings'].append(a)
+            def handle_endtag(self,tag):
+                if self.step and tag=='div':
+                    self.depth-=1
+                    if self.depth==0:self.step=None
+        parsed=Steps();parsed.feed(html)
+        self.assertEqual(list(parsed.steps),['intro-step-'+str(n) for n in range(1,6)])
+        for n,step in enumerate(parsed.steps.values(),1):
+            self.assertEqual('hidden' in step['attrs'],n!=1)
+            self.assertEqual(len(step['buttons']),1 if n<5 else 2)
+            self.assertEqual(len(step['headings']),1)
+            self.assertEqual(step['headings'][0]['tabindex'],'-1')
+            self.assertTrue(all(b.get('type')=='button' for b in step['buttons']))
+            if n<5:self.assertEqual(step['buttons'][0]['aria-controls'],'intro-step-'+str(n+1))
+        for text in ('Bli kjent med Aisha','Hva er kunstig intelligens?',
+                'Hvordan fungerer Aisha?','Nå vil jeg teste Aisha!',
+                'Hopp over introduksjonen','Start på nytt','Steg 1 av 5',
+                'AI kan være nyttig, men kan også gjøre feil. Derfor bør viktig informasjon kontrolleres.',
+                'Hvis jeg ikke kan bekrefte noe, skal jeg si fra.',
+                'Velkommen inn i den digitale fremtiden – sammen med Aisha!'):
+            self.assertIn(text,html)
+
+    def test_i01_first_step_explains_municipal_help_and_second_includes_older_novice_users(self):
+        html=self.app.dispatch('GET','/',self.headers).body.decode('utf-8')
+        first=html.split('<div id="intro-step-1"',1)[1].split('</div>',1)[0]
+        second=html.split('<div id="intro-step-2"',1)[1].split('</div>',1)[0]
+        self.assertIn('Jeg kan hjelpe deg med å finne og forstå informasjon fra kommunen din.',first)
+        self.assertIn('Jeg ønsker spesielt å hjelpe eldre og personer med liten digital erfaring.',second)
+
+    def test_pilot_css_has_large_controls_readable_type_and_pink_black_contrast(self):
+        import re
+        css=(Path(__file__).resolve().parents[1]/'hamar_agent/web_assets/style.css').read_text(encoding='utf-8')
+        rule=re.search(r'\.aisha-entry-choices \.entry-bubble\{([^}]+)\}',css)[1]
+        def value(name):return re.search(r'(?:^|;)'+name+r':([^;]+)',rule)[1]
+        def luminance(color):
+            digits=color.lstrip('#')
+            if len(digits)==3:digits=''.join(c+c for c in digits)
+            channels=[int(digits[i:i+2],16)/255 for i in (0,2,4)]
+            channels=[c/12.92 if c<=0.04045 else ((c+0.055)/1.055)**2.4 for c in channels]
+            return sum(c*w for c,w in zip(channels,(0.2126,0.7152,0.0722)))
+        a,b=sorted((luminance(value('background')),luminance(value('color'))))
+        self.assertGreaterEqual((b+0.05)/(a+0.05),4.5)
+        self.assertGreaterEqual(int(value('min-height').removesuffix('px')),56)
+        self.assertIn('flex-direction:column',css);self.assertIn('html{font-size:20px}',css)
+        self.assertIn('html{font-size:18px}',css);self.assertIn(':focus-visible{outline:4px',css)
+        self.assertIn('prefers-reduced-motion:reduce',css)
+        for selector in (r'\.aisha-simple \.intro-next',r'\.intro-secondary'):
+            declarations=re.search(selector+r'\{([^}]+)\}',css)[1]
+            background=re.search(r'(?:^|;)background:([^;]+)',declarations)[1]
+            foreground=re.search(r'(?:^|;)color:([^;]+)',declarations)[1]
+            a,b=sorted((luminance(background),luminance(foreground)))
+            self.assertGreaterEqual((b+0.05)/(a+0.05),4.5)
+            height=int(re.search(r'min-height:(\d+)px',declarations)[1])
+            self.assertGreaterEqual(height,56)
+        self.assertIn('overflow-wrap:anywhere',css)
+
     def setUp(self):
         for target in ("socket.socket", "socket.create_connection"):
             guard = patch(target, side_effect=AssertionError("network/paid APIs forbidden"))
@@ -104,26 +197,30 @@ class WebTests(unittest.TestCase):
         self.assertNotIn(b"KommuneAgent", page.body)
         html = page.body.decode("utf-8")
         self.assertIn('<h1 id="municipal-title">Aisha Agent</h1>', html)
-        self.assertIn('<h1 id="chat-title">Hei, jeg er Aisha</h1>', html)
-        self.assertEqual(html.count('<h1 '), 2)  # One per mutually exclusive mode.
+        self.assertIn('<h1 id="chat-title">Hei, jeg er Aisha!</h1>', html)
+        self.assertEqual(html.count('<h1 '), 7)  # Five intro steps, municipal view and chat are mutually exclusive.
+        self.assertIn('id="chat-mode" class="chat-mode glass" aria-labelledby="chat-title" hidden',html)
+        self.assertIn('<h1 id="welcome-title" tabindex="-1">Velkommen til Aisha!</h1>',html)
         self.assertIn('id="municipal-mode" role="region" aria-labelledby="municipal-title" hidden', html)
         self.assertIn('<h2 id="categories-title" tabindex="-1">Hvordan kan vi hjelpe deg?</h2>',html)
         self.assertIn('href="https://www.hamar.kommune.no/meny/" target="_blank" rel="noopener noreferrer">Kommunens tjenestemeny',html)
         self.assertNotIn('<h2>Hva kan jeg hjelpe deg med?</h2>',html)
-        self.assertIn('Spør meg om det du lurer på! Jeg kan hjelpe deg med spørsmål, læring og praktiske oppgaver.',html)
+        self.assertIn('Skriv spørsmålet ditt her …',html)
+        script=(Path(__file__).resolve().parents[1]/'hamar_agent/web_assets/app.js').read_text(encoding='utf-8')
+        self.assertIn('Jeg kan hjelpe deg med informasjon om kommunene Hamar, Elverum og Gjøvik. Spør meg om det du lurer på!',script)
         self.assertIn('id="municipal-model-choices" class="model-choices" role="group"',html)
         self.assertIn('id="chat-model-choices" class="model-choices" role="group"',html)
         self.assertIn('id="provider-model" hidden',html)
         self.assertIn('<p class="eyebrow">Svar fra Aisha</p>',html)
         self.assertIn('<p id="answer-help">Kildene vises sammen med svaret.</p>',html)
         hero = html.split('<section class="hero glass">', 1)[1].split('<form id="search-form"', 1)[0]
-        expected_hero = ("Aisha Agent", "Din AI-guide til informasjon og kommunale tjenester i Hamar.",
-                         "Hva kan vi hjelpe deg med?", "Søk etter informasjon om Hamar og kommunale tjenester.")
+        expected_hero = ("Aisha Agent", "Din veileder til offentlig informasjon i Hamar, Elverum og Gjøvik.",
+                         "Hva kan vi hjelpe deg med?", "Søk etter offentlig kommunal informasjon. Ta med kommunenavnet.")
         positions = [hero.index(text) for text in expected_hero]
         self.assertEqual(positions, sorted(positions))
         self.assertIn('<h2 class="hero-question">Hva kan vi hjelpe deg med?</h2>', hero)
-        self.assertIn("Din AI-guide til informasjon og kommunale tjenester i Hamar.", html)
-        self.assertIn("Søk etter informasjon om Hamar og kommunale tjenester.", html)
+        self.assertIn("Din veileder til offentlig informasjon i Hamar, Elverum og Gjøvik.", html)
+        self.assertIn("Søk etter offentlig kommunal informasjon. Ta med kommunenavnet.", html)
         self.assertLess(html.index('id="about-service"'), html.index('id="about-project"'))
         project = html.split('<details id="about-project"', 1)[1].split("</details>", 1)[0]
         self.assertNotRegex(project.split(">", 1)[0], r"\bopen\b")
@@ -575,6 +672,18 @@ class RegionalStartupTests(unittest.TestCase):
             self.assertIs(captured['service'].request_sources,policy)
             self.assertIsNone(policy.fetcher);self.assertEqual(policy.configured(),live)
             self.assertEqual(captured['chat_backend'].search_allowed(),live)
+            if live:
+                self.assertTrue(policy.reviewed_only)
+                from hamar_agent.run_control import run_scope
+                from hamar_agent.research import ResearchError
+                from unittest.mock import Mock
+                discovery=Mock(side_effect=AssertionError('Production chat must not broaden an exact approval'))
+                with patch.object(policy,'_discover',discovery),run_scope():
+                    with self.assertRaises(ResearchError) as refused:
+                        name=next(iter(policy.municipalities.entries.values())).name
+                        policy.prepare('Fortell om testtjeneste i '+name+'.',provider='ollama',authorized=lambda:True,require_municipal=True)
+                    self.assertEqual(refused.exception.code,'research_no_official_sources')
+                discovery.assert_not_called()
             self.assertEqual(captured['chat_backend'].question_router.classifier is not None,local_router)
             self.assertEqual(captured['chat_backend'].policy().max_calls,2 if local_router else 1)
             for provider,model in (('ollama','llama3.2:3b'),('openai','gpt-4.1-mini')):

@@ -3,13 +3,79 @@
 <meta name="hamar-token" content="{{TOKEN}}"><meta name="theme-color" content="#203654"><title>Aisha Agent</title>
 <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon">
 <link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
-<body class="has-scenic-image"><a class="skip" href="#chat-message">Gå til innhold</a>
+<body class="has-scenic-image aisha-simple"><a class="skip" href="#welcome-title">Gå til innhold</a>
 <div class="landscape" aria-hidden="true"><div class="sun"></div><div class="distant-ridge"></div><div class="lake"></div><div class="near-shore"></div></div>
-<header class="site-header"><a class="brand" href="/" aria-label="Aisha Agent, forsiden"><span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="11" r="4"></circle><path d="M16 2v2M7 5l2 2M25 5l-2 2M3 16h26M4 22c4-3 8 3 12 0s8 3 12 0M7 28h18"></path></svg></span><span>Aisha Agent<small>Uavhengig studentprosjekt</small></span></a>
+<header class="site-header"><a id="brand-home" class="brand" href="/" aria-label="Aisha Agent, forsiden"><span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="11" r="4"></circle><path d="M16 2v2M7 5l2 2M25 5l-2 2M3 16h26M4 22c4-3 8 3 12 0s8 3 12 0M7 28h18"></path></svg></span><span>Aisha Agent<small>Uavhengig studentprosjekt</small></span></a>
 <a class="official" href="https://www.hamar.kommune.no/" target="_blank" rel="noopener noreferrer"><span>Hamar kommunes<br><strong>offisielle nettsted</strong></span><span aria-hidden="true">↗</span></a></header>
-<main><nav class="mode-selector glass" aria-label="Velg hva du vil gjøre"><button id="mode-chat" type="button" aria-pressed="true" aria-controls="chat-mode">Chat med Aisha</button><button id="mode-municipal" type="button" aria-pressed="false" aria-controls="municipal-mode">Kommunal informasjon</button></nav>
-<div id="municipal-mode" role="region" aria-labelledby="municipal-title" hidden><section class="hero glass"><h1 id="municipal-title">Aisha Agent</h1>
-<p class="subtitle">Din AI-guide til informasjon og kommunale tjenester i Hamar.</p><h2 class="hero-question">Hva kan vi hjelpe deg med?</h2><p class="intro">Søk etter informasjon om Hamar og kommunale tjenester.</p>
+<main>
+<section id="aisha-home" class="aisha-home glass" aria-labelledby="welcome-title">
+<p id="intro-progress" class="intro-progress">Steg 1 av 5</p>
+<div id="intro-step-1" class="intro-step">
+<h1 id="welcome-title" tabindex="-1">Velkommen til Aisha!</h1>
+<p class="welcome-lead"><strong>Din digitale veileder i en ny tid.</strong></p>
+<p>Jeg kan hjelpe deg med å finne og forstå informasjon fra kommunen din.</p>
+<p>Vi lever i en tid der kunstig intelligens blir en stadig større del av hverdagen vår. Teknologien utvikler seg raskt og påvirker hvordan vi finner informasjon, kommuniserer og bruker digitale tjenester.</p>
+<p>Men denne utviklingen skal være for alle – uansett alder eller tidligere erfaring med teknologi.</p>
+<p>Jeg heter Aisha, og jeg ønsker å hjelpe deg med å bli kjent med den moderne AI-tidsepoken.</p>
+<p>Du trenger ingen forkunnskaper. Vi tar ett steg om gangen, i ditt eget tempo.</p>
+<button id="intro-next-1" class="intro-next" type="button" aria-controls="intro-step-2">Bli kjent med Aisha</button>
+</div>
+<div id="intro-step-2" class="intro-step" hidden>
+<h1 id="intro-title-2" tabindex="-1">Bli med inn i den digitale fremtiden</h1>
+<p>Vi lever i en ny tid med kunstig intelligens. AI blir brukt på stadig flere områder i samfunnet.</p>
+<p>Jeg ønsker spesielt å hjelpe eldre og personer med liten digital erfaring.</p>
+<p>Jeg vil hjelpe deg med å forstå denne utviklingen og vise hvordan du kan bruke teknologien i hverdagen.</p>
+<p>Du trenger ikke være ekspert eller kunne programmering. Hos Aisha kan du lære, utforske og stille spørsmål i ditt eget tempo.</p>
+<p>Den digitale fremtiden skal være for alle.</p>
+<button id="intro-next-2" class="intro-next" type="button" aria-controls="intro-step-3">Hva er kunstig intelligens?</button>
+</div>
+<div id="intro-step-3" class="intro-step" hidden>
+<h1 id="intro-title-3" tabindex="-1">Hva er KI og AI?</h1>
+<p>Kunstig intelligens kalles også KI eller AI.</p>
+<p>Det er teknologi som gjør at dataprogrammer kan behandle informasjon, gjenkjenne mønstre, forstå spørsmål og lage svar.</p>
+<p>Du kan bruke AI ved å skrive et spørsmål med dine egne ord, omtrent som når du snakker med et annet menneske.</p>
+<p>AI kan være nyttig, men kan også gjøre feil. Derfor bør viktig informasjon kontrolleres.</p>
+<button id="intro-next-3" class="intro-next" type="button" aria-controls="intro-step-4">Hvordan fungerer Aisha?</button>
+</div>
+<div id="intro-step-4" class="intro-step" hidden>
+<h1 id="intro-title-4" tabindex="-1">Jeg hjelper deg med å finne informasjon</h1>
+<p>Jeg kan hjelpe deg med å finne og forstå offentlig informasjon fra Hamar, Elverum og Gjøvik kommune.</p>
+<p>Når du stiller et spørsmål om kommunen, forsøker jeg å finne relevante opplysninger fra godkjente kommunale kilder.</p>
+<p>Når opplysningene kan bekreftes, viser jeg deg hvor informasjonen kommer fra. Hvis jeg ikke kan bekrefte noe, skal jeg si fra.</p>
+<p>Jeg kan også forklare vanlige begreper og hjelpe deg med å bli tryggere på kunstig intelligens.</p>
+<p>Målet vårt er å kunne hjelpe innbyggere i alle kommunene i Innlandet i fremtiden.</p>
+<p>Kildehenting krever godkjente kilder og aktivert tilgang. Aisha kan ikke garantere at alle opplysninger finnes eller kan hentes.</p>
+<p class="official-pilot-links">Offisielle nettsteder: <a href="https://www.hamar.kommune.no/" target="_blank" rel="noopener noreferrer">Hamar</a>, <a href="https://www.elverum.kommune.no/" target="_blank" rel="noopener noreferrer">Elverum</a> og <a href="https://www.gjovik.kommune.no/" target="_blank" rel="noopener noreferrer">Gjøvik</a>.</p>
+<button id="intro-next-4" class="intro-next" type="button" aria-controls="intro-step-5">Nå vil jeg teste Aisha!</button>
+</div>
+<div id="intro-step-5" class="intro-step" hidden>
+<h1 id="intro-title-5" tabindex="-1">Nå kan du snakke med Aisha!</h1>
+<p>Du kan velge mellom to AI-modeller. Begge lar deg skrive spørsmål med helt vanlige ord.</p>
+<p>Velg det alternativet du ønsker. Du trenger ikke forstå den tekniske forskjellen for å begynne.</p>
+<div class="aisha-entry-choices" role="group" aria-label="Velg Aisha">
+<button id="home-local" class="entry-bubble" type="button" aria-controls="chat-mode" aria-describedby="home-local-help">Velg lokal AI – Ollama</button>
+<p id="home-local-help">Denne AI-modellen kjører lokalt på datamaskinen.</p>
+<button id="home-openai" class="entry-bubble" type="button" aria-controls="chat-mode" aria-describedby="home-openai-help home-openai-permission">Velg ChatGPT mini – OpenAI</button>
+<p id="home-openai-help">Denne AI-modellen bruker en nettbasert tjeneste. Den krever nødvendige tillatelser og kan medføre kostnader.</p>
+<p id="home-openai-permission">Meldinger og godkjente kildeutdrag kan sendes til OpenAI. Bruk krever aktivering, nødvendige samtykker og kostnadsgrenser fra den som drifter tjenesten. Modellen er gpt-4.1-mini.</p>
+</div>
+<p id="home-status" role="status" aria-live="polite"></p>
+<p class="hint">Tilbake til Aisha beholder samtalen. Hver AI-modell har sin egen samtalehistorikk.</p>
+<p><strong>Velkommen inn i den digitale fremtiden – sammen med Aisha!</strong></p>
+</div>
+<nav class="intro-navigation" aria-label="Introduksjon">
+<button id="intro-back" class="intro-secondary" type="button" hidden>Tilbake</button>
+<button id="intro-restart" class="intro-secondary" type="button" aria-controls="intro-step-1" hidden>Start på nytt</button>
+<button id="intro-skip" class="intro-secondary" type="button" aria-controls="intro-step-5">Hopp over introduksjonen</button>
+</nav>
+<details id="aisha-guide" class="aisha-guide"><summary>Slik bruker du Aisha</summary><ol>
+<li>Gå gjennom introduksjonen eller velg «Hopp over introduksjonen», og velg en AI-modell.</li><li>Skriv spørsmålet ditt i chatfeltet.</li><li>Trykk Enter eller Send.</li><li>Aisha gir deg et svar.</li><li>Du kan stille flere spørsmål hvis du ønsker det.</li>
+</ol><p>Ikke skriv inn passord eller sensitive personopplysninger. Bruk generelle spørsmål uten opplysninger om deg selv eller andre.</p></details>
+<p>Dette er et studentprosjekt under utvikling ved Universitetet i Innlandet. AI kan gjøre feil, og viktig informasjon bør kontrolleres mot kommunens offisielle nettsider.</p>
+</section>
+<details id="additional-navigation" hidden><summary>Flere valg</summary><nav class="mode-selector glass" aria-label="Velg hva du vil gjøre"><button id="mode-chat" type="button" aria-pressed="true" aria-controls="chat-mode">Chat med Aisha</button><button id="mode-municipal" type="button" aria-pressed="false" aria-controls="municipal-mode">Kommunal informasjon</button></nav></details>
+<div id="municipal-mode" role="region" aria-labelledby="municipal-title" hidden><button id="municipal-home" class="back-to-menu" type="button">← Tilbake til forsiden</button><section class="hero glass"><h1 id="municipal-title">Aisha Agent</h1>
+<p class="subtitle">Din veileder til offentlig informasjon i Hamar, Elverum og Gjøvik.</p><h2 class="hero-question">Hva kan vi hjelpe deg med?</h2><p class="intro">Søk etter offentlig kommunal informasjon. Ta med kommunenavnet.</p>
 <form id="search-form" class="search-form"><label class="search-label" for="query">Søk etter en tjeneste</label><div class="search-box"><span class="search-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg></span><input id="query" type="search" maxlength="160" autocomplete="off" placeholder="F.eks. parkering, vann eller byggesak" aria-describedby="privacy"><button id="search-button" type="submit" disabled><span class="button-label">Søk</span> <span aria-hidden="true">→</span></button></div>
 </form><p id="privacy" class="privacy-hint">Ikke skriv personopplysninger. Bruk korte spørsmål om kommunale tjenester.</p>
 </section>
@@ -18,21 +84,30 @@
 <button id="municipal-back-to-menu" class="back-to-menu" type="button" hidden>← Tilbake til meny</button>
 <section id="search-area" class="search-area glass" hidden aria-labelledby="results-title"><div class="section-heading"><div><p class="eyebrow">A · Vanlig søk</p><h2 id="results-title">Kommunal informasjon</h2></div><button id="clear-category" class="secondary" type="button">Alle kategorier</button></div>
 <p id="result-count" class="muted"></p><div id="search-results" class="result-list" aria-label="Vanlige søkeresultater"></div></section>
-<section id="ai-area" class="ai-area glass" aria-labelledby="ai-title"><div class="section-heading"><div><p class="eyebrow">B · Spørsmål og svar</p><h2 id="ai-title">Spør Aisha</h2><p class="ai-intro">Still et spørsmål om informasjon og kommunale tjenester i Hamar.</p></div></div>
+<section id="ai-area" class="ai-area glass" aria-labelledby="ai-title"><div class="section-heading"><div><p class="eyebrow">B · Spørsmål og svar</p><h2 id="ai-title">Spør Aisha</h2><p class="ai-intro">Still et spørsmål om Hamar, Elverum eller Gjøvik.</p></div></div>
 <form id="ai-form" class="ai-form"><label id="municipal-provider-label" for="provider-model">Velg AI</label><div class="provider-controls"><select id="provider-model" hidden disabled aria-describedby="provider-processing"><option>Finner tilgjengelige alternativer …</option></select><div id="municipal-model-choices" class="model-choices" role="group" aria-labelledby="municipal-provider-label" aria-describedby="provider-processing provider-openai-help"></div><button id="refresh-providers" class="secondary" type="button" hidden disabled>Oppdater</button></div><p id="provider-openai-help" class="hint" hidden></p><p id="provider-processing" class="hint" role="status" aria-live="polite">Gjør klar lokal AI.</p><label for="ai-query">Hva vil du vite om kommunale tjenester?</label><div class="search-box"><span class="search-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg></span><input id="ai-query" type="search" maxlength="160" autocomplete="off" placeholder="Skriv et eget spørsmål, for eksempel om SFO" aria-describedby="privacy"><button id="ai-button" type="submit" disabled>Spør Aisha</button></div></form>
 <button id="reset-conversation" class="secondary" type="button" hidden disabled>Nullstill samtale</button>
 <div id="ai-result" class="answer-panel" aria-labelledby="answer-title" aria-busy="false" hidden><div class="answer-heading"><div><p class="eyebrow">Svar fra Aisha</p><h2 id="answer-title">Svar med kilder</h2></div><span id="answer-state" class="answer-state" role="status" aria-live="polite"></span></div><div class="conversation-controls"><p id="answer-help">Kildene vises sammen med svaret.</p><button id="retry-answer" class="secondary retry-answer" type="button" aria-controls="answer-content" hidden>Prøv spørsmålet igjen</button></div><div id="answer-content" aria-live="polite" aria-atomic="false"></div></div></section>
-<details id="about-service" class="about-service glass"><summary>Om tjenesten</summary><p>Ikke skriv personopplysninger.</p><p>Tjenesten bruker et begrenset utvalg gjennomgåtte kilder, ikke direktesøk på kommunens nettsted.</p><p>Kildekontroll viser sitatsamsvar, ikke en garanti for riktighet. Les de offisielle kildene for oppdatert informasjon.</p><p>Uavhengig studentprosjekt, ikke en offisiell kommunal tjeneste.</p></details>
+<details id="about-service" class="about-service glass"><summary>Om tjenesten</summary><p>Ikke skriv personopplysninger.</p><p>Kildefunksjonen krever godkjente kilder og aktivert tilgang. Henting kan mislykkes, og all offentlig informasjon er ikke automatisk tilgjengelig. Dette er ikke direktesøk på hele internett.</p><p>Kildekontroll viser sitatsamsvar, ikke en garanti for riktighet. Les de offisielle kildene for oppdatert informasjon.</p><p>Uavhengig studentprosjekt, ikke en offisiell kommunal tjeneste.</p></details>
 <details id="about-project" class="about-service glass"><summary>Om prosjektet</summary><h2>KIUA-2003 – Aisha Agent</h2><p>Studentprosjekt i kunstig intelligens ved Universitetet i Innlandet.</p><h3>Prosjektets læringsmål</h3><p>Å utvikle og evaluere en trygg og pålitelig AI-agent som automatisk henter, behandler og kontrollerer offentlig informasjon, slik at den blir enklere og mer tilgjengelig for alle i samfunnet.</p><p>Dette er et studentprosjekt og ikke en offisiell tjeneste fra Hamar kommune.</p></details>
 </div>
-<section id="chat-mode" class="chat-mode glass" aria-labelledby="chat-title">
-<div class="chat-topbar"><div class="chat-heading"><span class="robot-avatar" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 8V4M10 22H6v10h4m28-10h4v10h-4"/><rect x="10" y="12" width="28" height="28" rx="10"/><circle cx="18" cy="24" r="2"/><circle cx="30" cy="24" r="2"/><path d="M18 31q6 6 12 0"/></svg></span><div><h1 id="chat-title">Hei, jeg er Aisha</h1><p>Spør meg om det du lurer på! Jeg kan hjelpe deg med spørsmål, læring og praktiske oppgaver. Du kan også finne informasjon om kommunale tjenester under Kommunal informasjon.</p></div></div><button id="chat-reset" class="secondary" type="button">Ny samtale</button></div>
-<details id="chat-safety" class="chat-safety"><summary>Om AI, kilder og personvern</summary><p>AI-svar kan inneholde feil. Kildelenker viser hvor informasjonen kommer fra, og er ikke en sannhetsgaranti. Offisielle tjenestevilkår må støttes av kommunens egne kilder. Ikke del personopplysninger, passord eller hemmeligheter.</p><p>Du velger selv leverandør. OpenAI behandler meldinger eksternt og kan koste penger. Nettsøk krever godkjente kilder og aktivert tilgang.</p></details>
-<div class="chat-settings"><div><label id="chat-provider-label" for="chat-provider">Velg AI</label><div class="provider-controls"><select id="chat-provider" hidden aria-describedby="chat-processing" disabled><option value="">Gjør klar lokal AI …</option></select><div id="chat-model-choices" class="model-choices" role="group" aria-labelledby="chat-provider-label" aria-describedby="chat-processing chat-openai-help"></div><button id="chat-refresh" class="secondary" type="button" hidden>Oppdater</button></div></div><label class="chat-search-toggle" id="chat-search-control" hidden><input id="chat-web-search" type="checkbox" disabled> Søk på nettet <span>(valgfritt)</span></label></div>
+<section id="chat-mode" class="chat-mode glass" aria-labelledby="chat-title" hidden>
+<button id="chat-home" class="back-to-menu" type="button">Tilbake til Aisha</button>
+<div class="chat-topbar"><div class="chat-heading"><span class="robot-avatar" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 8V4M10 22H6v10h4m28-10h4v10h-4"/><rect x="10" y="12" width="28" height="28" rx="10"/><circle cx="18" cy="24" r="2"/><circle cx="30" cy="24" r="2"/><path d="M18 31q6 6 12 0"/></svg></span><div><h1 id="chat-title">Hei, jeg er Aisha!</h1></div></div></div>
+<p id="chat-cost-notice" class="hint" hidden>ChatGPT mini behandler meldingen hos OpenAI og kan koste penger. Nødvendige samtykker og kostnadsgrenser gjelder.</p>
+<button id="chat-back-to-menu" class="back-to-menu" type="button" aria-expanded="false" aria-controls="chat-suggestions">Se hva jeg kan hjelpe deg med</button>
+<div id="chat-suggestions" role="region" aria-label="Forslag til spørsmål" hidden></div>
+<div class="chat-toolbar"><p id="chat-status" role="status" aria-live="polite">Klar for en ny samtale.</p><button id="chat-refresh" class="secondary" type="button" hidden>Oppdater</button></div>
+<div id="chat-log" class="chat-log" role="log" tabindex="0" aria-label="Samtale med Aisha" aria-live="polite" aria-relevant="additions text" aria-busy="false"></div>
+<form id="chat-form" class="chat-form"><label for="chat-message">Skriv spørsmålet ditt her …</label><div class="chat-composer"><textarea id="chat-message" rows="3" maxlength="1000" placeholder="Skriv spørsmålet ditt her …" aria-describedby="chat-input-help chat-cost-notice"></textarea><button id="chat-send" type="submit" aria-label="Send melding" disabled><span class="chat-send-label">Send</span></button></div><div class="chat-compose-actions"><p id="chat-input-help" class="hint">Enter sender · Shift + Enter gir ny linje</p><button id="chat-retry" class="secondary" type="button" hidden>Prøv igjen</button></div></form>
+<button id="chat-switch-model" class="back-to-menu" type="button">Bytt til ChatGPT mini</button>
+<details id="chat-safety" class="chat-safety"><summary>Informasjon om AI, personvern og kostnader</summary>
+<p>AI kan gjøre feil. Viktig informasjon bør kontrolleres. Ikke skriv inn personopplysninger, passord eller hemmeligheter.</p>
+<p>Kommunale spørsmål bruker automatisk kildekontroll når godkjente kilder og tillatelser finnes. Lenker med ukontrollert innhold er ikke dokumentasjon på tjenestefakta.</p>
+<p>OpenAI behandler meldinger eksternt og kan koste penger. Eierens samtykke, personvern- og kostnadskontroller gjelder. Historikken for lokal AI overføres ikke automatisk til OpenAI.</p>
+<p id="chat-selected-model" class="selected-model" role="status" aria-live="polite"></p>
+<div class="chat-settings"><label id="chat-provider-label" for="chat-provider" hidden>Velg AI</label><div class="provider-controls"><select id="chat-provider" hidden aria-describedby="chat-processing" disabled><option value="">Gjør klar AI …</option></select><div id="chat-model-choices" class="model-choices" role="group" aria-labelledby="chat-provider-label" aria-describedby="chat-processing chat-openai-help" hidden></div></div><label id="chat-search-control" hidden><input id="chat-web-search" type="checkbox" disabled> Søk på nettet</label></div>
 <p id="chat-processing" class="hint" hidden></p><p id="chat-search-help" class="hint" hidden></p><p id="chat-openai-help" class="hint" hidden></p>
-<button id="chat-back-to-menu" class="back-to-menu" type="button" hidden>← Tilbake til meny</button>
-<div class="chat-toolbar"><p id="chat-status" role="status" aria-live="polite">Klar for en ny samtale.</p></div>
-<div id="chat-log" class="chat-log" role="log" tabindex="0" aria-label="Samtale med Aisha" aria-live="polite" aria-relevant="additions text" aria-busy="false"><div class="chat-empty"><p>Velg et forslag, eller skriv din egen melding.</p></div></div>
-<form id="chat-form" class="chat-form"><label for="chat-message">Din melding til Aisha</label><div class="chat-composer"><textarea id="chat-message" rows="2" maxlength="1000" placeholder="Skriv til Aisha …" aria-describedby="chat-input-help chat-processing"></textarea><button id="chat-send" type="submit" aria-label="Send melding" disabled><span class="chat-send-label">Send</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 7-7 7 7M12 5v15"/></svg></button></div><div class="chat-compose-actions"><p id="chat-input-help" class="hint">Enter sender · Shift + Enter gir ny linje</p><button id="chat-retry" class="secondary" type="button" hidden>Prøv igjen</button></div></form>
+<button id="chat-reset" class="secondary" type="button">Ny samtale med denne modellen</button></details>
 </section>
 </main><footer class="glass"><p>Studentprosjekt ved Universitetet i Innlandet.</p></footer></body></html>

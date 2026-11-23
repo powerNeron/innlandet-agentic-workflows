@@ -12,6 +12,7 @@ async function chatUnitTests(sourcePath,apiResponse=null){
  assert(source,'Chat source marker missing');
  const checks=[];
  function environment(){
+  let activeElement=null;
   class Element{
    constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.attributes={};this.dataset={};this.value='';this.hidden=false;this.disabled=false;this.checked=false;this.textContent='';this.className='';this.listeners={};this.scrollHeight=400;this.scrollTop=0;this.classList={add:name=>{this.className+=' '+name}};}
    appendChild(child){this.children.push(child);child.parent=this;return child}
@@ -23,10 +24,16 @@ async function chatUnitTests(sourcePath,apiResponse=null){
    querySelector(selector){return this.children.find(c=>selector==='.'+c.className)||null}
    remove(){if(this.parent)this.parent.children=this.parent.children.filter(c=>c!==this)}
    cloneNode(){return new Element('span')}
-   focus(){for(let e=this;e;e=e.parent)if(e.hidden||e.disabled)return;this.focused=true}
+   focus(){for(let e=this;e;e=e.parent)if(e.hidden||e.disabled)return;this.focused=true;activeElement=this}
    requestSubmit(){this.listeners.submit?.({preventDefault(){}})}
   }
   const ids=new Map(),get=id=>{if(!ids.has(id))ids.set(id,new Element(id.includes('provider')?'select':'div'));return ids.get(id)};
+  for(let step=1;step<=5;step++){
+   const panel=get('intro-step-'+step);panel.hidden=step!==1;panel.parent=get('aisha-home');
+   get(step===1?'welcome-title':'intro-title-'+step).parent=panel;
+   if(step<5)get('intro-next-'+step).parent=panel;
+  }
+  get('home-local').parent=get('intro-step-5');get('home-openai').parent=get('intro-step-5');
   get('chat-mode').hidden=false;get('municipal-mode').hidden=true;get('ai-result').hidden=true;get('chat-message').tagName='TEXTAREA';get('chat-retry').hidden=true;
   const resetTag=shellMarkup.match(/<button\b[^>]*\bid="reset-conversation"[^>]*>/u)?.[0]||'';
   get('reset-conversation').hidden=/\shidden(?:[\s=>])/u.test(resetTag);
@@ -34,34 +41,44 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   const sendLabel=new Element('span');sendLabel.className='chat-send-label';get('chat-send').appendChild(sendLabel);
   const skip=new Element('a'),robot=new Element('span');
   let revision=0,messages=[],posts=0,resets=0,provider='openai',holdState=null,holdReset=null,fault=null;
-  const state=()=>({revision,messages:structuredClone(messages),turns:messages.length/2,busy:false});
+  const requests=[],sent=[];
+  const banks=new Map();let activeBank=null;
+  const bankFor=scope=>{const key=scope.provider+'|'+scope.model;if(!banks.has(key))banks.set(key,{revision:0,messages:[]});return banks.get(key)};
+  const state=()=>{const bank=activeBank?bankFor(activeBank):{revision,messages};return {revision:bank.revision,messages:structuredClone(bank.messages),turns:bank.messages.length/2,busy:false}};
   const data={choices:[{provider:'openai',model:'synthetic-cloud-fixture',available:true,label:'Mock OpenAI'},
-                       {provider:'ollama',model:'synthetic-local-fixture',available:true,label:'Mock Ollama'}],web_search_allowed:false};
+                       {provider:'ollama',model:'synthetic-local-fixture',available:true,label:'Mock Ollama'}],web_search_allowed:false,
+    municipalities:['hamar','elverum','gjovik'].map(id=>({id,official_host:'www.'+id+'.kommune.no'}))};
   const api=async(url,options={})=>{
+   requests.push(url);
    if(url==='/api/chat/options')return structuredClone(data);
-   if(url==='/api/chat/state'){const snapshot=state();if(holdState){const hold=holdState;holdState=null;await hold}return snapshot}
-   if(url==='/api/chat/reset'){resets++;messages=[];revision++;const snapshot={reset:true,revision,busy:false};if(holdReset){const hold=holdReset;holdReset=null;await hold}return snapshot}
+   if(url==='/api/chat/state'){if(options.method==='POST')activeBank=JSON.parse(options.body);const snapshot=state();if(holdState){const hold=holdState;holdState=null;await hold}return snapshot}
+   if(url==='/api/chat/reset'){resets++;const scope=JSON.parse(options.body||'{}');let next;
+    if(scope.provider){const bank=bankFor(scope);bank.messages=[];next=++bank.revision}else{messages=[];next=++revision}
+    const snapshot={reset:true,revision:next,busy:false};if(holdReset){const hold=holdReset;holdReset=null;await hold}return snapshot}
    if(url==='/api/chat'){
-    posts++;const request=JSON.parse(options.body);
+    posts++;const request=JSON.parse(options.body);sent.push(request);
     if(fault){const code=fault;fault=null;const error=new Error('AI kan ikke kontaktes. Prøv igjen senere.');error.code=code;throw error}
-    assert.equal(request.revision,revision,'Obsolete request submitted');
+    const bank=request.model_history?bankFor(request):{revision,messages};
+    if(request.model_history)assert.equal(request.provider+'|'+request.model,activeBank.provider+'|'+activeBank.model);
+    assert.equal(request.revision,bank.revision,'Obsolete request submitted');
     const reply={role:'assistant',text:'Syntetisk svar.',web_search_used:false,citations:[],ai_generated:true,municipal_verified:false};
-    messages.push({role:'user',text:request.message},reply);revision++;
-    return {reply,revision,turns:messages.length/2};
+    bank.messages.push({role:'user',text:request.message},reply);bank.revision++;
+    if(!request.model_history){messages=bank.messages;revision=bank.revision}
+    return {reply,revision:bank.revision,turns:bank.messages.length/2};
    }
    throw Error('Unexpected route '+url);
   };
   const documentListeners={};
   const context=vm.createContext({document:{getElementById:get,createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),querySelector:selector=>selector==='.skip'?skip:robot,
-   addEventListener:(name,callback)=>{documentListeners[name]=callback}},
+   addEventListener:(name,callback)=>{documentListeners[name]=callback},get activeElement(){return activeElement}},
    $:get,officialMunicipalHosts:new Set(['www.hamar.kommune.no']),token:'synthetic-session-token',item:(parent,tag,text)=>{const e=new Element(tag);e.textContent=text;parent.appendChild(e);return e},
-   api,visibleRequestError:(error,fallback)=>error.message||fallback,AbortController,Event,URL,console,refreshMunicipalOptions:async()=>{}});
+   api,visibleRequestError:(error,fallback)=>error.message||fallback,AbortController,Event,URL,console,portalReady:true,loadPortal:async()=>{},refreshMunicipalOptions:async()=>{}});
   vm.runInContext(source,context);
   const evaluate=script=>vm.runInContext(script,context);
   const ready=async(provider='openai')=>{await evaluate('loadChat()');if(provider){get('chat-provider').value=provider==='openai'?'openai|synthetic-cloud-fixture':'ollama|synthetic-local-fixture';await get('chat-provider').listeners.change()}evaluate('updateChatControls()')};
   const delayState=()=>{let release;holdState=new Promise(r=>release=r);return release};
   const delayReset=()=>{let release;holdReset=new Promise(r=>release=r);return release};
-  return {get,evaluate,ready,delayState,delayReset,state,data,documentListeners,counts:()=>({posts,resets}),
+  return {get,evaluate,ready,delayState,delayReset,state,data,documentListeners,requests,sent,counts:()=>({posts,resets}),
           setApi:fn=>{context.api=fn},getApi:()=>context.api,
           failNext:code=>{fault=code},
           seed:()=>{messages=[{role:'user',text:'Et syntetisk spørsmål.'},{role:'assistant',text:'Et tidligere syntetisk svar.'}];revision=1},
@@ -107,10 +124,10 @@ async function chatUnitTests(sourcePath,apiResponse=null){
    assert.equal(JSON.stringify(e.state()),before);assert.deepEqual(e.counts(),counts);
    assert.equal(e.get('chat-provider').value,selection);assert.equal(e.get('chat-message').value,'Et usendt oppfølgingsspørsmål.');
    assert(rows.every(row=>e.get('chat-log').children.includes(row)),'Back removed conversation bubbles');
-   assert(e.get('chat-back-to-menu').hidden);assert(e.get('chat-log').children.find(n=>n.className==='chat-empty').focused);
+   assert(!e.get('chat-back-to-menu').hidden);assert(!e.get('chat-suggestions').hidden);assert(e.get('chat-suggestions').children[0].focused);
    e.evaluate('renderChatMessage({role:"assistant",text:"Et forsinket svar.",ai_generated:true,citations:[]})');
-   assert(!e.get('chat-log').children.find(n=>n.className==='chat-empty').hidden,'Late response concealed the requested menu');
-   e.get('chat-log').children.find(n=>n.className==='chat-empty').children.find(n=>n.className==='chat-prompts').children[1].listeners.click();
+   assert(!e.get('chat-suggestions').hidden,'Late response concealed the requested menu');
+   e.get('chat-suggestions').children.find(n=>n.className==='chat-prompts').children[1].listeners.click();
    assert(!e.get('chat-back-to-menu').hidden);assert.deepEqual(e.counts(),counts);
    await e.evaluate('resetChat()');assert.equal(e.state().messages.length,0);assert.equal(e.counts().resets,counts.resets+1);
   }
@@ -134,7 +151,7 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   assert(css.includes('.back-to-menu:focus-visible'));assert(/\.back-to-menu\s*\{[^}]*min-height:\s*44px/.test(css));
   assert(/\.back-to-menu\s*\{[^}]*background:\s*#b63070/.test(css));
   assert(/@media\(max-width:\s*650px\)\s*\{\.back-to-menu\s*\{[^}]*width:\s*100%/.test(css));
-  assert(shellMarkup.includes('Hei, jeg er Aisha'));assert(shellMarkup.includes('Spør meg om det du lurer på!'));
+  assert(shellMarkup.includes('Hei, jeg er Aisha'));assert(fullSource.includes('Spør meg om det du lurer på!'));
   assert(/<details\b[^>]*id="chat-safety"[^>]*>/.test(shellMarkup));
   assert(!/<details\b[^>]*id="chat-safety"[^>]*\bopen/.test(shellMarkup));
   checks.push('municipal Back is keyboard-native, preserves answer/draft and performs no search; responsive pink/focus CSS contracts');
@@ -152,7 +169,7 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   const release=e.delayState();const stale=e.evaluate('loadChat()');await e.tick();await e.evaluate('resetChat()');
   const expected=e.state().revision;release();await stale;
   assert.equal(e.evaluate('chatRevision'),expected,'Delayed state rolled revision backward');
-  assert.equal(e.get('chat-log').children.filter(x=>x.tagName==='ARTICLE').length,0,'Delayed state restored old history');
+  assert.equal(e.get('chat-log').children.filter(x=>x.tagName==='ARTICLE'&&!x.className.includes('chat-empty')).length,0,'Delayed state restored old history');
   checks.push('CHAT-01 delayed state cannot undo reset');
  }
  {
@@ -201,8 +218,8 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   assert.equal(e.counts().posts,0);
   const text=e.get('chat-provider').children.map(n=>n.textContent).join(' ');
   assert(text.includes('Lokal AI (Ollama)'));assert(!text.includes('synthetic-cloud-fixture')&&!text.includes('synthetic-local-fixture'));
-  const welcome=e.get('chat-log').children.find(n=>n.className==='chat-empty');
-  const prompts=welcome.children.find(n=>n.className==='chat-prompts');prompts.children[0].listeners.click();
+  e.get('chat-back-to-menu').listeners.click();
+  const prompts=e.get('chat-suggestions').children.find(n=>n.className==='chat-prompts');prompts.children[0].listeners.click();
   assert(e.get('chat-message').value.length>0);assert.equal(e.counts().posts,0);
   checks.push('available local default, friendly names and suggestions never generate');
  }
@@ -239,18 +256,18 @@ async function chatUnitTests(sourcePath,apiResponse=null){
  {
   for(const provider of ['ollama','openai']){
    const e=environment();await e.ready(provider);
-   const welcome=e.get('chat-log').children.find(n=>n.className==='chat-empty');
-   assert(welcome.children.some(n=>n.className==='robot-avatar chat-welcome-avatar'));
+   const welcome=e.get('chat-log').children.find(n=>n.className.includes('chat-empty'));
+   assert(welcome.children.some(n=>n.className==='chat-bubble'));
    assert(!welcome.children.some(n=>n.tagName==='H1'||n.tagName==='H2'),'Welcome must not duplicate the primary heading');
-   const prompts=welcome.children.find(n=>n.className==='chat-prompts').children;
-   assert.deepEqual(prompts.map(b=>b.children.find(n=>n.tagName==='SPAN').textContent),['Forklar et tema','Hjelp meg å skrive','Hjelp med læring','Still et spørsmål']);
-   for(const b of prompts){assert.equal(b.type,'button');assert(b.children.some(n=>n.tagName==='SVG'));b.listeners.click();assert(e.get('chat-message').value.length>0);assert(e.get('chat-message').focused);assert.equal(e.counts().posts,0)}
+   e.get('chat-back-to-menu').listeners.click();const prompts=e.get('chat-suggestions').children.find(n=>n.className==='chat-prompts').children;
+   assert.deepEqual(prompts.map(b=>b.textContent),['Barnehage og skole','Helse og omsorg','Dagsenter og aktivitetstilbud','Hjemmehjelp og hjemmetjenester','Kommunale avgifter','Renovasjon','Kultur og fritid','Byggesaker og eiendom','Andre kommunale spørsmål']);
+   for(const b of prompts){assert.equal(b.type,'button');b.listeners.click();assert(e.get('chat-message').value.length>0);assert(e.get('chat-message').focused);assert.equal(e.counts().posts,0)}
    await e.evaluate('sendChat()');assert.equal(e.counts().posts,1);
    const rows=e.get('chat-log').children.filter(n=>n.tagName==='ARTICLE');
    assert(rows.some(n=>n.className==='chat-row user'));assert(rows.some(n=>n.className==='chat-row assistant'));
    assert(rows.find(n=>n.className==='chat-row assistant').children.length>=2);
   }
-  checks.push('four icon suggestions prefill only; identical local/cloud bubbles and robot avatar');
+  checks.push('nine editable topic suggestions prefill only; identical local/cloud welcome and bubbles');
  }
  {
   const e=environment();e.data.choices.find(c=>c.provider==='openai').model='gpt-4.1-mini';await e.ready(null);
@@ -409,15 +426,15 @@ async function chatUnitTests(sourcePath,apiResponse=null){
  }
  {
   const e=environment();e.data.web_search_allowed=true;await e.ready('ollama');
-  assert.equal(e.get('chat-search-control').hidden,false);
-  assert.equal(e.get('chat-web-search').disabled,false);assert.equal(e.get('chat-web-search').checked,false);
+  assert.equal(e.get('chat-search-control').hidden,true);
+  assert.equal(e.get('chat-web-search').disabled,true);assert.equal(e.get('chat-web-search').checked,false);
   assert.equal(e.counts().posts,0);
   e.evaluate('renderChatMessage({role:"assistant",text:"Fiktivt kildeutdrag.",ai_generated:true,web_search_used:true,research_verified:true,citations:[{url:"https://www.ssb.no/synthetic-offline/",title:"Fiktiv kilde"}]})');
   const all=n=>[n,...n.children.flatMap(all)],nodes=all(e.get('chat-log'));
   assert(nodes.some(n=>n.textContent.includes('ikke kommunal verifisering eller sannhetsgaranti')));
   assert(nodes.some(n=>n.tagName==='A'&&n.href==='https://www.ssb.no/synthetic-offline/'&&n.rel==='noopener noreferrer'));
-  await e.ready('openai');assert.equal(e.get('chat-web-search').disabled,false);assert.equal(e.counts().posts,0);
-  checks.push('approved-source research is opt-in for local/cloud; exact source links and limited verification label');
+  await e.ready('openai');assert.equal(e.get('chat-web-search').disabled,true);assert.equal(e.counts().posts,0);
+  checks.push('search checkbox remains hidden; server-approved automatic research only on Send; limited verification label');
  }
  {
   const e=environment();
@@ -435,6 +452,182 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   const publication=all(e.get('date-only-fixture')).find(n=>n.textContent.startsWith('Publisert:'));
   assert(publication);assert(!/\d{2}:\d{2}/u.test(publication.textContent),'Date-only publication must not acquire an invented clock time');
   checks.push('live provenance separates retrieval/publication/effective period, unknown stays unknown and metadata is inert');
+ }
+ {
+  const e=environment();e.documentListeners.DOMContentLoaded();
+  assert.equal(e.get('aisha-home').hidden,false);assert.equal(e.get('chat-mode').hidden,true);assert.equal(e.get('municipal-mode').hidden,true);
+  assert.equal(e.get('additional-navigation').hidden,true);assert.deepEqual(e.requests,[]);assert.deepEqual(e.counts(),{posts:0,resets:0});
+  const home=shellMarkup.split('<section id="aisha-home"')[1].split('</section>')[0];
+  assert.equal((home.match(/class="entry-bubble"/gu)||[]).length,2);
+  assert(home.includes('Velg lokal AI – Ollama'));assert(home.includes('Velg ChatGPT mini – OpenAI'));
+  assert(home.includes('<summary>Slik bruker du Aisha</summary>'));assert.equal((home.match(/<li>/gu)||[]).length,5);
+  assert.equal(e.get('intro-step-1').hidden,false);assert.equal(e.get('intro-step-5').hidden,true);
+  checks.push('five-step landing starts at welcome; model entries stay hidden; native guide and zero startup API calls');
+ }
+ {
+  const e=environment();e.documentListeners.DOMContentLoaded();
+  function assertStep(step){
+   for(let n=1;n<=5;n++)assert.equal(e.get('intro-step-'+n).hidden,n!==step);
+   assert.equal(e.get('intro-progress').textContent,'Steg '+step+' av 5');
+   assert.equal(e.get('intro-back').hidden,step===1);assert.equal(e.get('intro-skip').hidden,step===5);
+   const title=step===1?'welcome-title':'intro-title-'+step;
+   assert(e.evaluate('document.activeElement === $("'+title+'")'));
+   assert.equal(e.get('aisha-home').attributes['aria-labelledby'],title);
+   assert.equal(e.evaluate('document.querySelector(".skip").href'),'#'+title);
+  }
+  for(let n=1;n<5;n++){await e.get('intro-next-'+n).listeners.click();assertStep(n+1)}
+  await e.get('intro-back').listeners.click();assertStep(4);
+  await e.get('intro-back').listeners.click();assertStep(3);
+  await e.get('intro-skip').listeners.click();assertStep(5);
+  await e.get('intro-restart').listeners.click();assertStep(1);
+  e.get('home-local').focus();assert(e.evaluate('document.activeElement === $("welcome-title")'),'Hidden model must not receive focus');
+  await e.get('intro-skip').listeners.click();assertStep(5);
+  assert.deepEqual(e.requests,[]);assert.deepEqual(e.counts(),{posts:0,resets:0});
+  checks.push('all five steps/back/restart/skip have one visible panel, matching focus/skip link and zero API calls');
+ }
+ {
+  const e=environment();e.documentListeners.DOMContentLoaded();await e.get('intro-skip').listeners.click();
+  await e.get('home-local').listeners.click();e.get('chat-message').value='Syntetisk spørsmål.';await e.evaluate('sendChat()');
+  e.get('chat-message').value='Bevart utkast.';await e.get('chat-home').listeners.click();
+  const history=JSON.stringify(e.state()),requests=e.requests.length;
+  await e.get('intro-restart').listeners.click();await e.get('intro-skip').listeners.click();await e.get('home-local').listeners.click();
+  assert.equal(JSON.stringify(e.state()),history);assert.equal(e.requests.length,requests);assert.equal(e.get('chat-message').value,'Bevart utkast.');
+  checks.push('restarting introduction preserves existing chat history/draft and same-model return without reset or API');
+ }
+ {
+  for(const navigate of ['intro-back','intro-restart','intro-skip']){
+   const e=environment();e.documentListeners.DOMContentLoaded();await e.get('intro-skip').listeners.click();
+   const release=e.delayState(),opening=e.get('home-local').listeners.click();await e.tick();
+   await e.get('chat-home').listeners.click();
+   if(navigate==='intro-skip')await e.get('intro-back').listeners.click();
+   await e.get(navigate).listeners.click();
+   const step=e.evaluate('introStep'),active=e.evaluate('document.activeElement');release();await opening;
+   assert.equal(e.evaluate('introStep'),step);assert.equal(e.evaluate('document.activeElement'),active);
+   assert.equal(e.get('aisha-home').hidden,false);assert.deepEqual(e.counts(),{posts:0,resets:0});
+  }
+  checks.push('delayed model metadata cannot change intro step or steal focus after back/restart/skip');
+ }
+ {
+  const e=environment();e.documentListeners.DOMContentLoaded();await e.get('home-local').listeners.click();
+  assert.equal(e.get('chat-provider').value,'ollama|synthetic-local-fixture');assert.equal(e.get('aisha-home').hidden,true);
+  assert.equal(e.get('chat-mode').hidden,false);assert.equal(e.counts().posts,0);
+  e.get('chat-message').value='Et generelt syntetisk spørsmål.';await e.evaluate('sendChat()');assert.equal(e.sent[0].provider,'ollama');
+  const revision=e.state().revision,history=JSON.stringify(e.state().messages),calls=e.requests.length;
+  e.get('chat-message').value='Et utkast.';await e.get('chat-home').listeners.click();assert.equal(e.get('aisha-home').hidden,false);
+  await e.get('home-local').listeners.click();assert.equal(e.get('chat-message').value,'Et utkast.');
+  assert.equal(e.state().revision,revision);assert.equal(JSON.stringify(e.state().messages),history);assert.equal(e.requests.length,calls);
+  assert.equal(e.counts().resets,0);checks.push('local entrance selects Ollama; home Back and same-model return preserve draft/history/revision with zero requests');
+ }
+ {
+  const e=environment();e.data.choices[0].model='gpt-4.1-mini';
+  e.data.choices.push({provider:'openai',model:'advanced-fixture',variant:'advanced',available:true});
+  await e.get('home-openai').listeners.click();assert.equal(e.get('chat-provider').value,'openai|gpt-4.1-mini');
+  assert.equal(e.counts().posts,0);assert(e.get('chat-selected-model').textContent.includes('ChatGPT mini'));
+  e.get('chat-message').value='Et generelt syntetisk spørsmål.';await e.evaluate('sendChat()');
+  assert.equal(e.sent[0].provider,'openai');assert.equal(e.sent[0].model,'gpt-4.1-mini');
+  assert(e.get('chat-processing').textContent.includes('betalt'));checks.push('cloud entrance selects exact gpt-4.1-mini; advanced model never substitutes; only explicit Send generates');
+ }
+ {
+  const e=environment();e.data.choices[0].model='gpt-4.1-mini';e.data.choices[0].available=false;
+  await e.get('home-local').listeners.click();e.get('chat-message').value='Et syntetisk spørsmål.';await e.evaluate('sendChat()');
+  const history=JSON.stringify(e.state()),count=e.counts();e.get('chat-message').value='Bevart utkast.';
+  await e.get('chat-home').listeners.click();await e.get('home-openai').listeners.click();
+  assert.equal(e.get('chat-provider').value,'');assert(e.get('chat-send').disabled);assert(e.get('chat-log').hidden);
+  assert(e.get('chat-status').textContent.includes('ChatGPT mini'));assert.equal(JSON.stringify(e.state()),history);assert.deepEqual(e.counts(),count);
+  await e.get('chat-refresh').listeners.click();assert.equal(e.get('chat-provider').value,'');assert(e.get('chat-send').disabled);
+  await e.get('chat-home').listeners.click();await e.get('home-local').listeners.click();
+  assert.equal(e.get('chat-message').value,'Bevart utkast.');assert.equal(JSON.stringify(e.state()),history);assert.deepEqual(e.counts(),count);
+  checks.push('unavailable cloud entrance/refresh never falls back or resets local history; original conversation can be resumed');
+ }
+ {
+  for(const back of ['chat-home','brand-home']){
+   const e=environment();e.data.choices[0].model='gpt-4.1-mini';
+   const release=e.delayState(),opening=e.get('home-local').listeners.click();await e.tick();
+   await e.get(back).listeners.click({preventDefault(){}});assert.equal(e.get('aisha-home').hidden,false);
+   assert(e.evaluate('document.activeElement === $("intro-title-5")'),'Pending navigation must focus a visible enabled target');
+   await e.get('home-openai').listeners.click();release();await opening;
+   assert(e.evaluate('document.activeElement === $("home-local")'),'Completed navigation must focus the enabled entry');
+   assert.equal(e.get('aisha-home').hidden,false);assert.equal(e.counts().posts,0);assert.equal(e.counts().resets,0);
+  }
+  checks.push('returning home during delayed model metadata stays home; competing entrance cannot change selection or generate');
+ }
+ {
+  const e=environment(),release=e.delayState(),opening=e.get('home-local').listeners.click();await e.tick();
+  await e.get('chat-home').listeners.click();e.get('aisha-guide').focus();release();await opening;
+  assert(e.evaluate('document.activeElement === $("aisha-guide")'),'Late metadata must not steal guide focus');
+  checks.push('delayed metadata keeps visible Back focus and does not steal focus after the user moves to the guide');
+ }
+ {
+  const e=environment();e.data.choices[0].model='gpt-4.1-mini';const original=e.getApi();let failures=1,resets=0;
+  e.setApi(async(route,options={})=>{
+   if(route==='/api/chat/reset'){resets++;if(failures-->0)throw Error('Synthetic reset failure')}
+   return original(route,options);
+  });
+  await e.get('home-local').listeners.click();e.get('chat-message').value='Første syntetiske spørsmål.';await e.evaluate('sendChat()');
+  const local=JSON.stringify(e.state());e.get('chat-message').value='Lokalt utkast.';
+  await e.get('chat-switch-model').listeners.click();
+  assert.equal(resets,0);assert.equal(e.state().messages.length,0);assert.equal(e.get('chat-message').value,'');
+  assert.equal(e.get('chat-switch-model').textContent,'Bytt til lokal AI');assert.equal(e.get('aisha-home').hidden,true);
+  e.get('chat-message').value='Bare skyens spørsmål.';await e.evaluate('sendChat()');
+  assert.equal(e.sent.at(-1).model,'gpt-4.1-mini');assert(e.sent.every(r=>r.model_history===true&&!('messages' in r)&&r.web_search===false));
+  const cloud=JSON.stringify(e.state());e.get('chat-message').value='Skyutkast.';
+  await e.get('chat-switch-model').listeners.click();assert.equal(JSON.stringify(e.state()),local);assert.equal(e.get('chat-message').value,'Lokalt utkast.');
+  await e.get('chat-switch-model').listeners.click();assert.equal(JSON.stringify(e.state()),cloud);assert.equal(e.get('chat-message').value,'Skyutkast.');
+  await e.evaluate('resetChat()');assert(e.evaluate('chatResetRequired'));assert(e.get('chat-send').disabled);assert.equal(resets,1);
+  await e.get('chat-refresh').listeners.click();assert.equal(resets,2);assert(!e.evaluate('chatResetRequired'));
+  assert(e.evaluate('chatReady'));assert.equal(e.state().messages.length,0);
+  await e.get('chat-switch-model').listeners.click();assert.equal(JSON.stringify(e.state()),local);assert.equal(e.counts().posts,2);
+  checks.push('direct model switch keeps separate histories/drafts and revisions; failed scoped reset requires recovery without erasing the other model');
+ }
+ {
+  const e=environment();e.data.choices[0].model='gpt-4.1-mini';await e.get('home-local').listeners.click();
+  for(let i=0;i<3;i++){e.get('chat-message').value='Lokalt spørsmål.';await e.evaluate('sendChat()')}
+  const release=e.delayState(),stale=e.evaluate('syncChatState()');await e.tick();
+  await e.get('chat-switch-model').listeners.click();assert.equal(e.evaluate('chatRevision'),0);
+  release();await stale;assert.equal(e.evaluate('chatRevision'),0);assert.equal(e.state().messages.length,0);
+  assert.equal(e.get('chat-mode').attributes['data-provider'],'openai');assert.equal(e.counts().posts,3);
+  checks.push('late local state cannot paint the cloud bank or reject its lower revision');
+ }
+ {
+  const e=environment();await e.get('home-local').listeners.click();const count=e.counts();
+  e.evaluate('renderChatMessage('+JSON.stringify({role:'assistant',text:'Velg kommune.',ai_generated:false,municipality_choices:[{id:'hamar',name:'Hamar'},{id:'evil',name:'Ukjent'}]})+')');
+  const all=n=>[n,...n.children.flatMap(all)],nodes=all(e.get('chat-log'));
+  const buttons=nodes.filter(n=>n.tagName==='BUTTON');assert.equal(buttons.length,1);buttons[0].listeners.click();
+  assert.equal(e.get('chat-message').value,'Hamar');assert.deepEqual(e.counts(),count);
+  const approved={url:'https://www.hamar.kommune.no/synthetic-reviewed/application/',purpose:'application',content_verified:false,approval_expires:'2099-01-01'};
+  e.evaluate('renderChatMessage('+JSON.stringify({role:'assistant',text:'Veiledning.',ai_generated:false,service_links:[approved,{...approved,url:'https://www.elverum.kommune.no/synthetic/'},{...approved,url:'https://www.gjovik.kommune.no/synthetic/'},{...approved,url:'https://evil.invalid/'}]})+')');
+  const links=all(e.get('chat-log')).filter(n=>n.tagName==='A');assert.equal(links.length,3);assert.equal(links[0].textContent,'Gå til søknad');
+  e.evaluate('renderChatMessage('+JSON.stringify({role:'assistant',text:'Avvist metadata.',ai_generated:false,service_links:[{...approved,approval_expires:'2000-01-01'},{...approved,content_verified:true},{...approved,url:approved.url+'?token=synthetic'}]})+')');
+  assert.equal(all(e.get('chat-log')).filter(n=>n.tagName==='A').length,3);
+  assert(all(e.get('chat-log')).some(n=>n.textContent==='Du har ikke søkt om tjenesten ved å åpne lenken.'));
+  assert.deepEqual(e.counts(),count);checks.push('municipality buttons only prefill; URL-only official links cannot imply factual verification or a submitted application');
+ }
+ {
+  const e=environment();await e.get('home-local').listeners.click();let prevented=false;
+  e.get('chat-message').value='En redigerbar kladd.';
+  await e.get('chat-message').listeners.input();assert.equal(e.counts().posts,0);
+  e.get('chat-message').listeners.keydown({key:'Enter',shiftKey:true,isComposing:false,preventDefault(){prevented=true}});
+  e.get('chat-message').listeners.keydown({key:'Enter',shiftKey:false,isComposing:true,preventDefault(){prevented=true}});
+  assert(!prevented);assert.equal(e.counts().posts,0);
+  e.get('chat-message').listeners.keydown({key:'Enter',shiftKey:false,isComposing:false,preventDefault(){prevented=true}});await e.tick();
+  assert(prevented);assert.equal(e.counts().posts,1);assert.equal(e.sent[0].message,'En redigerbar kladd.');
+  checks.push('typing never fetches; Enter sends once, Shift+Enter and IME composition never submit');
+ }
+ {
+  for(const provider of ['ollama','openai']){
+   const e=environment();e.data.choices[0].model='gpt-4.1-mini';await e.evaluate('enterAishaChat('+JSON.stringify(provider)+')');
+   e.get('chat-message').value='Forklar rekursjon.';await e.evaluate('sendChat()');
+   const history=JSON.stringify(e.state()),original=e.getApi();let failure=true;
+   e.setApi(async(route,options={})=>{if(route==='/api/chat/reset'&&failure){failure=false;throw Error('Synthetic failed reset')}return original(route,options)});
+   await e.evaluate('resetChat()');assert(e.evaluate('chatResetRequired'));
+   await e.get('chat-switch-model').listeners.click();assert(!e.evaluate('chatResetRequired'));
+   const other=JSON.stringify(e.state());await e.get('chat-switch-model').listeners.click();
+   assert(e.evaluate('chatResetRequired'));assert(!e.get('chat-refresh').hidden);assert.equal(JSON.stringify(e.state()),history);
+   const before=e.counts().posts;e.get('chat-message').value='Fortsett.';await e.evaluate('sendChat()');assert.equal(e.counts().posts,before);
+   await e.get('chat-refresh').listeners.click();assert(!e.evaluate('chatResetRequired'));assert.equal(e.state().messages.length,0);
+   await e.get('chat-switch-model').listeners.click();assert.equal(JSON.stringify(e.state()),other);assert.equal(e.counts().posts,before);
+  }
+  checks.push('failed reset stays bound to its model across A-B-A; Send blocked until matching explicit recovery ACK; other bank preserved');
  }
  console.log(JSON.stringify({method:'Deterministic Node VM/DOM model; no browser rendering, network, SDK or inference',passed:checks.length,checks}));
 }
@@ -463,6 +656,70 @@ async function chatUnitTests(sourcePath,apiResponse=null){
  const pressDisclosureEnter=async()=>{await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',text:'\r',unmodifiedText:'\r',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13})};
  const wait=async expression=>{for(let i=0;i<300;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100))}throw Error('Condition failed '+expression+' STATE '+JSON.stringify(await evaluate('({portal:document.getElementById("portal-status").textContent,count:document.getElementById("result-count").textContent,status:document.getElementById("answer-state").textContent,answerArticles:document.querySelectorAll("#answer-content article").length,answerSourceLinks:document.querySelectorAll("#answer-content .source-link").length,answerData:(()=>{try{const x=window.__lastAnswer;return {status:x?.answer_status,claims:x?.result?.claims?.length,findings:x?.result?.verification?.findings?.length,citations:x?.citations?.length}}catch{return null}})()})')))};
  await send('Page.enable');await send('Runtime.enable');await send('Log.enable');await send('Network.enable');
+ if(mode==='synthetic-pilot'){
+  const assert=(value,message)=>{if(!value)throw Error(message)},layouts=[];
+  const shot=async name=>fs.writeFileSync(folder+'/'+name+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'),{flag:'wx'});
+  await send('Page.navigate',{url:site});await wait('document.readyState==="complete" && !document.getElementById("aisha-home").hidden');
+  assert(!observedNetwork.some(r=>r.path.startsWith('/api/')),'Landing must not inspect providers or generate');
+  const activate=async id=>{await evaluate('document.getElementById('+JSON.stringify(id)+').focus();true');await pressDisclosureEnter()};
+  for(const [width,height] of [[1280,1000],[768,1024],[390,844],[320,900]]){
+   await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<650});
+   if(await evaluate('introStep>1'))await activate('intro-restart');
+   for(let step=1;step<=5;step++){
+   if(step>1)await activate('intro-next-'+(step-1));
+   const layout=await evaluate(`(()=>{const panels=[...document.querySelectorAll('.intro-step')].filter(p=>!p.hidden),buttons=[...panels[0].querySelectorAll('button')];return {step:introStep,visible:panels.length,width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,
+    bodyFont:parseFloat(getComputedStyle(document.body).fontSize),buttons:buttons.map(b=>{const r=b.getBoundingClientRect(),s=getComputedStyle(b);return {name:b.textContent.trim(),x:r.x,y:r.y,width:r.width,height:r.height,color:s.color,background:s.backgroundColor,font:parseFloat(s.fontSize)}})}})()`);
+   assert(layout.step===step&&layout.visible===1&&!layout.overflow&&layout.bodyFont>=18&&layout.buttons.length===(step===5?2:1)&&layout.buttons.every(b=>b.height>=56&&b.font>=18),'Intro reflow/type/control failure '+JSON.stringify(layout));
+   if(step===5)assert(layout.buttons[1].y>layout.buttons[0].y+layout.buttons[0].height,'Model entries must stack vertically');
+   if(step>1)assert(await evaluate('document.activeElement.id==="intro-title-'+step+'"'),'Step heading focus');
+   layouts.push(layout);
+   if([1280,390].includes(width)&&[1,5].includes(step))await shot('pilot-home-'+width+'-step-'+step);
+   }
+  }
+  await activate('intro-back');assert(await evaluate('introStep===4'),'Back must reveal previous step');
+  await activate('intro-restart');assert(await evaluate('introStep===1'),'Restart must reveal welcome');
+  await activate('intro-skip');assert(await evaluate('introStep===5'),'Skip must reveal model choice');
+  assert(!observedNetwork.some(r=>r.path.startsWith('/api/')),'Intro navigation must make zero API requests');
+  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
+  const tree=await send('Accessibility.getFullAXTree');
+  const names=tree.nodes.filter(n=>!n.ignored&&n.role?.value==='button').map(n=>n.name?.value);
+  assert(names.includes('Velg lokal AI – Ollama')&&names.includes('Velg ChatGPT mini – OpenAI'),'Accessible button names missing');
+  await evaluate('document.getElementById("home-local").focus();true');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+  assert(await evaluate('document.activeElement.id==="home-openai"'),'Model keyboard order');
+  await evaluate('document.querySelector("#aisha-guide summary").focus();true');await pressDisclosureEnter();await wait('document.getElementById("aisha-guide").open');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:' ',code:'Space',text:' ',windowsVirtualKeyCode:32});await send('Input.dispatchKeyEvent',{type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
+  await wait('!document.getElementById("aisha-guide").open');
+  for(const provider of ['ollama','openai']){
+   await evaluate('document.getElementById('+JSON.stringify(provider==='ollama'?'home-local':'home-openai')+').focus();true');await pressDisclosureEnter();
+   await wait('!document.getElementById("chat-mode").hidden && chatReady && !chatLoading && !homeOpening');
+   assert(await evaluate(provider==='openai'?'document.getElementById("chat-provider").value==="openai|gpt-4.1-mini"':'document.getElementById("chat-provider").value.startsWith("ollama|")'),'Wrong entrance model');
+   const posts=observedNetwork.filter(r=>r.path==='/api/chat'&&r.method==='POST').length;
+   for(const width of [1280,390,320]){
+    await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<650});
+    const layout=await evaluate(`(()=>{const control=id=>{const e=document.getElementById(id),r=e.getBoundingClientRect(),s=getComputedStyle(e);return {height:r.height,font:parseFloat(s.fontSize),color:s.color,background:s.backgroundColor}};return {provider:homeSelection,width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,heading:document.getElementById('chat-title').textContent,background:getComputedStyle(document.getElementById('chat-mode')).backgroundColor,send:control('chat-send'),suggest:control('chat-back-to-menu'),switch:control('chat-switch-model')}})()`);
+    assert(!layout.overflow&&layout.heading==='Hei, jeg er Aisha!'&&[layout.send,layout.suggest,layout.switch].every(c=>c.height>=56&&c.font>=18),'Simple chat layout failure '+JSON.stringify(layout));layouts.push(layout);
+   }
+   await activate('chat-back-to-menu');assert(await evaluate('!document.getElementById("chat-suggestions").hidden&&document.querySelectorAll("#chat-suggestions button").length===9'),'Suggestion disclosure');
+   await evaluate('document.querySelector("#chat-suggestions button").focus();true');await pressDisclosureEnter();
+   assert(await evaluate('document.activeElement.id==="chat-message"&&document.getElementById("chat-message").value.length>0'),'Suggestion must prefill/focus');
+   await typeInto('chat-message','Forklar en algoritme enkelt.');await pressEnter();await wait('!chatBusy && document.querySelectorAll(".chat-row.assistant:not(.pending):not(.chat-empty)").length===1');
+   assert(observedNetwork.filter(r=>r.path==='/api/chat'&&r.method==='POST').length===posts+1,'Exactly one explicit message');await shot('pilot-chat-'+provider);
+   await typeInto('chat-message','Et bevart utkast.');
+   const before=await evaluate('({revision:chatRevision,text:document.getElementById("chat-log").textContent})');
+   await evaluate('document.getElementById("chat-home").focus();true');await pressDisclosureEnter();await wait('!document.getElementById("aisha-home").hidden');
+   const requests=observedNetwork.filter(r=>r.path.startsWith('/api/')).length;
+   await evaluate('document.getElementById('+JSON.stringify(provider==='ollama'?'home-local':'home-openai')+').focus();true');await pressDisclosureEnter();
+   await wait('!document.getElementById("chat-mode").hidden');
+   const after=await evaluate('({revision:chatRevision,text:document.getElementById("chat-log").textContent,draft:document.getElementById("chat-message").value})');
+   assert(after.revision===before.revision&&after.text===before.text&&after.draft==='Et bevart utkast.','Back/history/draft lost');
+   assert(observedNetwork.filter(r=>r.path.startsWith('/api/')).length===requests,'Returning to same model must not request anything');
+   await evaluate('document.getElementById("chat-home").focus();true');await pressDisclosureEnter();await wait('!document.getElementById("aisha-home").hidden');
+  }
+  assert(!javascriptExceptions.length&&!consoleErrors.length,'Browser console error');
+  const report={method:'Native isolated Chrome; local synthetic SDK/server only; no genuine model/source/paid calls',passed:true,layouts,accessible_buttons:names,keyboard_guide_enter_space:true,keyboard_order:true,models:['ollama','gpt-4.1-mini'],history_preserved:true,source_requests:0,genuine_model_calls:0,paid_calls:0,javascriptExceptions,consoleErrors};
+  fs.writeFileSync(folder+'/pilot-native-report.json',JSON.stringify(report,null,2),{flag:'wx'});console.log(JSON.stringify(report));ws.close();return;
+ }
  // Inspect API results in the test driver; the website no longer renders raw JSON.
  await send('Page.addScriptToEvaluateOnNewDocument',{source:`
   const originalFetch=window.fetch.bind(window);

@@ -252,8 +252,7 @@ def offline(output):
 
 def regional_response_contract(case,responses,approvals):
     """Prespecified per-phase HTTP/error/origin/publication/reference contract."""
-    errors={'missing_city':(422,'research_municipality_required'),
-        'unknown_city':(422,'research_municipality_unknown'),'ambiguous_city':(422,'research_municipality_ambiguous'),
+    errors={'unknown_city':(422,'research_municipality_unknown'),'ambiguous_city':(422,'research_municipality_ambiguous'),
         'supplement_only':(422,'research_no_official_sources'),'conflict':(422,'research_source_conflict'),
         'third_party':(422,'research_claim_unsupported'),'modified':(422,'research_source_invalid'),
         'outage':(422,'research_unavailable'),'revoked':(403,'chat_search_unavailable'),'privacy':(400,'chat_privacy')}
@@ -261,7 +260,7 @@ def regional_response_contract(case,responses,approvals):
     elif case=='recovery':expected=[(422,'research_unavailable',None,None),(200,None,'model','gjovik')]
     elif case=='followup':expected=[(200,None,'model','gjovik')]*3
     elif case=='city_followup':expected=[(200,None,'model',city) for city in ('gjovik','hamar','hamar')]
-    elif case=='search_off':expected=[(200,None,'application_guidance',None)]
+    elif case in ('search_off','missing_city'):expected=[(200,None,'application_guidance',None)]
     elif case in ('hamar','gjovik','lillehammer'):expected=[(200,None,'model',case)]
     else:raise ValueError('Undeclared regional evaluation case')
     if len(responses)!=len(expected):return False
@@ -274,6 +273,7 @@ def regional_response_contract(case,responses,approvals):
         elif not isinstance(reply,dict) or reply.get('response_origin')!=origin:return False
         elif origin=='application_guidance':
             if reply.get('ai_generated') is not False or reply.get('research_verified') or reply.get('citations')!=[] or reply.get('web_search_used') is not False:return False
+            if case=='missing_city' and [m['id'] for m in reply.get('municipality_choices',[])]!=['hamar','gjovik']:return False
         else:
             source=approvals[city+'-vann']
             if (reply.get('ai_generated') is not True or reply.get('research_verified') is not True
@@ -334,7 +334,7 @@ def regional(output):
                         durations.append((time.perf_counter()-started)*1000)
                         responses.append(dict(http_status=result.status,payload=json.loads(result.body)))
                 accepted=responses[-1]['http_status']==200
-                should_accept=case in ('hamar','gjovik','lillehammer','search_off','followup','city_followup','recovery')
+                should_accept=case in ('hamar','gjovik','lillehammer','search_off','missing_city','followup','city_followup','recovery')
                 reply=responses[-1]['payload'].get('reply',{})
                 expected_city=case if case in ('hamar','lillehammer') else 'hamar' if case=='city_followup' else 'gjovik'
                 published=bool(reply.get('research_verified'))
@@ -348,7 +348,7 @@ def regional(output):
                 native=sum(len(call.get('kwargs',{}).get('tools',[])) for call in fixture.calls)
                 passed=(accepted==should_accept and len(fixture.calls)==expected_calls and len(attempts)==expected_attempts
                     and turns==(3 if case in ('followup','city_followup') else 1 if should_accept else 0) and native==0
-                    and (citation_correct if should_accept and case!='search_off' else not published)
+                    and (citation_correct if should_accept and case not in ('search_off','missing_city') else not published)
                     and regional_response_contract(case,responses,fixture.service.approvals))
                 rows.append(dict(case=case,provider=provider,method='Actual app/adapters; fictional reviewed roster, sources and scripted model',
                     responses=responses,source_attempts=attempts,source_receipts=fixture.observations,
@@ -386,7 +386,64 @@ def regional(output):
     return all(r['contract_passed'] for r in rows)
 
 
-def live_source_probe(output,policy_path,question):
+def automatic_municipal(output):
+    """Synthetic service-family matrix; exact evidence matching, not truth."""
+    from eval.test_live_research import LiveResearchTests
+    from hamar_agent.live_research import LiveResearchService
+    topics=('skoler','barnehager','helse','omsorg','byggesaker','eiendom','avgifter',
+        'kultur','fritid','transport','renovasjon','søknader','kontakt')
+    rows=[]
+    for provider,model in (('ollama','llama3.2:3b'),('openai','gpt-4.1-mini')):
+        fixture=LiveResearchTests('runTest');fixture.setUp()
+        try:
+            service,pages=fixture.reviewed_html_catalogue(topics)
+            for city in ('hamar','elverum','gjovik'):
+                for topic in topics:
+                    fixture.clear()
+                    query='Fortell om '+topic+' i '+service.municipalities.entries[city].name+'.'
+                    response=fixture.send(query,provider=provider,model=model,web_search=False)
+                    reply=json.loads(response.body).get('reply',{})
+                    slug=topic.encode('ascii','ignore').decode().replace('kontakt','servicetorg')
+                    approved=service.approvals[city+'-'+slug]
+                    matching=(response.status==200 and reply.get('text')==approved.excerpts[0].text
+                        and reply.get('research_verified') is True and reply.get('municipality_id')==city
+                        and reply.get('citations')==[dict(url=approved.url,title=approved.title)]
+                        and len(fixture.calls)==1 and len(fixture.wire.calls)==2)
+                    rows.append(dict(municipality=city,topic=topic,provider=provider,query=query,
+                        mode='synthetic_exact_reviewed_html',status=response.status,expected='admitted',passed=matching,
+                        fetched=[dict(official_host=c['host'],path=c['path']) for c in fixture.wire.calls],
+                        cited_urls=[c['url'] for c in reply.get('citations',[])],source_receipts=reply.get('source_receipts',[]),
+                        model_calls=len(fixture.calls),unsupported_answer=bool(fixture.calls) and not matching))
+            for mode in ('drift','missing_approval','cloud_denied'):
+                if mode=='cloud_denied' and provider!='openai':continue
+                for city in ('hamar','elverum','gjovik'):
+                    fixture.clear();service,pages=fixture.reviewed_html_catalogue(external=mode!='cloud_denied')
+                    if mode=='drift':
+                        pages[(service.municipalities.entries[city].official_host,'/synthetic-reviewed-beredskap/')]+='<!-- drift -->'
+                    if mode=='missing_approval':
+                        service=LiveResearchService(service.municipalities,enabled=True,transport=fixture.wire.transport,
+                            active_municipalities=('hamar','elverum','gjovik'))
+                        fixture.backend.research_service=service
+                    response=fixture.send('Fortell om beredskap i '+service.municipalities.entries[city].name+'.',
+                        provider=provider,model=model,web_search=False)
+                    reply=json.loads(response.body)
+                    passed=len(fixture.calls)==0 and not reply.get('reply',{}).get('research_verified')
+                    rows.append(dict(municipality=city,topic='beredskap',provider=provider,mode=mode,
+                        status=response.status,expected='refused_without_generation',passed=passed,
+                        error_code=reply.get('error_code'),model_calls=len(fixture.calls),
+                        source_attempts=len(fixture.wire.calls),unsupported_answer=not passed))
+        finally:fixture.doCleanups()
+    record=dict(method='Socket/DNS blocked; synthetic reviewed input, HTML wire and SDK; no real municipal facts',
+        cases=len(rows),passed=sum(row['passed'] for row in rows),
+        admitted=sum(row['expected']=='admitted' for row in rows),
+        refusals=sum(row['expected']!='admitted' for row in rows),rows=rows,
+        genuine_source_requests=0,genuine_model_calls=0,paid_calls=0,
+        limits='Exact approved-source contracts, not answer truth, complete lists, live site coverage or model quality')
+    write_json(output/'automatic-municipal-matrix.json',record)
+    return record['passed']==record['cases']
+
+
+def live_source_probe(output,policy_path,question,*,reviewed_only=False):
     """Opt-in real source chain only; never construct a model or paid SDK client."""
     from datetime import datetime,timezone
     from hamar_agent.live_research import LiveResearchService,service_topic
@@ -400,10 +457,11 @@ def live_source_probe(output,policy_path,question):
     policy_file=Path(policy_path) if policy_path is not None else None
     record=dict(method='Actual bounded LiveResearchService; no mocked network, provider or raw HTML persistence',
         started_at=datetime.now(timezone.utc).isoformat(),raw_html_retained=False,model_calls=0,paid_calls=0,
-        python_version=sys.version.split()[0],source_files_sha256=source_version(),policy_sha256=None)
+        python_version=sys.version.split()[0],source_files_sha256=source_version(),policy_sha256=None,
+        reviewed_only=reviewed_only)
     try:
         validate_message(question)
-        service=LiveResearchService.from_reviewed_policy(policy_path,enabled=True)
+        service=LiveResearchService.from_reviewed_policy(policy_path,enabled=True,reviewed_only=reviewed_only)
         if policy_file is not None:
             with policy_file.open('rb') as stream:policy_bytes=stream.read(512*1024+1)
             if len(policy_bytes)>512*1024:raise ValueError('Policy too large')
@@ -436,19 +494,22 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--live-sources',action='store_true',help='Explicit owner-authorized real source probe; no inference')
+    parser.add_argument('--reviewed-only',action='store_true',help='No navigation/typed fallback; exact reviewed sources only')
     parser.add_argument('--research-policy',type=Path,default=ROOT/'docs/innlandet-research.json')
     parser.add_argument('--query',default='Hva koster SFO i Hamar?')
     args=parser.parse_args(argv);target=args.output.resolve()
+    if args.reviewed_only and not args.live_sources:parser.error('--reviewed-only requires --live-sources')
     if target==ROOT/'output' or not target.is_relative_to(ROOT/'output'):
         parser.error('Use a new exclusive directory below project/output')
     target.mkdir(parents=True,exist_ok=False)
     if args.live_sources:
-        okay=live_source_probe(target,args.research_policy,args.query)
+        okay=live_source_probe(target,args.research_policy,args.query,reviewed_only=args.reviewed_only)
         print(json.dumps(dict(success=okay,output=str(target),mode='genuine_source_probe',model_calls=0,paid_calls=0)))
         return 0 if okay else 1
     with patch('socket.socket',side_effect=AssertionError('Offline only')),patch('socket.getaddrinfo',side_effect=AssertionError('Offline only')):
         okay=offline(target)
         okay=regional(target) and okay
+        okay=automatic_municipal(target) and okay
         qualitative(target)
         okay=delivery(target) and okay
     print(json.dumps(dict(success=okay,output=str(target),network_calls=0,paid_calls=0,git_operations=0)))

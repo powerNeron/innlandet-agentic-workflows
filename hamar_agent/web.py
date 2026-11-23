@@ -40,6 +40,8 @@ class ClientSession:
     revision: int = 0
     last_seen: float = field(default_factory=time.monotonic)
     chat: ChatState = field(default_factory=ChatState)
+    model_chats: dict = field(default_factory=dict)
+    active_chat_key: tuple | None = None
     municipality_id: str | None = None
 
 
@@ -60,12 +62,14 @@ def _provider_failure(error, *, status=422):
         "research_source_expired": ("Kildegrunnlaget kan ikke brukes nå. Ingen nye opplysninger er bekreftet.", False),
         "research_external_not_approved": ("Disse kildene er ikke godkjent for ekstern AI. Velg lokal AI.", False),
         "research_source_invalid": ("En kilde kunne ikke kontrolleres. Ingen nytt svar ble publisert.", True),
+        "research_period_unverified": ("Kildene bekrefter ikke prisen for perioden du spør om. Oppgi gjerne et konkret år eller en dato, eller kontroller kommunens offisielle prisliste.", False),
         "research_source_conflict": ("Kildene gir motstridende opplysninger. Aisha kan ikke bekrefte svaret.", False),
         "research_claim_unsupported": ("Svaret kunne ikke knyttes til kildene. Ingen nytt svar ble publisert.", True),
         "research_permission_revoked": ("Søketillatelsen er ikke lenger gyldig. Ingen nytt svar ble publisert.", False),
         "research_municipality_unknown": ("Vi har ikke et godkjent kildegrunnlag for denne kommunen. Presiser kommunen eller se kommunens offisielle nettside.", False),
         "research_municipality_ambiguous": ("Hvilken kommune gjelder spørsmålet? Spør om én kommune om gangen.", False),
         "research_municipality_required": ("Hvilken kommune gjelder spørsmålet? Ta med kommunenavnet.", False),
+        "research_municipality_inactive": ("Aisha henter foreløpig kommunal informasjon for Hamar, Elverum og Gjøvik. Denne kommunen er ikke aktiv ennå.", False),
         "research_registry_expired": ("Kommuneoversikten må kontrolleres på nytt. Ingen nytt svar ble publisert.", False),
         "research_no_official_sources": ("Vi fant ikke en godkjent kilde fra denne kommunen. Andre nettsider kan ikke bekrefte kommunens egne vilkår.", False),
         "research_source_limit": ("Spørsmålet krever flere kilder enn vi kan behandle nå. Prøv et mer avgrenset spørsmål.", False),
@@ -274,7 +278,12 @@ class WebApplication:
             return _json(200, {"sources": self.service.sources(), "provider": self.service.provider,
                                "external_retrieval": self.service.enable_http})
         if method == 'GET' and path == '/api/chat/options':
+            registry=getattr(self.chat_backend.research_service,'municipalities',None) or self.chat_backend.question_router.municipalities
+            scope=getattr(self.chat_backend.research_service,'active_municipalities',None) if self.chat_backend.research_service else self.chat_backend.routing_active_municipalities
+            places=[dict(id=m.id,name=m.name,official_host=m.official_host) for m in registry.entries.values()
+                if m.current() and (scope is None or m.id in scope)] if registry else []
             return _json(200, {'choices': self.chat_backend.choices(), 'web_search_allowed': self.chat_backend.search_allowed(),
+                               'municipalities':places,
                                'max_turns': MAX_TURNS, 'max_message_chars': 1000, 'max_context_bytes': 12000,
                                'max_model_calls': 1, 'max_output_tokens': 512, 'page_requests_per_minute': PAGE_RATE,
                                'process_requests_per_minute': PROCESS_RATE, 'verified_municipal_answers': False})
@@ -296,7 +305,7 @@ class WebApplication:
             if payload is None or owner is None or not secrets.compare_digest(owner, token):
                 return _json(404, {"error": "Result not found or expired; run again."})
             return Response(200, payload, download=True)
-        if method != "POST" or path not in ("/api/run", "/api/search", "/api/answer", "/api/conversation/reset", '/api/chat', '/api/chat/reset'):
+        if method != "POST" or path not in ("/api/run", "/api/search", "/api/answer", "/api/conversation/reset", '/api/chat', '/api/chat/reset','/api/chat/state'):
             return _json(404 if method in ("GET", "POST") else 405, {"error": "Route not available."})
         if headers.get("origin") not in tuple("http://" + host for host in hosts):
             return _json(403, {"error": "Requests must originate from the local interface."})
@@ -310,19 +319,38 @@ class WebApplication:
             return self._portal_request(path, body, token, session)
         if path == '/api/chat':
             return self._chat_request(body, token, session)
+        if path == '/api/chat/state':
+            try:
+                scope=json.loads(body.decode('utf-8'))
+                self._validate_chat_scope(scope)
+                with self.lock:
+                    if self.sessions.get(token) is not session or time.monotonic()-session.last_seen>SESSION_TTL_SECONDS:
+                        raise ChatError('chat_stale',status=409)
+                    key=(scope['provider'],scope['model'])
+                    if key!=session.active_chat_key and (session.chat.pending is not None or any(s.pending is not None for s in session.model_chats.values())):
+                        raise ChatError('chat_busy',status=429)
+                    state=self._chat_bank(session,scope['provider'],scope['model'])
+                    session.active_chat_key=key
+                    return _json(200,dict(messages=state.display,revision=state.revision,
+                        turns=state.turns,busy=state.pending is not None))
+            except (ValueError,UnicodeError) as error:
+                return _chat_failure(error if isinstance(error,ChatError) else ChatError('chat_invalid_request'))
         if path == '/api/chat/reset':
             try:
-                if json.loads(body.decode('utf-8')) != {}:
-                    raise ValueError
+                scope=json.loads(body.decode('utf-8'))
+                if scope!={}:self._validate_chat_scope(scope)
             except (ValueError, UnicodeError):
                 return _json(400, {'error': 'Reset requires an empty JSON object.'})
-            with self.lock:
-                session.chat.messages = session.chat.display = ()
-                session.chat.turns = 0
-                session.chat.selection = None
-                session.chat.revision += 1
-                return _json(200, {'reset': True, 'revision': session.chat.revision,
-                                   'busy': session.chat.pending is not None})
+            try:
+                with self.lock:
+                    if self.sessions.get(token) is not session or time.monotonic()-session.last_seen>SESSION_TTL_SECONDS:
+                        raise ChatError('chat_stale',status=409)
+                    state=self._chat_bank(session,scope['provider'],scope['model']) if scope else session.chat
+                    state.messages=state.display=state.routing=()
+                    state.turns=0;state.selection=None;state.revision+=1
+                    return _json(200, {'reset': True, 'revision': state.revision,
+                                       'busy': state.pending is not None})
+            except ChatError as error:return _chat_failure(error)
         if path == "/api/conversation/reset":
             try:
                 request = json.loads(body.decode("utf-8"))
@@ -369,6 +397,20 @@ class WebApplication:
         return response
 
 
+    def _validate_chat_scope(self,scope):
+        if type(scope) is not dict or set(scope)!={'provider','model'}:raise ChatError('chat_invalid_request')
+        self.chat_backend.validate(dict(message='Hei',provider=scope['provider'],model=scope['model'],
+            web_search=False,revision=0))
+
+    def _chat_bank(self,session,provider,model):
+        # Caller owns self.lock. All banks share the page rate window; navigation
+        # or reset cannot multiply the page's generation allowance.
+        key=(provider,model)
+        if key not in session.model_chats:
+            if len(session.model_chats)>=4:raise ChatError('chat_turn_limit',status=409)
+            session.model_chats[key]=ChatState(attempts=session.chat.attempts)
+        return session.model_chats[key]
+
     def _chat_request(self, body, token, session):
         owner = None
         state = session.chat
@@ -377,12 +419,19 @@ class WebApplication:
                 request = json.loads(body.decode('utf-8'))
             except (ValueError, UnicodeError):
                 raise ChatError('chat_invalid_request') from None
+            if type(request) is not dict:raise ChatError('chat_invalid_request')
+            isolated=request.pop('model_history',False)
+            if type(isolated) is not bool:raise ChatError('chat_invalid_request')
             message = self.chat_backend.validate(request)
             selection = (request['provider'], request['model'], request['web_search'])
             with self.lock:
                 if self.sessions.get(token) is not session or time.monotonic()-session.last_seen > SESSION_TTL_SECONDS:
                     raise ChatError('chat_stale', status=409)
-                if state.pending is not None:
+                if isolated:
+                    key=(request['provider'],request['model'])
+                    if session.active_chat_key!=key:raise ChatError('chat_stale',status=409)
+                    state=self._chat_bank(session,*key)
+                if session.chat.pending is not None or any(s.pending is not None for s in session.model_chats.values()):
                     raise ChatError('chat_busy', status=429)
                 if request['revision'] != state.revision:
                     raise ChatError('chat_stale', status=409)
@@ -397,7 +446,16 @@ class WebApplication:
                 turns = state.turns
                 history = state.messages
                 display = state.display
+                if isolated:
+                    records=list(state.routing[-15:])
+                    if not records or records[-1]['content']!=message:records.append({'role':'user','content':message})
+                    while sum(len(row['content'].encode('utf-8')) for row in records)>12000:records.pop(0)
+                    state.routing=tuple(records)
+                routing=state.routing
             context = self.chat_backend.context(history, message, request['web_search'])
+            if isolated:
+                data=json.loads(context);data['routing_messages']=list(routing)
+                context=json.dumps(data,ensure_ascii=False)
             checkpoint('chat_provider')
             answer = self.chat_backend.generate(request, context)
             reply = {**answer, 'role': 'assistant',
@@ -406,13 +464,20 @@ class WebApplication:
                                    'provider': request['provider'] + ':' + request['model'],
                                    'context_turns': (len(json.loads(context)['messages'])-1)//2,
                                    'web_search_requested': request['web_search']})
-            messages = json.loads(context)['messages'] + [{'role': 'assistant', 'content': answer['text']}]
+            # Display history and model context have different permissions.
+            # A past source grant cannot authorize retransmission in a later
+            # request after expiry/revocation. User turns retain topic context;
+            # new sourced answers always require their own fresh binding.
+            model_text=('Tidligere kildebasert svar vises i samtalehistorikken. Nye fakta krever ny kildekontroll.'
+                        if answer.get('research_verified') or answer.get('web_search_used') else answer['text'])
+            messages = json.loads(context)['messages'] + [{'role': 'assistant', 'content': model_text}]
             retained = max(0, len(messages)-2)
             display = tuple(display[-retained:]) if retained else ()
             new_display = display + ({'role': 'user', 'text': message}, reply)
             with self.lock, _source_publication_guard(answer):
                 if (self.sessions.get(token) is not session or time.monotonic()-session.last_seen > SESSION_TTL_SECONDS
-                        or state.revision != revision or state.pending is not owner):
+                        or state.revision != revision or state.pending is not owner
+                        or isolated and session.model_chats.get(key) is not state):
                     raise ChatError('chat_stale', status=409)
                 current_run().checkpoint('chat_publication')
                 current_run().finish()
@@ -424,6 +489,11 @@ class WebApplication:
             return response
         except ChatError as error:
             return _chat_failure(error)
+        except ResearchError as error:
+            response=_provider_failure(error)
+            service=self.chat_backend.research_service
+            links=service.navigation_for(self.chat_backend.effective_question(routing or json.loads(context)['messages'])) if service is not None and owner is not None else []
+            return _json(response.status,{**json.loads(response.body),'service_links':links})
         except (OllamaError, OpenAIProviderError, RunStopped, ResearchError) as error:
             return _provider_failure(error)
         except Exception:
@@ -665,7 +735,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.enable_live_research:
                 from .live_research import LiveResearchService
                 research=LiveResearchService.from_reviewed_policy(
-                    args.research_policy or Path('docs/innlandet-research.json'),enabled=True)
+                    args.research_policy or Path('docs/innlandet-research.json'),enabled=True,reviewed_only=True)
             else:
                 from .research import ResearchService
                 research = ResearchService.from_reviewed_policy(args.research_policy)

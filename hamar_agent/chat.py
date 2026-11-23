@@ -106,6 +106,9 @@ class ChatState:
     selection: tuple | None = None
     pending: object = None
     attempts: list = field(default_factory=list)
+    # User-only routing context may survive a failed source request. It is
+    # isolated per model and never promoted to facts or sent as model history.
+    routing: tuple = ()
 
 
 def _screening_text(text):
@@ -129,7 +132,12 @@ def validate_message(text, *, reply=False):
     if not screening:
         raise ChatError('chat_invalid_message')
     introductions = _ENGLISH_INTRO.finditer(screening)
-    if (_SECRET.search(screening) or _PERSONAL_DETAILS.search(screening) or _PERSONAL_ADDRESS.search(screening)
+    clinical=re.search(r'\b(?:(?:jeg|vi|du|han|hun)\s+(?:(?:har|fikk)\s+(?:fått\s+)?(?:diagnos\w*|sykdom\w*)|'
+        r'(?:er|ble|har blitt)\s+diagnostisert(?:\s+med)?)|'
+        r'(?:min|mitt|din|ditt)\s+(?:diagnos\w*|sykdom\w*|helsetilstand)|'
+        r'(?:my|your|his|her|our)\s+(?:diagnos\w*|medical condition|health condition)|'
+        r'(?:i|we|you|he|she)(?:\s+(?:have|has|was|were|am)(?:\s+been)?|[\x27’](?:ve|m|s)(?:\s+been)?)\s+diagnos\w*)\b',screening,re.I)
+    if (clinical or _SECRET.search(screening) or _PERSONAL_DETAILS.search(screening) or _PERSONAL_ADDRESS.search(screening)
             or _ENGLISH_DETAILS.search(screening) or '@' in screening
             or any(match[1][0].isupper() for match in introductions)
             or (not reply and re.search(r'https?://|\d[\d ()+-]{5,}\d', screening, re.I))):
@@ -279,12 +287,16 @@ class ChatBackend:
         self.research_service = research_service
         from .question_router import QuestionRouter
         question_router=question_router or QuestionRouter()
+        self.routing_active_municipalities=None
         if isinstance(question_router,QuestionRouter) and question_router.municipalities is None:
             # Routing identity is useful even with search disabled. Reading the
             # reviewed local roster grants neither transport nor source rights.
             from pathlib import Path
             from .research import load_research_policy
-            try:routing_registry=load_research_policy(Path(__file__).resolve().parents[1]/'docs/innlandet-research.json')[0]
+            try:
+                routing_registry,_,routing_policy=load_research_policy(Path(__file__).resolve().parents[1]/'docs/innlandet-research.json',details=True)
+                scope=routing_policy.get('active_municipalities')
+                self.routing_active_municipalities=frozenset(scope) if scope is not None else None
             except (OSError,ValueError,TypeError,KeyError):routing_registry=None
             question_router.municipalities=routing_registry
         self.question_router=question_router
@@ -438,9 +450,25 @@ class ChatBackend:
     def managed_reply(self, context, plan=None):
         # Municipal detail needs an explicitly authorized, registered source plan.
         # Otherwise keep this zero-call guidance separate from model quality.
-        current=self.effective_question(json.loads(context)['messages'])
+        current=self.effective_question(json.loads(context).get('routing_messages',json.loads(context)['messages']))
         plan=plan or self.question_router.route(current,municipalities=getattr(self.research_service,'municipalities',None))
+        registry=getattr(self.research_service,'municipalities',None) or self.question_router.municipalities
+        scope=(getattr(self.research_service,'active_municipalities',None) if self.research_service is not None
+            else self.routing_active_municipalities)
+        if plan.municipal and registry is not None and scope is not None:
+            from .research import ResearchError
+            entry=registry.resolve(plan.canonical_question)
+            if entry is not None and entry.id not in scope:raise ResearchError('research_municipality_inactive')
+        if plan.municipal and registry is not None and registry.resolve(plan.canonical_question) is None:
+            from .research import municipal_need
+            topic=municipal_need(plan.canonical_question)
+            return dict(text=('Hei! Jeg kan hjelpe deg med informasjon om '+topic+'. ' if topic else '')+
+                'Gjelder det Hamar, Elverum eller Gjøvik?',citations=[],web_search_used=False,
+                web_search_calls=0,response_origin='application_guidance',
+                municipality_choices=[dict(id=key,name=registry.entries[key].name)
+                    for key in ('hamar','elverum','gjovik') if key in registry.entries])
         from .research import municipal_question,detail_request
+        if plan.reason=='municipal_term_definition':return None
         automatic=bool(getattr(self.research_service,'automatic_municipal',False) and self.search_allowed())
         if plan.kind=='clarify':
             clarification=('Gjelder dette flere vilkår for tjenesten vi snakket om, eller et nytt tema? Presiser gjerne hva du vil vite.'
@@ -451,9 +479,11 @@ class ChatBackend:
         if plan.source_required:
             has_geography=not plan.municipal or getattr(self.research_service,'municipalities',None) is not None
             if has_geography and (json.loads(context).get('web_search',False) or automatic) and self.search_allowed():return None
-            return dict(text=_MUNICIPAL_REFERRAL if plan.municipal else
-                'Dette krever oppdaterte, godkjente kilder. Jeg kan ikke bekrefte opplysningene uten autorisert kildekontroll.',
-                citations=[],web_search_used=False,web_search_calls=0,response_origin='application_guidance')
+            return dict(text=('Jeg har ikke godkjente kilder til å bekrefte dette nå. Du kan undersøke kommunens offisielle nettside.' if plan.municipal else
+                'Dette krever oppdaterte, godkjente kilder. Jeg kan ikke bekrefte opplysningene uten autorisert kildekontroll.'),
+                citations=[],web_search_used=False,web_search_calls=0,response_origin='application_guidance',
+                service_links=self.research_service.navigation_for(plan.canonical_question)
+                    if plan.municipal and self.research_service is not None else [])
         if ((json.loads(context).get('web_search',False) or automatic) and municipal_question(current)
                 and self.research_service is not None and self.research_service.municipalities is not None):
             return None
@@ -485,19 +515,20 @@ class ChatBackend:
         provider = request['provider']
         if request['web_search'] and not self.search_allowed():
             raise ChatError('chat_search_unavailable', status=403)
-        question=self.effective_question(json.loads(context)['messages'])
-        plan=self.question_router.plan(json.loads(context)['messages'],municipalities=getattr(self.research_service,'municipalities',None))
+        data=json.loads(context);routing=data.pop('routing_messages',data['messages'])
+        question=self.effective_question(routing)
+        plan=self.question_router.plan(routing,municipalities=getattr(self.research_service,'municipalities',None))
         managed=self.managed_reply(context,plan)
         if managed is not None:
             return managed
         binding=None
         instructions=self.instructions(context)
-        generation_context=context
+        generation_context=json.dumps(data,ensure_ascii=False)
         automatic=bool(getattr(self.research_service,'automatic_municipal',False)
             and plan.source_required and self.search_allowed())
         if request['web_search'] or automatic:
             messages=json.loads(context)['messages']
-            question=self.effective_question(messages)
+            question=plan.canonical_question
             from .research import ResearchError
             try:
                 binding=self.research_service.prepare(plan.canonical_question,provider=provider,authorized=self.search_allowed,

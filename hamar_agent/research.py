@@ -20,6 +20,81 @@ from .retrieval import _validate_url
 from .run_control import current_run, bounded_tool_call
 
 
+PERIOD_TOKEN=r'20\d{2}(?:-\d{2}-\d{2}|\s*[/–-]\s*(?:20)?\d{2})?'
+MONTHS=('januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember')
+
+def fee_periods(text):
+    """Bind periods to monetary clauses, not unrelated school/application dates."""
+    periods=[]
+    for clause in re.split(r';|\n|\.(?=\s+[A-ZÆØÅ])',text):
+        if not re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\bgratis\b',clause,re.I):continue
+        found=re.findall(r'\b(?:\w*pris\w*|satser|\w*gebyr\w*|\w*avgift\w*|\w*betal\w*|gratis)'
+            r'[^;.\n]{0,60}?\b('+PERIOD_TOKEN+r')\b',clause,re.I)
+        if not found:return ()  # An undated amount is not made current by another clause.
+        periods.extend(found)
+    return tuple(dict.fromkeys(periods))
+
+
+def fee_period_matches(period,question):
+    # Retrieval/publication time does not resolve the user's requested period.
+    # Reconcile explicit and relative calendar years; never silently default a
+    # future/past/unknown-relative request to this year's approved amount.
+    relative=[];rest=question.casefold()
+    for pattern,offset in (
+            (r'\b(?:neste|kommende)\s+år(?:et)?\b|\b(?:next|coming|following)\s+year\b',1),
+            (r'\b(?:forrige|siste)\s+år(?:et)?\b|\bi fjor\b|\b(?:last|previous|past)\s+year\b',-1),
+            (r'\bi år\b|\b(?:dette|inneværende)\s+år(?:et)?\b|\b(?:this|current|det|dette)\s+year\b',0)):
+        if re.search(pattern,rest):relative.append(date.today().year+offset)
+        rest=re.sub(pattern,' ',rest)
+    numbers={'ett':1,'en':1,'one':1,'to':2,'two':2,'tre':3,'three':3,'fire':4,'four':4,'fem':5,'five':5}
+    count=r'(\d{1,2}|ett|en|one|to|two|tre|three|fire|four|fem|five)'
+    for pattern,sign in ((r'\bom\s+'+count+r'\s+år\b',1),(r'\b(?:in|i)\s+'+count+r'\s+years?\b',1),
+            (r'\b(?:for\s+)?'+count+r'\s+år\s+siden\b',-1),(r'\b'+count+r'\s+years?\s+ago\b',-1)):
+        for match in re.finditer(pattern,rest):
+            amount=int(match[1]) if match[1].isdigit() else numbers[match[1]]
+            relative.append(date.today().year+sign*amount)
+        rest=re.sub(pattern,' ',rest)
+    # A school year, season, next month or another unresolved relative period
+    # needs a concrete period/date, not an inferred annual-price answer.
+    if re.search(r'\b(?:neste|forrige|kommende|next|last|previous|following|coming|tomorrow|yesterday|'
+            r'siden|ago|i morgen|i går|i fjor)\b|\b(?:om|in|i)\s+\w+\s+(?:år|years?)\b',rest):return False
+    requested=list(dict.fromkeys(re.findall(r'\b'+PERIOD_TOKEN+r'\b',question)))
+    # Calendar names/units carry a temporal constraint even without "next".
+    # "til våren" and "fra januar" do not identify a year. A billing unit
+    # (per month/year) is different and must not be mistaken for a date.
+    calendar_rest=re.sub(r'\b(?:per|pr\.?|each|every|a)\s+(?:år|måned|uke|dag|year|month|week|day)\b',' ',rest)
+    months='|'.join(MONTHS)+r'|january|february|march|april|june|july|august|september|october|november|december'
+    calendar=r'\b(?:'+months+r'|våren|vårens|sommer\w*|høst\w*|vinter\w*|spring|summer|autumn|winter|'
+    calendar+=r'mandag\w*|tirsdag\w*|onsdag\w*|torsdag\w*|fredag\w*|lørdag\w*|søndag\w*|'
+    calendar+=r'monday|tuesday|wednesday|thursday|friday|saturday|sunday|'
+    calendar+=r'år(?:et|ene)?|years?|måned\w*|months?|uker?|weeks?|semester\w*|kvartal\w*|halvår\w*|quarters?|seasons?)\b'
+    ambiguous_month=re.search(r'\b(?:i|til|fra|for|på|om|in|on|from|during)\s+'
+        r'(?:vår(?!\s+kommune)|may|fall)\b',calendar_rest)
+    if not requested and (re.search(calendar,calendar_rest) or ambiguous_month):return False
+    if re.search(r'\b(?:om|in|i)\s+(?:\w+\s+){1,3}(?:år|years?|måneder?|months?|uker?|weeks?)\b',calendar_rest):return False
+    if len(requested)>1 or len(set(relative))>1:return False
+    if relative and requested and int(requested[0][:4])!=relative[0]:return False
+    clean=lambda value:re.sub(r'\s+','',value)
+    if requested and re.search(r'[/–-]',requested[0]) and not re.fullmatch(r'\d{4}-\d{2}-\d{2}',requested[0]):
+        return clean(period)==clean(requested[0])
+    if relative and re.search(r'[/–-]',period):return False
+    year=requested[0][:4] if requested else str(relative[0] if relative else date.today().year)
+    # A spanning school year is not automatically valid throughout its end year.
+    return period[:4]==year
+
+
+DATE_TOKEN=r'(?:20\d{2}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.20\d{2}|\d{1,2}\.?\s+(?:'+'|'.join(MONTHS)+r')\s+20\d{2})'
+
+def literal_date(value):
+    if re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):return date.fromisoformat(value)
+    dotted=re.fullmatch(r'(\d{1,2})\.(\d{1,2})\.(20\d{2})',value)
+    if dotted:return date(int(dotted[3]),int(dotted[2]),int(dotted[1]))
+    words=re.fullmatch(r'(\d{1,2})\.?\s+(\w+)\s+(20\d{2})',value,re.I)
+    if words and words[2].casefold() in MONTHS:
+        return date(int(words[3]),MONTHS.index(words[2].casefold())+1,int(words[1]))
+    raise ValueError('Explicit complete source date required')
+
+
 class ResearchError(ValueError):
     def __init__(self, code='research_unavailable'):
         self.code=code
@@ -35,14 +110,15 @@ _SOFTWARE_CONTEXT=frozenset(('powerpoint','python','javascript','typescript','ex
 
 def explicit_place(question):
     """An unregistered explicit place must not silently become Hamar."""
-    from .question_router import canonical_question
+    from .question_router import canonical_question,CALENDAR_WORDS
     question=canonical_question(question)
     for match in re.finditer(r'\b(?:i|for|fra)\s+([A-ZÆØÅ][\w-]*(?:\s+[A-ZÆØÅ][\w-]*){0,2})(?:\s+kommune)?\b',question):
         # These service abbreviations can follow a preposition before the actual
         # location ("plass i SFO i Hamar"). Keep checking all explicit locations.
-        if match[1].casefold() in _SOFTWARE_CONTEXT|{'sfo','ppt','nav'} and not match[0].endswith('kommune'):continue
+        if match[1].split()[0].casefold() in _SOFTWARE_CONTEXT|CALENDAR_WORDS|{'sfo','ppt','nav'} and not match[0].casefold().endswith('kommune'):continue
         return match[1]
     match=re.search(r'\b(?:i|for|fra)\s+([\w-]+(?:\s+[\w-]+)?)\s+kommune\b',question,re.I)
+    if match and match[1].casefold() in ('min','din','vår','sin','denne','den'):return None
     return match[1] if match else None
 
 
@@ -173,7 +249,7 @@ def information_need(question):
     return 'stable_or_unspecified'
 
 
-_REGULATED_MUNICIPAL_SERVICE=re.compile(r'\b(?:sykehjem\w*|aldershjem\w*|hjemmesykepleie\w*|hjemmehjelp\w*|'
+_REGULATED_MUNICIPAL_SERVICE=re.compile(r'\b(?:dagsent\w*|dagtilbud\w*|sykehjem\w*|aldershjem\w*|hjemmesykepleie\w*|hjemmehjelp\w*|'
     r'hjemmetjenest\w*|omsorgsbolig\w*|kommunalbolig\w*|bpa|barnevern\w*|sosialhjelp\w*|'
     r'gravferd\w*|gravplass\w*|gravfeste\w*|feiing\w*|feiegebyr\w*|brannvesen\w*|'
     r'eiendomsskatt\w*|trygghetsalarm\w*)\b',re.I)
@@ -242,10 +318,46 @@ def price_followup(question):
     return None
 
 
+def municipal_need(question):
+    """Controlled intent labels, never service facts, eligibility or URL guesses."""
+    from .question_router import canonical_question
+    value=canonical_question(question)
+    for pattern,label in ((r'\bdagsent\w*|\bdagtilbud\w*','dagsenter'),
+            (r'\bhjemmehjelp\w*|\bhjemmetjenest\w*|\bhjelp\s+(?:hjemme|i hjemmet|(?:til|med)\s+(?:rengjøring|handling)(?!\s+av\s+(?:data|kode|lister)\b))','hjemmehjelp og hjemmetjenester'),
+            (r'\bbarnehag\w*','barnehage'),(r'\bskol\w*','skole'),
+            (r'\bsøppel\w*|\bsoppel\w*|\bavfall\w*|\brenovasjon\w*','renovasjon'),
+            (r'\btransport\w*|\bskyss\w*','transport')):
+        if re.search(pattern,value,re.I):return label
+    return None
+
+
+def service_need_statement(question):
+    from .question_router import canonical_question,technical_task
+    value=canonical_question(question)
+    return bool(municipal_need(value) and not technical_task(value) and re.search(
+        r'\b(?:(?:jeg|vi)\s+(?:vil|trenger|ønsker|må|har behov)|trenger\s+hjelp|'
+        r'hvordan\s+(?:søker|får)|søke\s+om)\b',value,re.I))
+
+
+def transport_followup(question):
+    from .question_router import canonical_question
+    return bool(re.fullmatch(r'\s*(?:(?:finnes|tilbys|er)\s+(?:det\s+)?|(?:og|hva med)\s+)'
+        r'(?:transport|skyss)(?:\s+(?:dit|der|til det))?\s*[?!.]?\s*',canonical_question(question),re.I))
+
+
+def municipal_term_definition(question):
+    """A whole term definition has no place, period or requested service value."""
+    from .question_router import canonical_question
+    return bool(re.fullmatch(r'\s*(?:hva|kva)\s+betyr\s+(?:(?:en|et)\s+)?'
+        r'(?:kommune|kommunal\w*)(?:\s+(?:gebyr|avgift|vedtak))?\s*[?!.]?\s*',canonical_question(question),re.I))
+
+
 def municipal_question(question):
     from .question_router import canonical_question
     question=canonical_question(question)
     text=_place_text(question).strip()
+    if municipal_term_definition(question):return False
+    if service_need_statement(question) or transport_followup(question):return True
     if school_overview(question):return True
     if price_followup(question):return True
     # Bare service/price requests must clarify rather than invite invented facts.
@@ -263,8 +375,7 @@ def municipal_question(question):
         r'(?:\s+(?:er|is|generelt|i general|in general))?\s*[?!.]?\s*',question,re.I))
     known_definition=bool(re.match(r'^\s*(?:hva|kva)\s+(?:er|betyr)\s+(?:sfo|ppt|bpa|dps)\b',question,re.I))
     if regulated and not (concept and not task):return True
-    owner_definition=bool(re.fullmatch(r'\s*(?:hva|kva)\s+betyr\s+'
-        r'(?:kommune|kommunal\w*)(?:\s+(?:gebyr|avgift))?\s*[?!.]?\s*',question,re.I))
+    owner_definition=municipal_term_definition(question)
     if municipal_owner and not ((known_definition and not task) or owner_definition):return True
     # An unclassified local fee/condition request is ambiguous, not permission
     # for an unsourced numeric answer. Supported private travel/market topics
@@ -308,6 +419,30 @@ class ResearchExcerpt:
 
 
 @dataclass(frozen=True)
+class ReviewedNavigation:
+    """An exact reviewed destination, not permission to fetch or send its content."""
+    url: str
+    purpose: str
+    reviewed_on: str
+    expires_on: str
+    evidence_sha256: str
+
+    def __post_init__(self):
+        _validate_url(self.url)
+        from .chat import validate_message
+        validate_message(self.url,reply=True)
+        target=urlsplit(self.url)
+        if (self.purpose not in ('service','application') or target.query or target.fragment
+                or '%' in self.url or len(self.url)>400
+                or not re.fullmatch('[0-9a-f]{64}',self.evidence_sha256)
+                or date.fromisoformat(self.reviewed_on)>date.fromisoformat(self.expires_on)):
+            raise ValueError('Exact public navigation approval required')
+
+    def current(self):
+        return date.fromisoformat(self.reviewed_on)<=date.today()<=date.fromisoformat(self.expires_on)
+
+
+@dataclass(frozen=True)
 class ResearchApproval:
     source_id: str
     url: str
@@ -325,9 +460,20 @@ class ResearchApproval:
     authority_tier: int = 3
     municipality_id: str | None = None
     category: str = 'teknisk'
+    # Optional EXACT reviewed HTML input. Retained body is still only the
+    # approved paragraph bundle; these fields never authorize a whole domain.
+    input_sha256: str | None = None
+    input_review_evidence_sha256: str | None = None
+    content_tag: str = 'main'
+    navigation_links: tuple = ()
 
     def __post_init__(self):
         _validate_url(self.url)
+        if (type(self.navigation_links) is not tuple or len(self.navigation_links)>2
+                or any(not isinstance(link,ReviewedNavigation) or urlsplit(link.url).hostname!=urlsplit(self.url).hostname
+                    for link in self.navigation_links)
+                or len({link.purpose for link in self.navigation_links})!=len(self.navigation_links)):
+            raise ValueError('Bounded same-official-host navigation approvals required')
         if (not re.fullmatch('[a-z][a-z0-9-]{1,79}',self.source_id)
                 or not isinstance(self.title,str) or not self.title.strip() or len(self.title)>160
                 or type(self.keywords) is not tuple or not 1<=len(self.keywords)<=12
@@ -336,7 +482,8 @@ class ResearchApproval:
                 or any(not isinstance(p,ResearchExcerpt) for p in self.excerpts)
                 or len({p.id for p in self.excerpts})!=len(self.excerpts)
                 or not re.fullmatch('[0-9a-f]{64}',self.robots_sha256)
-                or self.content_type!='text/plain' or self.review_scope!='full_document'
+                or (self.content_type,self.review_scope) not in (
+                    ('text/plain','full_document'),('text/html','reviewed_html_service_excerpts'))
                 or self.reuse_reviewed is not True or self.non_personal_input_reviewed is not True
                 or type(self.external_processing_reviewed) is not bool
                 or type(self.authority_tier) is not int or self.authority_tier not in (1,2,3)
@@ -344,6 +491,37 @@ class ResearchApproval:
                 or self.authority_tier==1 and self.municipality_id is None
                 or date.fromisoformat(self.reviewed_on)>date.fromisoformat(self.expires_on)):
             raise ValueError('Invalid or incomplete research approval')
+        if self.content_type=='text/html':
+            if (self.authority_tier!=1 or self.content_tag not in ('main','article')
+                    or not isinstance(self.input_sha256,str) or not re.fullmatch('[0-9a-f]{64}',self.input_sha256)
+                    or not isinstance(self.input_review_evidence_sha256,str)
+                    or not re.fullmatch('[0-9a-f]{64}',self.input_review_evidence_sha256)):
+                raise ValueError('Exact official HTML input, paragraph and input-review evidence required')
+        elif self.input_sha256 is not None or self.input_review_evidence_sha256 is not None or self.content_tag!='main':
+            raise ValueError('HTML input metadata cannot authorize a plain-text source')
+        if self.content_type=='text/html' or self.authority_tier==1:
+            for excerpt in self.excerpts:
+                money=re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\b(?:kr\.?|NOK)\s*\d|\bgratis\b',excerpt.text,re.I)
+                if money and not excerpt.fact_scope:
+                    raise ValueError('Reviewed municipal monetary claims require a conflict scope')
+                if self.content_type=='text/html' and excerpt.fact_scope and (excerpt.fact_scope[3]!=self.municipality_id
+                        or excerpt.fact_value not in excerpt.text):
+                    raise ValueError('Reviewed fact scope/value must match municipality and excerpt')
+                if money:
+                    # A substring is not a monetary value: "50" cannot stand
+                    # for either250 or350 and conceal their conflict. Refuse
+                    # multi-price/ambiguous units rather than invent a scope.
+                    from decimal import Decimal
+                    number=r'\d{1,7}(?:[ .]\d{3})*(?:,\d{1,2})?'
+                    amounts=re.findall(r'(?<![\w.,+-])('+number+r')\s*(?:kroner\b|kr\b|,-)',excerpt.text,re.I)
+                    amounts+=re.findall(r'(?<!\w)(?:kr\.?|NOK)\s*('+number+r')(?![\w.,])',excerpt.text,re.I)
+                    normalized=lambda s:Decimal(s.replace(' ','').replace('.','').replace(',','.'))
+                    free=bool(re.fullmatch(r'gratis',excerpt.fact_value,re.I) and not amounts)
+                    if not free and (len(amounts)!=1 or not re.fullmatch(number,excerpt.fact_value)
+                            or normalized(amounts[0])!=normalized(excerpt.fact_value)):
+                        raise ValueError('One whole monetary token and exact reviewed value required')
+                    if self.content_type=='text/html' and not re.search(r'(?<!\w)'+re.escape(excerpt.fact_scope[2])+r'(?!\w)',excerpt.text):
+                        raise ValueError('Reviewed monetary period must occur in the whole unit')
         host=self.url.split('/')[2]
         if host.endswith(('.local','.localhost','.internal','.lan','.home','.home.arpa')):
             raise ValueError('Non-public source host')
@@ -352,7 +530,7 @@ class ResearchApproval:
 
     @property
     def text_sha256(self):
-        return self.raw_sha256
+        return hashlib.sha256(self.body).hexdigest()
 
     @property
     def body(self):
@@ -360,7 +538,7 @@ class ResearchApproval:
 
     @property
     def raw_sha256(self):
-        return hashlib.sha256(self.body).hexdigest()
+        return self.input_sha256 if self.content_type=='text/html' else self.text_sha256
 
     def current(self):
         return date.fromisoformat(self.reviewed_on)<=date.today()<=date.fromisoformat(self.expires_on)
@@ -376,25 +554,51 @@ class ResearchAnswer(dict):
 
 
 class ResearchBinding:
-    def __init__(self,service,owner,revision,approvals,request_id,observations,authorized,municipality=None,municipal=False):
+    def __init__(self,service,owner,revision,approvals,request_id,observations,authorized,municipality=None,municipal=False,*,question=None):
         self.service,self.owner,self.revision=service,owner,revision
         self.approvals,self.request_id=approvals,request_id
+        self.question=question
+        self.question_sha256=hashlib.sha256((question or '').encode()).hexdigest()
         self.observations=tuple(observations)
         self.authorized=authorized
         self.municipality,self.municipal=municipality,municipal
         self.registry=service.municipalities
         self.registry_fingerprint=self.registry.fingerprint() if self.registry else None
+        self.active_municipalities=service.active_municipalities
         self.index=None;self.index_fingerprint=None;self.receipts_fingerprint=None
 
     def assert_publishable(self):
+        if ((self.question is not None and type(self.question) is not str)
+                or hashlib.sha256((self.question or '').encode()).hexdigest()!=self.question_sha256):
+            raise ResearchError('research_source_invalid')
         with self.service.lock:
             if (current_run() is not self.owner or self.owner.finished or self.owner.stopped
                     or not self.authorized() or self.service.revoked or self.service.revision!=self.revision
                     or self.service.municipalities is not self.registry
+                    or self.service.active_municipalities!=self.active_municipalities
                     or self.registry is not None and self.registry.fingerprint()!=self.registry_fingerprint
                     or self.municipality is not None and not self.municipality.current()
                     or any(not a.current() or self.service.approvals.get(a.source_id)!=a for a in self.approvals)):
                 raise ResearchError('research_permission_revoked')
+            self.service.require_active(self.municipality)
+            if self.municipal and self.question:
+                for approval in self.approvals:
+                    for excerpt in approval.excerpts:
+                        if not re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\b(?:kr\.?|NOK)\s*\d|\bgratis\b',excerpt.text,re.I):continue
+                        periods=tuple(dict.fromkeys((*fee_periods(excerpt.text),
+                            *((excerpt.fact_scope[2],) if excerpt.fact_scope else ()))))
+                        if not periods or any(not re.fullmatch(PERIOD_TOKEN,p) or not fee_period_matches(p,self.question) for p in periods):
+                            raise ResearchError('research_period_unverified')
+                        try:
+                            requested=re.search(r'\b'+DATE_TOKEN+r'\b',self.question,re.I)
+                            asof=literal_date(requested[0]) if requested else date.today()
+                            for match in re.finditer(r'\b(fra|frå|til|f\.o\.m\.?|t\.o\.m\.?)\s+('+DATE_TOKEN+r')\b',excerpt.text,re.I):
+                                bound=literal_date(match[2]);starts=match[1].casefold().startswith('f')
+                                if starts and bound>asof or not starts and bound<asof:
+                                    raise ResearchError('research_period_unverified')
+                        except ValueError as error:
+                            if isinstance(error,ResearchError):raise
+                            raise ResearchError('research_source_invalid') from None
             if self.receipts_fingerprint is not None and self.receipts_fingerprint!=self._receipts_hash():
                 raise ResearchError('research_source_invalid')
             if self.index_fingerprint is not None and self.index_fingerprint!=self._index_hash():
@@ -452,12 +656,12 @@ class ResearchService:
         The separate authoritative membership must match all 46 domain records.
         Legacy small synthetic registries keep their existing loading contract.
         """
-        municipalities,approvals=load_research_policy(path)
+        municipalities,approvals,details=load_research_policy(path,details=True)
         return cls(approvals,fetcher=fetcher,municipalities=municipalities,
-                   municipal_authorized=municipal_authorized)
+                   municipal_authorized=municipal_authorized,active_municipalities=details.get('active_municipalities'))
 
     def __init__(self,approvals=(),*,fetcher=None,municipalities=None,municipal_authorized=lambda:False,discoverer=None,
-                 external_authorized=None):
+                 external_authorized=None,active_municipalities=None):
         values=tuple(approvals)
         if (len(values)>256 or any(not isinstance(a,ResearchApproval) for a in values)
                 or len({a.source_id for a in values})!=len(values)
@@ -475,7 +679,19 @@ class ResearchService:
         self.discoverer=discoverer
         self.external_authorized=external_authorized
         self.municipalities=municipalities;self.municipal_authorized=municipal_authorized
+        if active_municipalities is not None:
+            if (type(active_municipalities) not in (tuple,list,set,frozenset) or not active_municipalities
+                    or any(type(key) is not str for key in active_municipalities)
+                    or len(set(active_municipalities))!=len(active_municipalities)
+                    or municipalities is None or any(key not in municipalities.entries for key in active_municipalities)):
+                raise ValueError('Active municipalities must be distinct reviewed identities')
+            active_municipalities=frozenset(active_municipalities)
+        self.active_municipalities=active_municipalities
         self.observation_method='controlled_regional_request_sources; not activated by default'
+
+    def require_active(self,entry):
+        if entry is not None and self.active_municipalities is not None and entry.id not in self.active_municipalities:
+            raise ResearchError('research_municipality_inactive')
 
     def configured(self):
         return not self.revoked and callable(self.fetcher) and any(a.current() for a in self.approvals.values())
@@ -486,14 +702,17 @@ class ResearchService:
 
     def plan(self,question,context=None,require_municipal=False):
         from .question_router import canonical_question
-        terms=set(re.findall(r'\w+',_place_text(question)+' '+_place_text(canonical_question(question))))
-        municipal=require_municipal or municipal_question(question)
+        terms=set(re.findall(r'\w+',_place_text(question)+' '+_place_text(canonical_question(question))
+            +' '+(municipal_need(question) or '')))
+        from .question_router import QuestionRouter
+        municipal=require_municipal or QuestionRouter(municipalities=self.municipalities).route(question).municipal
         entry=None
         if self.municipalities:
             try:entry=self.municipalities.resolve(question,context)
             except ResearchError as error:
                 if municipal or error.code!='research_municipality_unknown':raise
         if municipal and entry is None:raise ResearchError('research_municipality_required')
+        self.require_active(entry)
         eligible=[a for a in self.approvals.values()
             if (municipal or a.authority_tier!=1)
             and (a.municipality_id is None or entry is not None and a.municipality_id==entry.id)]
@@ -531,11 +750,28 @@ class ResearchService:
             return bool(selected and entry and entry.current())
         except ResearchError:return False
 
+    def navigation_for(self,question):
+        """No network or factual attestation: expose only current reviewed URLs."""
+        with self.lock:
+            if self.revoked:return []
+            try:selected,entry,_=self.plan(question,require_municipal=True)
+            except ResearchError:return []
+            if entry is None or not entry.current():return []
+            links=[]
+            for source in selected:
+                if (not source.current() or source.authority_tier!=1
+                        or urlsplit(source.url).hostname!=entry.official_host):continue
+                for link in source.navigation_links:
+                    if link.current():links.append(dict(url=link.url,purpose=link.purpose,
+                        content_verified=False,municipality_id=entry.id,
+                        approval_expires=link.expires_on))
+            return links[:4]
+
     def search_query(self,query):
         if self.municipalities is None:return query
         # Validate original geography before projecting names/region out of the
         # legacy topic vocabulary. A foreign region must never be stripped away.
-        self.municipalities.resolve(query)
+        self.require_active(self.municipalities.resolve(query))
         return re.sub(r'\bInnlandet\b',' ',self.municipalities.strip_names(query),flags=re.I)
 
     def retrieve_for_query(self,question,*,provider='ollama',municipality_context=None):
@@ -573,7 +809,7 @@ class ResearchService:
             raise ResearchError('research_external_not_approved')
         request_id=uuid.uuid4().hex
         started=datetime.now(timezone.utc)
-        binding=ResearchBinding(self,owner,revision,selected,request_id,(),authorized,municipality,municipal)
+        binding=ResearchBinding(self,owner,revision,selected,request_id,(),authorized,municipality,municipal,question=question)
         observations=[];total=0
         for approval in selected:
             binding.assert_publishable()
@@ -591,11 +827,15 @@ class ResearchService:
                 if (type(observation) is not dict or observation['source_id']!=approval.source_id
                         or observation['url']!=approval.url or observation['request_id']!=request_id
                         or type(observation['status']) is not int or observation['status']!=200
-                        or observation['content_type']!='text/plain' or type(observation['body']) is not bytes
+                        or observation['content_type']!=approval.content_type or type(observation['body']) is not bytes
                         or observation['body']!=approval.body or type(observation['robots']) is not bytes
                         or len(observation['robots'])>65536
                         or hashlib.sha256(observation['robots']).hexdigest()!=approval.robots_sha256):
                     raise ValueError
+                if approval.content_type=='text/html':
+                    if (observation.get('input_sha256')!=approval.input_sha256
+                            or type(observation.get('input_bytes')) is not int
+                            or not 1<=observation['input_bytes']<=512*1024):raise ValueError
                 retrieved=datetime.fromisoformat(observation['retrieved_at'])
                 now=datetime.now(timezone.utc)
                 if retrieved.tzinfo is None or not started<=retrieved<=now:
@@ -608,6 +848,15 @@ class ResearchService:
                             value=parsedate_to_datetime(observation[field])
                         else:value=datetime.fromisoformat(observation[field])
                         if value.tzinfo is None or value>now:raise ValueError
+                for field in ('publisher_published_on','updated_at'):
+                    if observation.get(field) is not None:
+                        value=observation[field]
+                        if not isinstance(value,str):raise ValueError
+                        if re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):
+                            if date.fromisoformat(value)>now.date():raise ValueError
+                        else:
+                            parsed=datetime.fromisoformat(value)
+                            if parsed.tzinfo is None or parsed>now:raise ValueError
                 from .robots_policy import robots_interval
                 robots_interval(observation['robots'],approval.url,'HamarKommuneAgent/0.2')
                 total+=len(observation['body'])+len(observation['robots'])
@@ -618,11 +867,28 @@ class ResearchService:
                 request_id=request_id,retrieved_at=observation['retrieved_at'],
                 published_at=observation.get('published_at'),last_modified=observation.get('last_modified'),
                 raw_sha256=approval.raw_sha256,bytes=len(observation['body'])+len(observation['robots'])))
+            scoped_periods=list(dict.fromkeys(p.fact_scope[2] for p in approval.excerpts
+                if p.fact_scope and re.fullmatch(PERIOD_TOKEN,p.fact_scope[2])))
+            if scoped_periods:
+                observations[-1].update(effective_periods=scoped_periods,period_basis='reviewed_fact_scope')
+            if approval.content_type=='text/html':
+                observations[-1].update(published_at=observation.get('publisher_published_on'),
+                    updated_at=observation.get('updated_at'),effective_periods=observation.get('effective_periods',[]),
+                    text_sha256=approval.text_sha256,input_boundary=approval.review_scope,
+                    raw_content_type='text/html',input_bytes=observation['input_bytes'],
+                    discovery_receipts=observation.get('discovery_receipts',[]),
+                    source_states=['discovered_approved_identity','fetched','exact_input_and_paragraphs_checked','admitted'])
         facts={}
         for approval in selected:
             for excerpt in approval.excerpts:
                 if excerpt.fact_scope:
-                    facts.setdefault(excerpt.fact_scope,set()).add(excerpt.fact_value)
+                    value=excerpt.fact_value
+                    if re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\b(?:kr\.?|NOK)\s*\d|\bgratis\b',excerpt.text,re.I):
+                        from decimal import Decimal
+                        if value.casefold()=='gratis':value=Decimal(0)
+                        elif re.fullmatch(r'\d{1,7}(?:[ .]\d{3})*(?:,\d{1,2})?',value):
+                            value=Decimal(value.replace(' ','').replace('.','').replace(',','.'))
+                    facts.setdefault(excerpt.fact_scope,set()).add(value)
         if any(len(values)>1 for values in facts.values()):
             raise ResearchError('research_source_conflict')
         binding.observations=tuple(observations)
@@ -676,7 +942,8 @@ class ResearchService:
             research_verified=True,verification_scope='Exact approved excerpt and request binding; not factual truth',
             authority='official_municipal' if binding.municipal else 'public_supplement' if source.authority_tier==2 else 'general_source',
             municipality_id=binding.municipality.id if binding.municipality else None,
-            source_receipts=list(binding.observations),response_origin='model'),binding)
+            source_receipts=list(binding.observations),response_origin='model',
+            service_links=self.navigation_for(binding.question) if binding.municipal else []),binding)
 
 
 INNLANDET_REFERENCES = (
@@ -730,7 +997,8 @@ def load_research_policy(path,*,details=False):
         if type(data) is not dict:reject()
         version=data.get('schema_version')
         keys=('schema_version','region','verification','municipalities','public_authorities','sources')
-        exact(data,(*keys,'supplementary_sites') if version==2 else keys)
+        keys=(*keys,'supplementary_sites') if version==2 else keys
+        exact(data,(*keys,'active_municipalities') if 'active_municipalities' in data else keys)
         if type(version) is not int or version not in (1,2) or data['region']!='Innlandet':reject()
         supplements=data.get('supplementary_sites',[])
         if type(supplements) is not list or len(supplements)>16:reject()
@@ -795,7 +1063,10 @@ def load_research_policy(path,*,details=False):
             for paragraph in row['excerpts']:
                 if type(paragraph) is not dict or type(paragraph.get('fact_scope',[])) is not list:reject()
                 excerpts.append(ResearchExcerpt(**{**paragraph,'fact_scope':tuple(paragraph.get('fact_scope',[]))}))
-            approval=ResearchApproval(**{**row,'keywords':tuple(row['keywords']),'excerpts':tuple(excerpts)})
+            navigation=row.get('navigation_links',[])
+            if type(navigation) is not list:reject()
+            approval=ResearchApproval(**{**row,'keywords':tuple(row['keywords']),'excerpts':tuple(excerpts),
+                'navigation_links':tuple(ReviewedNavigation(**link) for link in navigation)})
             current(approval.reviewed_on,approval.expires_on)
             if review['status']=='REVIEWED' and approval.expires_on>review['expires_on']:reject()
             if approval.municipality_id is not None and (municipalities is None or approval.municipality_id not in municipalities.entries):reject()
@@ -809,7 +1080,10 @@ def load_research_policy(path,*,details=False):
                 if approval.expires_on>entry.expires_on:reject()
             approvals.append(approval)
         # Reuse the existing exact-host and distinct source/URL admission checks.
-        ResearchService(approvals,municipalities=municipalities)
+        active=data.get('active_municipalities')
+        if active is not None and (type(active) is not list or any(type(key) is not str for key in active)):reject()
+        if 'active_municipalities' in data and active is None:reject()
+        ResearchService(approvals,municipalities=municipalities,active_municipalities=active)
         return (municipalities,tuple(approvals),data) if details else (municipalities,tuple(approvals))
     except (TypeError,KeyError,OverflowError,UnicodeError,RecursionError,json.JSONDecodeError):
         raise ValueError('Invalid or unreviewed Innlandet research policy') from None

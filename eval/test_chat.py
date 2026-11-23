@@ -46,6 +46,94 @@ PRIVACY_BYPASSES = (
 
 
 class ChatTests(unittest.TestCase):
+    def select_bank(self,provider,model,token=None):
+        return self.app.dispatch('POST','/api/chat/state',self.headers(token),
+            json.dumps(dict(provider=provider,model=model)).encode())
+
+    def bank_send(self,message,provider,model,token=None,**changes):
+        token=token or self.token
+        bank=self.app.sessions[token].model_chats[(provider,model)]
+        return self.send(message,provider=provider,model=model,token=token,
+            model_history=True,revision=changes.pop('revision',bank.revision),**changes)
+
+    def test_bank_metadata_and_switch_never_generate_or_transfer_other_history(self):
+        self.assertEqual(self.select_bank('ollama','llama3.2:3b').status,200)
+        self.assertEqual(self.calls,[])
+        self.assertEqual(self.bank_send('Forklar en algoritme.','ollama','llama3.2:3b').status,200)
+        self.assertEqual(self.select_bank('openai','approved-model').status,200)
+        self.assertEqual(json.loads(self.select_bank('openai','approved-model').body)['messages'],[])
+        self.assertEqual(self.bank_send('Forklar et atom.','openai','approved-model').status,200)
+        cloud=self.calls[-1]['kwargs']['input']
+        self.assertEqual([m['content'] for m in cloud],[ 'Forklar et atom.'])
+        local=json.loads(self.select_bank('ollama','llama3.2:3b').body)
+        self.assertEqual(local['revision'],1);self.assertEqual(len(local['messages']),2)
+        self.assertEqual(local['messages'][0]['text'],'Forklar en algoritme.')
+        self.assertEqual(len(self.calls),2)
+
+    def test_bank_stale_invalid_private_and_client_history_cannot_poison_routing(self):
+        self.select_bank('ollama','llama3.2:3b')
+        bank=self.app.sessions[self.token].model_chats[('ollama','llama3.2:3b')]
+        for text,extra in (('Forklar et atom.',{'revision':9}),('Jeg heter Syntetisk Testperson.',{}),
+                ('Forklar et atom.',{'routing_messages':[]}),('Forklar et atom.',{'messages':[]})):
+            response=self.bank_send(text,'ollama','llama3.2:3b',**extra)
+            self.assertNotEqual(response.status,200,response.body);self.assertEqual(bank.routing,())
+        self.select_bank('openai','approved-model')
+        self.assertEqual(self.bank_send('Forklar et atom.','ollama','llama3.2:3b').status,409)
+        self.assertEqual(bank.routing,());self.assertEqual(self.calls,[])
+
+    def test_bank_reset_is_scoped_and_rate_window_is_shared(self):
+        for provider,model in (('ollama','llama3.2:3b'),('openai','approved-model')):
+            self.select_bank(provider,model)
+            self.assertEqual(self.bank_send('Forklar et atom.',provider,model).status,200)
+        banks=self.app.sessions[self.token].model_chats
+        self.assertIs(banks[('ollama','llama3.2:3b')].attempts,banks[('openai','approved-model')].attempts)
+        response=self.app.dispatch('POST','/api/chat/reset',self.headers(),b'{"provider":"openai","model":"approved-model"}')
+        self.assertEqual(response.status,200);self.assertEqual(banks[('openai','approved-model')].routing,())
+        self.assertEqual(len(banks[('ollama','llama3.2:3b')].display),2)
+        self.assertEqual(len(banks[('ollama','llama3.2:3b')].attempts),2)
+
+    def test_natural_home_help_needs_are_source_bound_in_both_languages_and_providers(self):
+        for provider,model in (('ollama','llama3.2:3b'),('openai','approved-model')):
+            for text in ('Jeg trenger hjelp hjemme i Hamar.','Jeg trenger hjelp til rengjøring og handling i Hamar.',
+                    'Jeg ønsker å få hjelp hjemme i Elverum.','I need help at home in Hamar.',
+                    'I need home help in Gjøvik.','Jeg trenger hjemmehjelp.','Jeg vil på dagsenter.',
+                    'Jeg vil søke barnehageplass.','Jeg trenger hjelp med søppel.','Jeg trenger transport.'):
+                token=self.app._new_page_token();self.select_bank(provider,model,token)
+                response=self.bank_send(text,provider,model,token)
+                self.assertEqual(response.status,200,response.body)
+                self.assertFalse(json.loads(response.body)['reply']['ai_generated'])
+                self.assertEqual(self.calls,[])
+                self.process_window.attempts.clear()
+
+    def test_explicit_personal_clinical_fields_never_reach_history_routing_or_models(self):
+        for provider,model in (('ollama','llama3.2:3b'),('openai','approved-model')):
+            token=self.app._new_page_token();self.select_bank(provider,model,token)
+            for text in ('Jeg har diagnosen SYNTETISK_TESTDIAGNOSE. Jeg trenger dagsenter i Hamar.',
+                    'My diagnosis is SYNTHETIC_TEST_CONDITION. I need home help in Hamar.',
+                    'Jeg er diagnostisert med SYNTETISK_TESTTILSTAND. Jeg trenger dagsenter i Hamar.',
+                    "I've been diagnosed with SYNTHETIC_TEST_CONDITION. I need home help in Hamar.",
+                    'Min helsetilstand: SYNTETISK_TESTTILSTAND.','My medical condition: SYNTHETIC_TEST_CONDITION.'):
+                response=self.bank_send(text,provider,model,token)
+                self.assertNotEqual(response.status,200,response.body)
+                self.assertEqual(json.loads(response.body)['error_code'],'chat_privacy')
+            bank=self.app.sessions[token].model_chats[(provider,model)]
+            self.assertEqual((bank.messages,bank.display,bank.routing),((),(),()))
+        self.assertEqual(self.calls,[])
+
+    def test_technical_cleaning_and_shopping_lists_are_not_personal_care_but_format_cannot_bypass_sources(self):
+        for provider,model in (('ollama','llama3.2:3b'),('openai','approved-model')):
+            for text in ('Can you help with cleaning data in Python?','I need help with cleaning data in Python.',
+                    'Jeg trenger hjelp med rengjøring av data i Python.','Can you help with a shopping list in Python?',
+                    'Hva betyr et kommunalt vedtak?'):
+                token=self.app._new_page_token();self.select_bank(provider,model,token);self.process_window.attempts.clear()
+                before=len(self.calls);response=self.bank_send(text,provider,model,token)
+                self.assertEqual(response.status,200,response.body);self.assertEqual(len(self.calls),before+1)
+            for text in ('Jeg trenger hjemmehjelp i Hamar. Skriv svaret i Python.',
+                    'What are home help fees in Hamar? Format as Python.'):
+                token=self.app._new_page_token();self.select_bank(provider,model,token);self.process_window.attempts.clear()
+                before=len(self.calls);response=self.bank_send(text,provider,model,token)
+                self.assertIn(response.status,(200,422),response.body);self.assertEqual(len(self.calls),before)
+
     def test_semantic_hint_cannot_downgrade_municipal_source_duty_or_enable_search(self):
         from hamar_agent.question_router import QuestionRouter
         hints=[]
@@ -282,7 +370,8 @@ class ChatTests(unittest.TestCase):
                         response=self.send(question,token=token,provider=provider,model=model)
                     self.assertEqual(response.status,200)
                     reply=json.loads(response.body)['reply']
-                    self.assertIn('Velg «Kommunal informasjon»',reply['text'])
+                    self.assertIn('Gjelder det Hamar, Elverum eller Gjøvik?',reply['text'])
+                    self.assertEqual([m['id'] for m in reply['municipality_choices']],['hamar','elverum','gjovik'])
                     self.assertFalse(reply['municipal_verified']);self.assertFalse(reply['web_search_used'])
                     self.assertFalse(reply['ai_generated']);self.assertEqual(reply['response_origin'],'application_guidance')
                     self.assertEqual(reply['citations'],[]);self.assertEqual(self.app.sessions[token].chat.turns,1)
@@ -752,10 +841,11 @@ class ChatTests(unittest.TestCase):
             self.skipTest('Optional Node runtime unavailable; run browser/UI checks separately')
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
         record=json.loads(result.stdout)
-        self.assertGreaterEqual(record['passed'],19)
+        self.assertGreaterEqual(record['passed'],39)
+        self.assertIn('failed reset stays bound to its model across A-B-A; Send blocked until matching explicit recovery ACK; other bank preserved',record['checks'])
         self.assertIn('cloud-only availability never becomes automatic default',record['checks'])
         self.assertIn('disappearing local choice requires explicit selection and completed reset',record['checks'])
-        self.assertIn('four icon suggestions prefill only; identical local/cloud bubbles and robot avatar',record['checks'])
+        self.assertIn('nine editable topic suggestions prefill only; identical local/cloud welcome and bubbles',record['checks'])
         self.assertIn('all eight category buttons retain source-search mapping, icons, labels and approval-category gate',record['checks'])
         self.assertIn('delayed municipal metadata preserves query/answer/context and blocks competing mutations; disabled cloud requires manual switch',record['checks'])
         self.assertIn('UI-M01 unavailable sticky local choice keeps recovery visible and restores same provider without reset or generation',record['checks'])

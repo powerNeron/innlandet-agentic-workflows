@@ -450,6 +450,389 @@
 - Workflow instruction: future completed change batches in this collaboration will receive a dated changelog entry and a descriptive local commit before being reported as saved. Remote pushes remain unauthorized unless the user explicitly requests one.
 
 
+### 2026-11-18 — Post-merge regression and A-level evidence audit at b6344ca
+
+- Sanitized owner instruction: continue the existing Aisha KommuneAgent, verify the merged exam/final revision and latest security repairs, run full regression, collaborate with the existing Verifier, and identify actual remaining A-level gaps. Preserve COM 2, main, all earlier files/branches/worktrees/history; no new commits or push. This instruction supersedes the earlier collaboration note requesting automatic local commits.
+- Fixed application revision: b6344ca97eb13cdb65c8f27e40709e6200c065f7, initially clean. Its parents are 4ffdd841eeaa89654c8ead96b543113e32d0810b and f9413fc72524cc7d2f5a7fc8ba003b0f1d3a38bc. All20 parent-exclusive changed files are byte-identical to their respective parent; CHANGELOG is the sole shared changed file and preserves both contributions. All14 non-journal files match the final frozen-local-v1 security repair. All23 comp2 files match main; main and existing refs/worktrees are preserved. Earlier integration-blocked statements remain historical, not current merge status.
+- Executed validation:660/660 offline methods pass on both baseline Python3.12.10 and project Python3.13.7,0failures/errors/skips with sockets/DNS forbidden;25 Node VM/DOM groups;20 general and34 regional scripted contracts (44 requests;12/12 final citations);56 synthetic exam-campaign contracts plus20 recoveries;224 request-bound/historical comparison executions plus152 recoveries; held-out synthetic search, CLI and merged eight-case verifier scorecard all pass their declared checks. The historical comparison intentionally exposes baseline weaknesses; no independent model/sample/accuracy claim. The exam query cohort completes4/20 tasks, while controlled safe rejections remain separate from useful answers; request-bound answerable completion is20/44 with induced failures disclosed.
+- Existing V-01b/V-02b/V-02c/V-03b regressions pass for both mocked adapters: municipal source duty/follow-ups, sibling/ancestor condition scopes, unresolved footnotes, normalized personal-pattern/field-form rejection. Matching frozen hashes establish preservation after merge. This does not establish general anonymity, semantic truth, fresh official-site extraction, native browser behavior or real provider quality.
+- Source evidence reconciliation: output/NEW-hamar-sfo-final/live-source-probe.json succeeded on2026-11-13, but live_research.py, research.py and chat.py differ from this revision. The latest highfix attempt failed before HTTP-body with WinError10013; research.py changed afterward. Neither is current-snapshot successful extraction. No new source retrieval, inference, paid call, installation, permission probe or network bypass was performed. New live checks require concrete valid URL/paragraph and source/privacy approval; the municipal registry alone is insufficient.
+- Assignment checked against local project_KIUA_2003.pdf pages3–5, SHA2564c41b5078656301d3c3aab9893299692fe65337b5261409b7d1c063f1d0fe6e5. The12 rubric weights total100; no earned marks or A threshold inferred. Priorities and acceptance criteria are in docs/postmerge-audit-20261118-b6344ca.json: privacy/source boundary; current-version live evidence; authentic qualitative ratings; causal stress/repair analysis and clear denominators; clean reproduction/evidence export; student paper/demo/eight authentic meetings; current-status documentation reconciliation; separately authorized submission actions. Paid provider comparison, all46 live-site tests, a mandatory LLM judge and additional model/dependency installations are not invented exam requirements. Documents absent here may exist outside the repo and remain NOT VERIFIED.
+- Evidence root: output/aisha-postmerge-20261118-b6344ca/. baseline.json binds274 tracked-file hashes; merge-inspection.json, exact parent patches, command/exit records, full raw logs and frozen-review-manifest.json bind the review. User configuration is hashed only; no credentials/profile contents are retained and configuration is not proof of runtime enforcement. The existing Verifier thread01a1ee52-c48a-7bf2-9cd3-5173323d66ba receives the exact revision/artifacts; its separate immutable receipt records the independent verdict. This Implementer entry is not self-approval; new documentation remains uncommitted/provisional and final acceptance remains human.
+- Only new audit documentation and this append-only journal are intended tracked changes. No application/test/COM2/historical files are replaced. No commit,push,fetch,merge,tag,reset,history rewrite,branch/worktree/file deletion or remote write performed.
+
+
+### 2026-11-18 — V-01c reopened: English municipal fee source-duty bypass
+
+- The660-method green suites and first frozen audit are retained; they do not establish an overall security PASS. A new actual-API synthetic counterexample at the same b6344ca revision returns exit1: both mocked adapters publish the supplied fictional9999-kroner price for two English nursing-home fee questions in Hamar with zero source calls. Both Norwegian controls stop before model dispatch. No genuine inference,source request,paid call or personal data is used.
+- HIGH V-01c is the new first repair priority: municipal source duty recognizes Norwegian wording but these English equivalents reach ordinary unsourced chat. The affected modules are byte-identical to the frozen repair/first merge parent; this is uncovered coverage, not a lost merge change. The existing tests remain PASS; security completion is FAIL pending scoped repair, exact-case/full regression and independent re-review. No application or test-suite fix is claimed or applied in this audit.
+- Reproduction,limits and repair acceptance are in docs/postmerge-security-finding-20261118-b6344ca.json and output/aisha-postmerge-20261118-b6344ca/english-source-duty.json with exact command/stdout/stderr. Preserve docs/postmerge-audit-20261118-b6344ca.json and frozen-review-manifest.json as the earlier stage; final-review-manifest-v2.json additionally binds this finding and updated journal.
+- Existing original Verifier01a1d45f-b06f-7f72-a6db-71d305dd2c56 is resumed for offline-only independent reproduction because the newer Verifier thread waits on a separate live-access request. Both receive the same fixed revision/evidence; no new role is created. Their separate receipts, rather than this Implementer record, establish independent decisions. Human final acceptance remains required.
+- Evidence-integrity correction retained: the initial freeze guard compared Git LF bytes to the unchanged Windows CRLF journal and refused,exit1. Its script/error remain archived. The passingv2 freeze uses the baseline SHA of the exact original working-file prefix and checks the Git blob separately after line-ending normalization; no earlier bytes were changed. All80 first-freeze artifact hashes match. No commit,push,network,installation,source-code edit or deletion performed.
+
+
+### 2026-11-18 - Source-bound school-directory overview repair
+
+- Sanitized request: investigate the unsourced answer to "Hva heter alle barneskolene i Gjøvik?" after --enable-live-research; correct routing, activation, official discovery, relevance, lists and citations without hardcoded school names or weakened safeguards; obtain independent Verifier review. No commit/push. Preserve main, COM2, historical evidence and existing uncommitted audit work.
+- Base b6344ca97eb13cdb65c8f27e40709e6200c065f7 already integrates both prior histories; no new Git mutation here. Beforefiles and hashes in output/aisha-school-overview-20261118-fbd95f01/baseline.json preserve the original working-file journal prefix and both audit JSON documents exactly.
+- Confirmed cause: barneskolene misses municipal/service routing; name-list intent has no source duty; ordinary closed-field privacy admission rejects dynamic institution names; one of3small source paragraphs is not an institution directory. Two new regressions were red before changes. Independent baseline/candidate evidence lives in output/school-overview-verifier-20261118-6d9a/.
+- Implemented shared school compound/plural and overview routing, fresh completeness/place follow-ups, and a separate typed directory profile. Only official same-host institution links under explicit school-type scopes, with whole name-only rows/cards, are admitted. The normal field/privacy allowlists remain strict; no real school name is added. Name/type/place are the supported query fields; unsupported status/ownership/facility/year filters refuse before network/model dispatch. SFO contacts remain forbidden and never establish complete primary-school coverage.
+- First Verifier candidate found4real defects: a childH1 could lose unknown parent scope; ARIA-navigation was admitted; successive H2cards lost a name; an explicit ungdomsskole suffix could be misclassified under barneskole. Exact first-candidate bytes and failing independent evidence are retained. Immutable inherited/local scopes, early heading resets, excluded roles, whole-row conditions, suffix conflict rejection and new both-adapter regressions repair these. Additional notes/contact children and ambiguous duplicate institution URIs refuse. Over40names/900characters refuses the whole unit, never truncates.
+- Shared chat/search/answer server overlay binds completeness=false and mandatory qualification after exact excerpt verification. Actual catalogue URL/receipts are retained; a model cannot drop names, add names or assert completeness. The municipal API regression checks both adapters and zero-call search/one-scripted-call answer. One initial test-envelope KeyError was a fixture assumption (/api/answer wraps its body in answer), corrected without bypassing application gates. No raw HTML or personal records persist.
+- Final Implementer offline cohort:673/673 on Python3.12.10 and3.13.7,0failures/errors/skips with real sockets/DNS forbidden;25Node VM/DOM groups. Earlier668/671/672 cohorts, failing regressions and candidate findings remain separate evidence. Final general/regional contracts and independent frozen-version review are bound by the new manifest. Synthetic HTTP/SDK names/replies are not real website/model accuracy, native browser or anonymity certification. Existing V-01b/V-02b/V-02c/V-03b regressions remain; the separately documented HIGH V-01c English nursing-home fee issue stays open outside this scoped repair.
+- Actual source checks: the exact owner-identified school-path structure probe and final-version ordinary research probe both stop before HTTP body with PermissionError/WinError10013,0model/paid calls and0remaining workers. The final source-only report binds live334e8f/research482901/chat98bc6437/harness89ab7a and reviewed policy hash. Real Gjøvik school names, actual HTML compatibility and useful production extraction remain NOT VERIFIED. README gives the exact ordinary-PyCharm source-only command. No network/security bypass, paid call, install or model download.
+- New frozen-v1/manifest.json binds the7phase files, exact patch, previous working-file prefixes, unchanged audits/COM2/main/registry and matching raw test evidence. Verifier must independently review that exact snapshot; the old PASS_LOCAL_ONLY does not approve this change. No commit,push,tag,fetch,merge,reset,rebase,branch/worktree/file deletion or alteration of earlier test evidence.
+
+
+- Follow-on school freeze v2: before closing the task, Implementer reproduced4failing provider/cases for the ordinary variants Hvilke barneskoler finnes i Gjøvik? / Kan du liste opp barneskolene i Gjøvik?. The conservative query-field guard omitted the function words finnes/kan/du. Added only these function words plus positive controls inside the existing both-adapter regression; unsupported status/ownership/facility/year filters remain zero-call refusals. New673-method full guarded logs on both runtimes are offline-v4-py312/313.log. synthetic-api-proof-final-v2.json records6/6scripted cases, not actual source/model trials. frozen-v1 and its52evidence hashes remain unchanged; frozen-v2 supersedes it and needs its own matching independent receipt.
+- The actual-final-v2 probe is still the last genuine attempt and binds the earlier334e8f live module. The final three-function-word change does not alter safe_url/LiveTransport/LiveSession AST (transport-v2-comparison.json), but no exact final-snapshot HTTP success is claimed or inferred. Source acquisition remains NOT VERIFIED pending the prepared ordinary-terminal command. No further known-blocked retry/bypass, paid inference, installation, Git mutation or historical evidence overwrite.
+
+
+Documentation-only frozen-v3/manifest.json supersedes frozen-v2: the example spelling Gjoevik is corrected to Gjøvik, matching the actual tests and reviewed registry. All source/test bytes and the scoped V2 test results remain identical; no new actual HTTP success is claimed.
+
+
+### 2026-11-18 - General source-aware question planning and V-01c repair
+
+- Sanitized user request: retain the current exam/final implementation, introduce extensible NO/EN source-aware routing across topics, close English municipal fee bypass V-01c, preserve the46 registry/school work/privacy/UI and both contributors, run broad offline regressions and obtain independent SHA-bound review. No installation, paid call, commit or push. Architecture/acceptance decisions are appended to docs/source-workflow.md; README documents activation and real-source limits.
+- Fixed base remains b6344ca97eb13cdb65c8f27e40709e6200c065f7; no branch/history changes. The initial seven dirty school files, both untracked audit JSON records and138 earlier evidence artifacts are hashed in output/aisha-general-router-20261118-38be5b35/baseline.json. Original README/journal prefixes, the existing school repair and both contributors' entries remain byte-preserved.
+- New question_router.py separates structured question plans, bounded user context, concept normalization and opt-in local semantic hints from permissions, discovery, retrieval and publication. Mandatory municipal/temporal/variable-price duties run before any answer model; a hint cannot relax duty, approve an ID/URL, enable search or authorize cloud transfer. Unknown dependent follow-ups clarify rather than silently become general chat. Explicit municipality changes remain fresh source requests.
+- The existing reviewed non-personal full-text catalog can now use PreparedPublicTransport from LiveResearchService for general topics. Discovery can nominate only eligible approved identities and cannot hide stronger matched authorities. Exact bytes/robots/expiry, municipality/T1 requirements, conflicts, DNS/SSRF/redirect controls, deadlines, owner kill switch and binding guards remain. Existing narrow HTML school/service profiles remain separate; no general raw-HTML prose or personal-contact admission is introduced.
+- Both Ollama/OpenAI use the same approved binding. Per-source reviewed transfer rights and optional live cloud policy are checked before fetch, before generation and at publication. --enable-local-router uses an already installed Ollama model,128output tokens, one extra local call inside the existing1400output/64000byte/90s budget; normal chat retains1answer call. No actual classifier/model/paid call or download was performed.
+- Independent Verifier candidates found real defects in the new architecture: technical words overriding current-fact/local-list duty; weak-tier nominations suppressing public sources; ordinary NO/EN ellipses losing service context; implicit prices/recent events; qualifier chains and explanation prefixes dropping duty. All candidate receipts/counterexamples remain under output/v01c-router-verifier-candidate* and are bound in the new manifest. Repairs are covered by both-adapter regressions. Final approval is the separate matching frozen-version receipt, not this Implementer entry.
+- Intentional contract refinement: actual private flight/hotel/other price requests require general approved sources or zero-model guidance, rather than ordinary unsourced numeric chat. They are not forced to municipal T1. Stable price-formation explanations, programming/math/science/history and explicit conceptual tasks remain ordinary chat. The former private-cost assertions were updated to assert this safety behavior and a new both-adapter tier2 flight-source positive proves the distinction.
+- Final Implementer cohort:689/689 methods on Python3.12.10 and3.13.7,0failures/errors/skips, with real sockets/DNS forbidden;25Node VM/DOM groups;20general/34regional scripted contracts. Final production/test hashes are recorded before/after each runtime. Earlier683/688 passing cohorts are provisional candidates and remain preserved. One intermediate regression falsely matched9999inside a random receipt UUID; assertion now checks actual published message text, retaining strict model-dispatch/source checks.
+- Default policy still has0general approved documents and no public web-index provider. Topic-independent catalog/discovery is implemented, not broad live coverage. Concepts are inspectable/incomplete; ambiguous dependent or unfamiliar new subjects may require clarification. Existing school real-source probes remain WinError10013 before body; no new actual HTTP success, real model quality, all46 production-site test or native-browser PASS is claimed. README prepares the exact model-free Gjovik PyCharm command with a new output path. No sandbox bypass or prior evidence rewrite.
+- Frozen-v1/manifest.json in the evidence root binds the cumulative/phase patches, reviewed files, exact full logs, source policy, unchanged audits/UI/COM2/main and prior evidence. Human final acceptance remains required. Git staging/commit/push/tag/fetch/merge/rebase/reset/deletion and changes to main/COM2 were not performed.
+
+- Candidate5 leaves one explicit MEDIUM: unfamiliar ordinary nontechnical new topics (democracy/photosynthesis) after municipal source context can clarify instead of switching immediately. This is preserved as a conservative limitation, not declared complete semantic coverage. Four both-adapter synthetic explicit-new-topic contracts pass; first-turn general questions also pass. All previously confirmed HIGH counterexamples are green on candidate5, pending exact frozen review.
+
+- Frozen-v2 follow-on: independent v1 receipt e4d08b3272c50d810a6d6f9e84eee3cf74af8f980d7d7867034a3ede50ddfb2b approves its exact scoped version, with G-01 and E-01 retained. A new own two-adapter counterexample (tomorrow weather +technical explanation) uncovered a further HIGH temporal-wording gap; red proof is future-temporal-red.json. Shared calendar grammar now includes future/recent relative periods. Eight negative provider/cases pass before answer dispatch. E-01 is repaired by adding question_router.py to both harness version/hash lists and asserting exact hash coverage in the existing synthetic source-probe regression. No actual HTTP/model/paid call. Final full logs are offline-final-v4-py312/313 and research-final-v4; counts remain689/689 and20+34. UI25 evidence remains applicable to unchanged web/JS/CSS. Final v2 manifest binds these small code/test/documentation changes and supersedes v1; independent v2 review is required. G-01 remains an explicit MEDIUM, not complete semantic coverage.
+
+- Frozen-v3: independent v2 receipt db26d60c72fd44833f2289f99c29132f9f2166069096ebef9f5f5f310228a689 is FAIL for T-01 (8/16future cases fail), while E-01 is CLOSED. The underlying explanatory-prefix exemption for variable facts is now removed entirely. Only whole variable-concept/mechanism explanations without actual fact qualifiers are stable; forecasts require sources independently of calendar vocabulary. Six new negative forms were added inside the existing both-adapter regression. Twenty exact final-router negative/concept-positive API contracts pass (v3-variable-facts-final-green.json). A focused stable-weather-mechanism regression initially exposed a missing process verb; the closed mechanism grammar now includes oppstaar/arises/occurs, with the original positive assertion retained. Final full logs are offline-final-v5-py312/313 and research-final-v5. V3 supersedes prior freezes and needs independent matching review; G-01 and all genuine-source/model limitations remain. No installation, actual HTTP/inference/paid call, Git mutation or historical evidence overwrite.
+
+V3 final binding uses offline-final-v6-py312/313 and research-final-v6. The earlier v5 cohort is retained as an intermediate candidate. Whole stable-concept admission uses exact concept nouns; compound forecasts/numeric population subjects cannot inherit it. The added Norwegian forecast-compound RED is retained, and the exact final proof is v3-variable-facts-final-v2-green.json (24/24 scripted negative/concept-positive contracts). Frozen-v3 requires a separate matching independent receipt.
+
+
+### 2026-11-20 - Three-municipality pilot and accessible two-choice entrance
+
+- Sanitized user decision: activate only Hamar, Elverum and Gjovik for now; retain46identity records/future expansion; simplify website for older/first-time users using supplied Norwegian welcome, two vertical pink local/mini buttons, optional friendly illustration and native expandable five-step guide. Keep source/privacy/security/history/Back and both models. No install, paid call, main/COM2 edit, deletion, commit or push.
+- Existing external HEADa633b343437c60e7a7dd3d593fb84f37c0e2164a and all initial dirty/audit files are retained. The baseline/beforefiles are output/aisha-pilot-ui-20261120-a65416bf/baseline.json. question_router.py remains untracked in Git and is an essential working-file dependency; the final frozen inventory includes it. No clean-checkout/remote-publication claim.
+- Added a separate active_municipalities policy list (3IDs); all46registry rows, identity evidence/hashes/dates are byte-equivalent. ResearchService/LiveResearchService check active scope before both static catalog and HTML/HTTP work; bindings/sessions revoke after scope changes. Inactive status is explicit even with source chat disabled. Portal metadata lists only active coverage. No client parameter can change scope.
+- Reused approved topic-independent RAG for other municipal topics and generic portal follow-ups, with current-request receipts/citations and existing cloud rights. New unknown-topic official discovery is local transient navigation/nativeGET only: max6requests/same-host/depth2, existing DNS/robots/TLS/size/deadline/kill guards,0admittedunknown excerpts,0models. Only host/digests/counts persist. Arbitrary public text/person records are never auto-approved; exact approved snippets/typed profiles are still needed for useful answers. General source catalog remains empty in shipped policy; broad actual usable information coverage is NOT VERIFIED.
+- New home uses exact supplied copy, native guide/5steps, two model buttons and decorative inline SVG.20px/18pxroot, large targets, focus/contrast and pink/blackchat; paid/external/source/privacy information retained. Same-model home/brand navigation preserves messages/draft/revision with0requests; another available AI uses existing new-conversation/transfer-safety reset. Unavailable mini never substitutes another model or destroys original conversation. Homepage itself performs0provider/source calls.
+- Independent candidate review found2MEDIUM UIraces: Back during metadata could lose focus; failed model-switch reset was forgotten by refresh. Both are repaired with visible pending-focus ownership and resetRequired until acknowledged success; own32Node groups include exact regressions and the independent same-case retests pass3focus/2reset flows. Earlier candidate evidence/receipts remain unchanged.
+- An external collaborator added eval/test_exam_scope_verifier.py/docs/verifier-exam-scope-20261120.json during this phase. They are retained unedited. The first whole710-predecessor cohort (708methods) exposed missing disabled-source inactive status and unknown-topic discovery attempts, plus one stale static-copy expectation. Corrected application behavior, retained the independent assertions, and preserved the red log. Generic discovery remains distinct from usable source admission; no green flag is interpreted as true broad coverage.
+- Final Implementer cohort:710/710methods on Python3.12.10 and3.13.7,0failures/errors/skips with sockets/DNS guarded, unchanged before/after production/test/UI hashes;32Node VM/DOM groups and20general/34regional research contracts. Includes43inactive x2adapters/chat/portal/source-only refusal,3citiesx3reviewed fictional topics, city-follow/freshnonce, scope-revocation race, unreviewed prose/injection/navigation redaction and new UI controls. These are controlled synthetic tests, not real source/model accuracy or a privacy proof.
+- Installed Chrome and Edge isolated native smoke attempts both failed before DevTools (exit2147483651), with retained command/startup logs. No actual screenshots, browser keyboard rendering or screen-reader PASS is claimed. No real municipal HTTP/model/paid call; no new dependencies/downloads. Previous V-T02HIGH and other r4 findings remain open; only this scoped UI/three-city change is submitted for matching frozen review. Full acceptance remains human and provisional for uncommitted work.
+
+
+Pilot final validation addendum: generic discovery never sends unreviewed user
+wording as remote search parameters. Topic matching stays local; native search
+parameters can use only reviewed non-personal catalog vocabulary for that city.
+With the shipped empty catalog this means bounded official navigation only,
+not arbitrary remote free-text search. The regression includes a GET form and
+checks that unknown words never become query parameters. Final full logs for
+this hardening are offline-final-v2-py312/313 and research-final-v2; UI assets
+remain identical to the32-group ui-final-v1.json result. No actual source/model
+or paid call was made and the current three-city scope is not blanket source
+or personal-data approval. Independent matching frozen review is required.
+
+
+### 2026-11-20 - Automatic evidence, reviewed HTML and V-T02 follow-on
+
+- Owner scope: automatic municipal facts for active Hamar/Elverum/Gjovik on both models, no per-question toggle/category, broader reviewed sources, no unknown-content/transfer grant. Preserve all46, UI, main/COM2/history and previous evidence; no live requests, paid calls, installations or Git mutation.
+- Baseline: output/aisha-auto-sources-20261120-764dca4d/baseline.json, HEADa633b343437c60e7a7dd3d593fb84f37c0e2164a. All initial dirty/contributor files preserved. Existing Live automatic_municipal coupling was already present; missing approved general HTML input was the main coverage boundary.
+- Reproduced exact V-T028/8 in vt02-before.json. Shared event/calendar evidence guard precedes generation; whole stable concept/mechanism forms remain ordinary chat. Tested entity-role false positives and natural standalone new topics are repaired without a programming-language/country allowlist; referential fragments retain source duty.
+- ResearchApproval adds opt-in exact reviewed HTML input hash/evidence/tag, preserving full plain-text transport contract and its pre-DNS HTML refusal. Live exact-URL acquisition uses existing pinned DNS/TLS/robots/bounds, new nonce/no-cache, full-hash check before parsing and exact whole context units. Only reviewed paragraphs reach either adapter; per-source cloud rights and provider gates remain separate. No default source/expiry/permission is fabricated.
+- Review-only source probe flag prevents absent/changed sources from broadening to discovery/typed fallback. Unknown HTML is still discovery-only, PDF/Office links are redacted unsupported candidates, not answer evidence. Lists do not gain completeness from a successful fetch. Dates/periods remain distinct.
+- Synthetic matrix covers3cities x13families x2adapters (78positive) plus15rights/drift/missing-source negatives; all93 source contracts pass in the candidate harness. Contact case is service-desk guidance, not personal phone/email/address retrieval. This is neither factual truth nor actual municipal coverage.
+- Independent new HIGH HTML-C01/HTML-C02 were repaired and retested6/6 and4/4. Red evidence/beforefiles are preserved. Ancestor barriers now keep actual levels; monetary metadata requires whole amount, matching municipality and literal period. Existing qualification/footnote/privacy regressions remain.
+- README/source-workflow add architecture/acceptance and a six-step exact-URL/input/unit/privacy/reuse/transfer review process. Real catalog remains0; new HTTPS tests require explicit rights and a separately reviewed source policy. Whole HTML hashes can drift for technical reasons; no auto-renewal or relaxed match.
+- Final full tests, file hashes, independent receipt and production/native NOT VERIFIED limits are recorded in the new frozen evidence package after final retest. Earlier freezes/receipts are historical and remain unchanged. The approved UI assets are unchanged by this phase.
+
+
+Final offline evidence for the automatic-source phase:722/722 methods on both
+Python3.12.10 and3.13.7,0failures/errors/skips with socket/DNS guards and identical
+before/after source hashes. The721-method final-v1 cohort remains a retained
+intermediate; final-v2 adds the explicit foreign-municipality-unit refusal.
+UI assets are unchanged and32/32Node VM groups pass. Research:20general,
+34regional (44requests),93automatic cases (78approved synthetic HTML answers,
+15controlled refusals). The matrix is not a real-answer correctness score.
+All successful rows are exact reviewed-unit contracts; no real source or model
+has been called. No complete-list, general anonymity, production or academic
+claim follows. Matching final independent frozen review is still required.
+
+The exact6-URL connectivity plan and model-free probe are prepared under
+output/aisha-auto-sources-20261120-764dca4d/. The probe's default dry-run was
+executed with sockets/DNS forbidden and made0requests. Actual execution remains
+AWAITING OWNER APPROVAL. It follows no links, parses no HTML and records only
+controlled transport metadata/hashes. Source paragraph approval is separate.
+After explicit approval, run from ordinary PyCharm PowerShell on the same UTC
+date as the plan (a later date needs a renewed finite plan):
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 output/aisha-auto-sources-20261120-764dca4d/https_connectivity_probe.py --execute-approved --approved-plan-sha256 2d9435ed2305db1e6dd6a04a70e89ae14c0f9f7c4b3ad66fc1a0d01fd38746fa --output output/NEW-pilot-connectivity
+```
+
+A successful connectivity report is NOT evidence that SFO/schools/other facts
+were obtained. No new paid call, installation, model download or Git mutation.
+main/COM2/prior files and untracked contributor work are preserved. The known
+untracked question_router.py dependency is included in the new freeze/patch;
+no clean-clone/publication claim is made. Native-browser/screenreader/usability
+limitations from the previous phase remain NOT VERIFIED; UI was not redesigned.
+
+
+### Relative-period follow-on: frozen-v1 is FAIL, not final approval
+
+The first automatic-source freeze cf5f19e9d8dd4ce7f336299591dee8279a1e321ae49fddc5207b956aa2e9cd82
+had matching722-method green suites but a new independent period-HIGH: an exact
+2026 fee unit could answer next-year/i-fjor/om-to-aar requests. Explicit2027
+was already refused. Red probe and beforefile remain retained. A first fix
+still missed an unresolved season/month; those red cases are also preserved.
+
+The shared fee-period validator now reconciles explicit and relative NO/EN
+years against the actual system year, accepts only a matching literal source
+period, and refuses conflicting or unresolved calendar constraints. Calendar
+names/months/seasons without a resolved explicit year never borrow the fetch
+or publication year. Unclear school/season/month periods request a concrete
+year/date; billing units permonth/year remain distinct from target dates.
+Calendar nouns and possessive municipality wording are not new place names.
+Both models share this gate before generation. A nonretryable useful period
+message replaces an undocumented amount.44scripted positive/negative cases use
+four source years with the same current publication/fetch year, including
+matching future/past answers, conflicting years and unresolved season/months.
+The new full cohort is723methods. Final binding is offline-final-v3-py312/313,
+research-final-v3 and frozen-v2/manifest.json, pending matching independent
+receipt. Earlier v1/v2 run logs and frozen-v1 are unchanged historical evidence.
+No real source permission, network/model/paid call or Git mutation follows.
+
+
+V2 final addendum: unresolved month/season names now require a concrete period,
+including til-vaaren/fra-januar; fetching/publication never supply the missing
+year. The44-case relative-period contract includes legitimate current/past/
+future literal years and unresolved or contradictory alternatives on both SDKs.
+Calendar words after prepositions are not municipality names. The two remaining
+concrete G-01 forms are repaired by parsing standalone information/explanation
+request wrappers, not by adding a science-topic whitelist.14new provider/cases
+preserve attribute/deictic source duty and allow explicit new topics. This is
+still not universal semantic understanding; unfamiliar/ambiguous wording may
+clarify safely. Final full count is724methods, superseding the intermediate723
+plan. Final-v3 logs/research and frozen-v2 plus its own independent receipt bind
+the exact accepted local candidate. The failed v1, its722passing test logs and
+all red/green receipts are preserved unchanged. V-C01 actual source/approval
+coverage remains open; all genuine acquisition/model/native results remain
+NOT VERIFIED and the finite HTTPS permission request is still pending.
+
+
+Final safety follow-on: a broad new-topic wrapper candidate was rejected after
+independent compound-attribute counterexamples. Its beforefile/red evidence is
+retained. Independent-topic parsing now retains original definite-article cues,
+uses compound attribute roots, and treats uncertain definite wrappers
+conservatively; existing source/temporal gates run first. Tested natural
+photosynthesis forms work, while age-limit/admission/property references cannot
+erase the source context. Conservative ambiguity remains a documented limit,
+not a universal semantic guarantee.22wrapper provider/cases are regression
+coverage; the existing referential negatives are unchanged.
+
+Two additional permission repairs are included. LiveSession snapshots and
+rechecks reviewed_only even for legacy/empty-catalog transport, so a mid-fetch
+restriction revokes the old capability. Historical sourced assistant quotes
+were previously retransmitted as normal model history even after source
+transfer revocation. The server now uses its already separate display/model
+histories: full answer/citations remain visible; model history receives a
+neutral placeholder for source answers. User turns still establish topic and
+municipality. New sourced turns always fetch anew; ordinary non-source model
+history is preserved. Both adapters and later general topics are tested.
+Independent retests of the new permission negatives are green; raw historical
+red/green evidence remains separate and unchanged.
+
+The final full regression is726methods on each Python runtime in
+ offline-final-v4-py312/313; earlier v3 was started before these confirmed repairs
+and is intermediate, not final acceptance. Research-final-v4 and frozen-v2
+bind the final integrated state and require their own matching independent
+receipt. Approved UI/policy/46record bytes are unchanged in this phase. The real
+source catalog remains empty and actual HTTPS/content/model/native quality
+remains NOT VERIFIED; the separate finite network approval question is pending.
+
+
+MIME-parity finalization: the same approved2026 fee was found answering next-year
+questions through the plain-text catalog. That red proof is preserved. Literal
+and relative period/date helpers now live in research.py and are re-exported
+by live_research.py for compatibility. The COMMON request binding enforces
+monetary period/valid-from/to constraints, independently of HTML/plain transport
+or adapter. Explicit reviewed fact_scope periods can support plain-text units
+without a printed year; receipts mark this reviewed basis separately. They are
+never inferred from retrieval/publication. Reviewed municipal monetary units
+in either MIME need a conflict scope and a whole matching amount.250 and250,00
+compare equally;250/350 conflicts refuse. An existing injection fixture gained
+correct explicit999/period annotations so its original injected-source/model-
+quote assertions still execute; no assertion was removed. HTML robots-hash
+drift now stops before the page request.28independent MIME-parity probes pass.
+
+The earlier full-v4 has726green methods but predates this shared policy and is
+retained as intermediate. Final binding is727methods in offline-final-v5-py312
+and py313, research-final-v5, unchanged UI32 and frozen-v2/manifest.json with its
+own independent receipt. Known finite failures are addressed, not all possible
+language/format semantics. Actual source coverage (V-C01), native accessibility,
+real model quality and production readiness remain NOT VERIFIED. No external
+request, paid call, installation, Git operation or real-source permission was
+performed/granted by these repairs.
+
+
+Final binding note: the common monetary/date gate is727methods after the plain-
+text parity regression. Approved municipal monetary annotations now use the
+same whole-amount/conflict checks across both MIME types; plain review scopes
+are marked as such, not confused with literal source dates or retrieval dates.
+The prepared injection-data fixture remains an actual injected instruction and
+its original1model/unapproved-quote refusal assertions remain unchanged.
+Only offline-final-v5-py312/313 and research-final-v5 are the final pre-freeze
+cohort;726-method v4 is retained as a pre-parity intermediate.727is a test-method
+count; the separate automatic matrix has93cases, not93real service trials.
+
+
+Frozen-v3 superseding note (2026-11-20): frozen-v2 is withdrawn after a
+confirmed definite-variable V-T02 counterexample. "What is the weather?" and
+"What is the population?" were normalized into bare concept exemptions and
+dispatched both SDKs without evidence. The raw-turn freshness obligation now
+survives context normalization; definite variable lookups require sources.
+Bare "What is weather?", definitions and whole mechanisms still use general
+chat. The added regression covers20 negative provider/live combinations,
+16 stable controls and both direct routing and conversation planning.
+Final binding is728methods in offline-final-v6-py312/313, research-final-v6,
+unchanged UI32 and frozen-v3/manifest.json, subject to its matching independent
+receipt. V2's727green tests/initial receipt remain historical evidence only;
+its separate superseding FAIL must not be presented as acceptance. One earlier
+parallel independent3.13 run had a timing-sensitive deadline-error-code
+mismatch in an unchanged test;20isolated repeats and the serial full727run
+passed. That observation remains visible rather than removing assertions.
+Actual public source coverage V-C01 remains OPEN: no approved real excerpt
+catalog is installed. No new external request, model call or Git operation.
+
+
+## 2026-11-21 - Authorized finite connectivity and publication candidate
+
+The owner approved exactly six HTTPS GET inputs: /robots.txt and / on each of
+www.hamar.kommune.no, www.elverum.kommune.no and www.gjovik.kommune.no. This is
+a finite connectivity grant, with no link following, raw HTML retention,
+service-excerpt approval, model call or cloud transfer. A new date-bound plan
+was created; all older plans, frozen versions and test evidence were preserved.
+
+Actual pinned-transport trial at2026-11-21T02:26:35Z: all three robots attempts
+failed with PermissionError/WinError10013 and research_unavailable. Consequently
+all three root-page GETs were NOT ATTEMPTED. No HTTP response, MIME, robots
+permission or content hash could be verified. This is an environment-blocked
+trial, not successful municipal acquisition. No bypass, proxy, security change,
+extra URL, model/payment or raw HTML retention was attempted. Local ignored
+evidence: output/aisha-publication-20261121-3ba1ab9a/https-live/
+https-connectivity-result.json. Renewed exact plan SHA256:
+66da65f48908c22dd89e8cf7cf50b5ec31d509ac6deeda9915272e0a2edcbd9b.
+
+The last exact frozen-v3 implementation had independent SCOPED PASS:
+manifest1b595fa7b035fd929d7f39f0cc1fbaaf085e671d58352e1f1754bd6bfbd2840f;
+receipt90e9637db1fe5a3d701db9b706f8134b4ff53eac5e674b726500c20a31237423.
+Its728-method tests on each Python,32 Node VM groups and316 independent
+expectations do not prove actual source/model/browser performance. This
+publication follow-on changes documentation only; runtime/test/UI/policy bytes
+remain the same. Fresh serial regression and a matching publication manifest/
+independent receipt are required before commit. Raw generated output remains
+local and ignored; it must not enter the publication candidate.
+
+V-C01 remains MEDIUM/OPEN for actual generic source/approval readiness.
+The generic real excerpt catalog has0approved entries; only Hamar, Elverum and
+Gjovik are active while all46 identities remain retained. PDF/Office content,
+personal contact records, native browser/screenreader checks, actual model
+quality and broad live municipal coverage remain unsupported or NOT VERIFIED.
+Conservative language/context limits and the prior LOW timing observation
+remain documented; no full-production or academic-grade claim is made.
+
+Sanitized owner instruction: preserve both contributors, main, COM2 and all
+history; rerun full offline/UI checks, review exact bytes and exclude secrets/
+personal data/generated clutter. Conditional commit and push are authorized
+only to origin/exam/final after no open HIGH and matching independent review.
+No force push, rewrite, merge, deletion, installation, model download or paid
+API is authorized. GitHub failure must stop remote attempts and hand back one
+PowerShell command at a time for the ordinary PyCharm terminal.
+
+
+### 2026-11-23 - Final five-step educational welcome
+
+- Implemented the owner's final verbatim five-step Norwegian welcome in the
+  existing homepage. One visible panel and primary action; model choice has two
+  large pink entrances. Native Back/restart/skip, visible focus/current skip link
+  and common help remain. Introduction restart preserves conversation data.
+- Reused existing chat/model loading, same-model history/draft preservation,
+  unavailable-mini refusal and confirmed reset before a model switch. No backend,
+  source policy, active-city scope, dependencies or main/COM2 files changed.
+- Added independent behavior contracts for all steps, back/restart/skip,
+  zero-request navigation, delayed metadata/focus and draft/history. Adapted old
+  copy and heading-count assertions to the explicitly superseding five-step
+  specification; original provider/privacy/security checks remain. Native driver
+  prepares all five steps at desktop/tablet/mobile widths but startup is blocked.
+- Actual existing local llama3.2:3b via ChatBackend answered "4." to a fixed safe
+  arithmetic question, one6.23s call/64reserved tokens,0source/paid calls. OpenAI
+  check-only is configured;0paid calls. Chrome and Edge exited2147483651 before
+  DevTools; no screenshots/native keyboard/screenreader PASS is claimed and no
+  security setting was weakened. No model download or installation occurred.
+- Prepared nine service-approval cases for the active three cities, with four
+  documented exact URL candidates and five owner URL gaps. No real excerpt was
+  approved or fetched. Renewed six-URL plan SHA083e9039e1464297d251aaad183ea5e2e6c6ac2f03e34b2b292a2e7911fc9c04
+  still awaits explicit confirmation. V-C01 remains MEDIUM/OPEN; native UI,
+  broad live source coverage and actual OpenAI remain NOT VERIFIED.
+- Baseline18modified+7new files, both contributors and all previous evidence are
+  preserved. Full serial regression and a matching new SHA256 independent review
+  bind acceptance; any later commit/push is conditional on publication PASS and
+  a safe origin/exam/final history check. No Git mutation has occurred here.
+
+
+### 2026-11-23 - Mandatory repairs after independent PUBLICATION FAIL
+
+- Accepted external final-review.json as the blocking authority for intro
+  frozen-v1: previous729green methods and earlier scoped receipts did not cover
+  eight unsafe source publications and two G-01 failures. All old receipts,
+  exact snapshots and red replays remain unchanged; old PASS is superseded.
+- V-02b: added details/fieldset scopes and whole summary/legend label context;
+  sibling years/conditions restore the parent state. Independent follow-up found
+  a second HIGH overlong-label barrier erased by a later H2. Nonheading loss now
+  persists as a level0 barrier until semantic-scope exit; clean sibling350 can
+  still publish while unsafe250 cannot. Both-adapter negative/positive tests.
+- V-02c: nonempty image alt/ARIA/title/relation and note-role cues create an
+  unsupported-footnote marker and dirty directory context. No attribute text or
+  image is ingested as facts; unsafe marked prices stop before model/history.
+  Exact alt*/alt1, ARIA, hidden-annotation and clean controls are tested.
+- G-01: whole indefinite definition grammar accepts ordinary NO/EN manner
+  modifiers without topic whitelists. Both adapters leave five municipal turns
+  for a clear algorithm/atom/pattern definition, while dependent/current/price
+  questions retain the existing mandatory source gate.
+- I-01: two explicit paragraphs explain municipal help in step1 and older/novice
+  inclusion in step2. Five steps, navigation, model choices, consent/history and
+  all other approved copy remain. Four added regression methods; old guards kept.
+- Original external acceptance programs are copied byte-identically into NEW
+  evidence folders; original wrapper still replays the old failed snapshot.
+  New source binding is required for GREEN. Full serial3.12/3.13, Node/source
+  regressions and an exact new independent freeze are required. Evidence is in
+  output/aisha-verifier-fixes-20261123-236c1d83/; no historical test is overwritten.
+- V-C01 stays MEDIUM/OPEN with0approved real generic excerpts. PUB-T01 timing
+  history is retained and is not claimed repaired. Native/accessibility, actual
+  municipal coverage, paid OpenAI and academic/production status remain NOT
+  VERIFIED. No paid or actual model call, external HTTPS, new approval, install,
+  deletion, main/COM2 change, stage/commit/push or history rewrite occurred here.
+
+
+## 2026-11-23 — Samlet enkel chat og kommunal behovsveiledning
+
+- User acceptance: retain the five-step introduction; simplify both chats to the exact Aisha heading/welcome, nine editable topic examples, one composer/Send and direct pink model/back navigation. Pastel model backgrounds, large controls, native disclosures, focus and existing consent/cost/source information remain.
+- Implemented bounded server-owned provider/model histories with no automatic local-to-OpenAI transfer, per-model drafts/scoped reset, shared rate/pending guards and revision/owner checks. A bounded user-only routing memory retains failed research intent without admitting source facts or sending routing metadata as model history.
+- Shared deterministic needs handling supports day centres, home help, childcare, waste and transport; bare municipality replies continue the service, known cities need no repeat question, and clear new definitions leave the topic. Controlled intent labels help match already approved catalog entries; no answers or real service names/paths are hardcoded. Research starts only on Send under existing authorization, not on typing or navigation.
+- Separate exact, expiring, documented same-official-host navigation grants provide URL-only guidance and optional application buttons, with no implied content approval or submitted application. No genuine grants, external source requests or paid model calls were added.
+- Independent diagnostic review found HIGH-N01 natural-language home-help bypass and HIGH-P01 explicit clinical fields. Both were corrected with NO/EN negative controls before retention/fetch/SDK, clinical grammar variants and positive data-cleaning/shopping-list controls. Prompt question now uses the same canonical need/municipality plan as its source binding after a failed topic switch. Exact frozen re-review is still required before publication.
+- Regression contracts now cover both adapters, all three pilot cities, needs→city→application/transport/price, failed sources, revocation/expiry, navigation metadata, separate history/races, Enter/Shift+Enter/IME and previous V-02b/V-02c/G-01/V-T02 guards. Existing tests and evidence are retained; obsolete four-topic/cross-model-reset assertions are replaced by the approved nine-topic/separate-history requirements.
+- V-C01 remains MEDIUM/OPEN with zero approved real generic excerpts; broader municipal coverage, native browser/mobile/screenreader tests, paid OpenAI and production/academic acceptance are not inferred from offline success. The source approval queue and unexecuted six-GET plan are prepared separately. Main, COM 2 and history remain preserved. Evidence: output/aisha-simple-chat-20261123-fbe365d7/.
+
+- Final contract alignment: production `--enable-live-research` explicitly selects reviewed-only mode; an existing startup regression now proves missing exact grants cannot call discovery and the same object reaches both provider services. Legacy typed synthetic test profiles are preserved. Regional source-evaluation contracts now distinguish a missing-city clarification (HTTP200,0fetch/SDK,no factual publication) from a factual acceptance; the previous red records remain. A shared whole-term definition signal fixes the conservative municipal-decision definition control without releasing place/date/value source duties.
+
+- Independent final candidate review found MEDIUM model-bank reset-return bypass: a failed explicit reset barrier disappeared across A→B→A. Fixed with a per-bank pending-reset set cleared only by matching generation/bank ACK, explicit visible recovery and blocked Send on return. Both directions have a new Node contract;39groups now declared. Frozen-simple-chat-v1 and the Verifier counterexample remain unchanged. Full regression/new v2 freeze and independent re-review precede any publication.
+
+
 ## 2026-11-23 - Ollama source prompt boundary repair (uncommitted)
 
 - Baseline revision: b6344ca97eb13cdb65c8f27e40709e6200c065f7 on exam/final.
@@ -458,3 +841,14 @@
 - Validation: 13 focused Ollama tests and 8 selected integration tests passed; git diff --check passed. The broader eval run is blocked in this checkout because hamar_agent/question_router.py is absent and tests requiring unique output paths cannot write to protected output/; no full-suite pass is claimed.
 - Code/test patch SHA-256 (excluding this log): 0e67bfed541ad0742743aed91544237f6a7639a4909f708ac808fc00eade23fd.
 - Independent read-only Verifier review accepted with no findings at baseline b6344ca97eb13cdb65c8f27e40709e6200c065f7 for code/test patch SHA-256 0e67bfed541ad0742743aed91544237f6a7639a4909f708ac808fc00eade23fd. The code/test patch has not changed since review; changes remain uncommitted and no live source/provider was used.
+
+
+## 2026-11-23 — Integrate JeppeGs 511b028 and reviewed Aisha chat
+
+- Imported the preceding Ollama source-boundary entry verbatim from committed511b028; its older b634 baseline, 'uncommitted' wording and focused-only results are historical statements, not a claim about this new combined candidate.
+- Integration inputs: local a633b343 plus26working files reviewed under e781537a, and direct descendant511b0287b62368181f52bc70de95398eb99b6195 with13incoming files. User authorized integration, independent verification and conditional exam/final commit/push; main/COM2/history and both developers' contributions must remain.
+- Created an exact65-object raw backup before mutation, including all26local files/7untracked, all13base/incoming files, affected unchanged working files, original index and patches. Independent checks validate the backup and all incoming blobs. Ten non-overlap files are exact incoming copies; clean three-way merges preserve both test-file versions; full local CHANGELOG byte prefix and the remote dated addition are retained.
+- Preserved separate Ollama system/user messages, structured JSON title/paragraph data, untrusted-source policy, reviewed adapter/evaluator changes and all request/response/UTF8/call/token/time controls. A newer local pilotportal mock was also adjusted to last user data, with an explicit system/user role assertion; no tests/features were dropped.
+- Metadata-only fastforward was demonstrated in an isolated synthetic Git repository, including working/untracked preservation and final-parent ancestry. The real attempt stopped on index.lock permission denial before ref update: local HEAD remains a633, incoming511 is fetched, source integration is retained; no real commit/push/reset/rebase/force or metadata bypass occurred. Final commit must directly descend from511.
+- Run new full Python3.12/3.13,Node,kilde/request-bound campaigns on the combined working bytes and supply a new SHA256 freeze for independent publication review. Earlier745/39counts do not constitute integration results. Evidence: output/aisha-integrated-20261123-f451a619/.
+- V-C01 and historicalPUB-T01 remain open/not claimed repaired; actual municipal sources, paid OpenAI, native mobile/browser/screenreader and production/academic acceptance remain NOT VERIFIED. No new source HTTPS permission or paid/model-download/install authorization is inferred.

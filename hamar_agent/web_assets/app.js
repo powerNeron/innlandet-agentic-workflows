@@ -11,6 +11,7 @@ async function api(path, options = {}) {
   if (!response.ok) {
     const error = new Error(typeof data.error === "string" ? data.error : "Forespørselen feilet. Prøv igjen senere.");
     error.code = data.error_code; error.retryable = data.retryable !== false;
+    error.serviceLinks = data.service_links;
     throw error;
   }
   return data;
@@ -588,14 +589,20 @@ async function loadPortal() {
     renderMunicipalChoices();
   }
 }
-loadPortal();
+// The simple entrance does not fetch sources or inspect providers on arrival.
+// The retained municipal interface loads only when explicitly opened.
 
 // General AI chat never shares municipal answers, sources or conversation state.
 let chatReady = false, chatLoading = false, chatBusy = false, chatGeneration = 0;
 let chatRevision = 0, chatChoices = [], chatSearchAllowed = false, chatAbort = null, chatLastRequest = null;
 let chatMenuRequested = true;
 let chatResetting = false, chatChecking = false, chatResetQueue = Promise.resolve();
+let chatResetRequired = false;
 let chatSelectionKey = "";
+let homeSelection = null, homeOpening = false, homeReturnTarget = "home-local", homeFocusPending = null, introStep = 1;
+let chatBank = null;
+const chatDrafts = new Map();
+const chatResetBanks = new Set();
 const chatProviderErrors = new Set();
 function renderModelChoices(groupId, selectId, choices, blocked) {
   const group = $(groupId), select = $(selectId), known = new Map([...group.children].map((b) => [b.dataset.value, b]));
@@ -643,21 +650,31 @@ function refreshChatLabels() {
 function chatChoice() { return chatChoices.find((c) => c.available && c.provider + "|" + c.model === $("chat-provider").value); }
 function updateChatControls() {
   const choice = chatChoice();
-  $("chat-send").disabled = !chatReady || chatLoading || chatResetting || chatChecking || chatBusy || !choice || !$("chat-message").value.trim();
+  $("chat-send").disabled = homeOpening || chatResetRequired || !chatReady || chatLoading || chatResetting || chatChecking || chatBusy || !choice || !$("chat-message").value.trim();
   $("chat-send").querySelector(".chat-send-label").textContent = chatBusy ? "Sender …" : "Send";
   $("chat-send").setAttribute("aria-label", chatBusy ? "Venter på svar fra Aisha" : choice?.provider === "openai" ? "Send melding til OpenAI, betalt ekstern behandling" : "Send melding");
   $("chat-provider").disabled = chatLoading || chatResetting || chatChecking || !chatChoices.length;
   $("chat-refresh").disabled = chatLoading || chatResetting || chatChecking || chatBusy;
-  $("chat-refresh").hidden = chatReady && Boolean(choice) && !chatProviderErrors.has($("chat-provider").value);
+  $("chat-refresh").hidden = chatReady && !chatResetRequired && Boolean(choice) && !chatProviderErrors.has($("chat-provider").value);
   $("chat-retry").disabled = chatLoading || chatResetting || chatChecking || chatBusy;
-  $("chat-web-search").disabled = !chatSearchAllowed || !choice?.available || chatBusy || chatLoading || chatResetting || chatChecking;
-  $("chat-search-control").hidden = !chatSearchAllowed;
-  if (!chatSearchAllowed) $("chat-web-search").checked = false;
+  $("chat-web-search").disabled = true;
+  $("chat-search-control").hidden = true;
+  $("chat-web-search").checked = false;
   $("chat-processing").textContent = choice?.provider === "openai"
     ? "Valgfri betalt AI · meldinger behandles av OpenAI."
     : "";
   $("chat-processing").hidden = !choice || choice.provider !== "openai";
   renderModelChoices("chat-model-choices", "chat-provider", chatChoices, chatLoading || chatResetting || chatChecking);
+  $("home-local").disabled = homeOpening; $("home-openai").disabled = homeOpening;
+  $("chat-switch-model").textContent = homeSelection === "openai" ? "Bytt til lokal AI" : "Bytt til ChatGPT mini";
+  $("chat-switch-model").disabled = homeOpening || chatBusy || chatLoading || chatResetting || chatChecking;
+  $("chat-mode").setAttribute("data-provider", homeSelection || choice?.provider || "ollama");
+  $("chat-cost-notice").hidden = choice?.provider !== "openai";
+  if (homeSelection) {
+    $("chat-selected-model").textContent = homeSelection === "openai"
+      ? "Aisha – ChatGPT mini (gpt-4.1-mini)" : "Aisha – Lokal AI (Ollama)";
+    $("chat-log").hidden = !choice;
+  }
 }
 function scrollChat() { $("chat-log").scrollTop = chatMenuRequested ? 0 : $("chat-log").scrollHeight; }
 function renderSourceChecks(parent, answer) {
@@ -689,8 +706,8 @@ function renderSourceChecks(parent, answer) {
 function renderChatMessage(message) {
   if (message.role === "user" || message.pending || !chatMenuRequested) {
     chatMenuRequested = false;
-    const menu = $("chat-log").querySelector(".chat-empty");
-    if (menu) menu.hidden = true;
+    $("chat-suggestions").hidden = true;
+    $("chat-back-to-menu").setAttribute("aria-expanded", "false");
     $("chat-back-to-menu").hidden = false;
   }
   const row = item($("chat-log"), "article", ""); row.className = "chat-row " + (message.role === "user" ? "user" : "assistant");
@@ -700,12 +717,40 @@ function renderChatMessage(message) {
   const bubble = item(row, "div", ""); bubble.className = "chat-bubble";
   item(bubble, "span", message.role === "user" ? "Du" : "Aisha").className = "chat-author";
   item(bubble, "p", message.text).className = "chat-text";
+  if (message.role !== "user" && Array.isArray(message.municipality_choices)) {
+    const choices = item(bubble, "div", ""); choices.className = "chat-prompts";
+    const allowed = new Map([["hamar", "Hamar"], ["elverum", "Elverum"], ["gjovik", "Gjøvik"]]);
+    message.municipality_choices.slice(0, 3).forEach((choice) => {
+      if (allowed.get(choice.id) !== choice.name) return;
+      const button = item(choices, "button", choice.name); button.type = "button";
+      button.addEventListener("click", () => {
+        if (chatBusy || chatLoading || chatResetting || chatChecking) return;
+        $("chat-message").value = choice.name; updateChatControls(); $("chat-message").focus();
+      });
+    });
+  }
+  if (message.role !== "user" && Array.isArray(message.service_links)) {
+    message.service_links.slice(0, 4).forEach((link) => {
+      try {
+        const url = new URL(link.url), today = new Date().toISOString().slice(0, 10);
+        if (!officialMunicipalHosts.has(url.hostname) || url.protocol !== "https:" || url.port
+            || url.username || url.password || url.search || url.hash || url.href.includes("%")
+            || link.content_verified !== false || !["service", "application"].includes(link.purpose)
+            || !/^\d{4}-\d{2}-\d{2}$/u.test(link.approval_expires) || link.approval_expires < today) return;
+        const box = item(bubble, "div", ""); box.className = "service-navigation";
+        item(box, "p", "Godkjent offisiell lenke. Innholdet på målsiden er ikke faktakontrollert i dette svaret.");
+        const anchor = item(box, "a", link.purpose === "application" ? "Gå til søknad" : "Åpne kommunens tjenesteside");
+        anchor.href = url.href; anchor.target = "_blank"; anchor.rel = "noopener noreferrer";
+        if (link.purpose === "application") item(box, "p", "Du har ikke søkt om tjenesten ved å åpne lenken.");
+      } catch (_) { /* Metadata never authorizes arbitrary destinations. */ }
+    });
+  }
   if (message.pending) {
     row.classList.add("pending");
     const dots = item(bubble, "span", ""); dots.className = "typing-dots"; dots.setAttribute("aria-hidden", "true");
     for (let i = 0; i < 3; i++) item(dots, "i", "");
   }
-  if (message.role !== "user" && !message.pending) {
+  if (message.role !== "user" && !message.pending && !message.welcome) {
     renderSourceChecks(bubble, message);
     item(bubble, "p", message.ai_generated === false ? "Veiledning fra Aisha · ikke kildekontrollert" : "AI-generert svar · kan inneholde feil").className = "chat-answer-label";
     if (message.web_search_used) item(bubble, "p", message.research_verified === true
@@ -730,45 +775,50 @@ function renderChatMessage(message) {
   }
   scrollChat(); return row;
 }
+const chatWelcome = "Jeg kan hjelpe deg med informasjon om kommunene Hamar, Elverum og Gjøvik. Spør meg om det du lurer på!";
+const chatTopics = [
+  ["Barnehage og skole", "Jeg vil søke barnehageplass."],
+  ["Helse og omsorg", "Hvilke helse- og omsorgstilbud finnes i kommunen?"],
+  ["Dagsenter og aktivitetstilbud", "Hvordan søker jeg om dagsenter?"],
+  ["Hjemmehjelp og hjemmetjenester", "Jeg trenger hjemmehjelp."],
+  ["Kommunale avgifter", "Hva koster kommunale avgifter?"],
+  ["Renovasjon", "Jeg trenger hjelp med søppel."],
+  ["Kultur og fritid", "Hvilke kultur- og fritidstilbud finnes i kommunen?"],
+  ["Byggesaker og eiendom", "Hvordan søker jeg om byggetillatelse?"],
+  ["Andre kommunale spørsmål", "Jeg har et spørsmål om kommunen."]
+];
 function emptyChat() {
   $("chat-log").replaceChildren();
-  showChatMenu(false);
+  const row = renderChatMessage({ role: "assistant", text: chatWelcome, welcome: true });
+  row.classList.add("chat-empty");
+  $("chat-suggestions").hidden = true;
+  $("chat-back-to-menu").hidden = false;
+  $("chat-back-to-menu").setAttribute("aria-expanded", "false");
 }
 function showChatMenu(focus = true) {
-  chatMenuRequested = true;
-  $("chat-back-to-menu").hidden = true;
-  const existing = $("chat-log").querySelector(".chat-empty");
-  if (existing) {
-    existing.hidden = false;
-    if (focus) existing.focus();
-    scrollChat(); return;
-  }
-  const welcome = document.createElement("div"); welcome.className = "chat-empty";
-  welcome.setAttribute("tabindex", "-1"); welcome.setAttribute("aria-label", "Forslag til samtaletema");
-  $("chat-log").prepend(welcome);
-  const avatar = document.querySelector(".chat-heading .robot-avatar").cloneNode(true);
-  avatar.className = "robot-avatar chat-welcome-avatar"; avatar.setAttribute("aria-hidden", "true"); welcome.appendChild(avatar);
-  const prompts = item(welcome, "div", ""); prompts.className = "chat-prompts";
-  [["Forklar et tema", "Kan du forklare et tema på en enkel måte? Temaet er …", ["M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3V4Z", "M12 6v15"]],
-   ["Hjelp meg å skrive", "Hjelp meg å skrive en kort, generell tekst om …", ["m4 16 12-12 4 4-12 12-5 1 1-5Z", "m13 7 4 4"]],
-   ["Hjelp med læring", "Kan du hjelpe meg å lære om …, steg for steg?", ["m2 8 10-5 10 5-10 5L2 8Z", "M6 10v7l6 3 6-3v-7"]],
-   ["Still et spørsmål", "Jeg lurer på …", ["M3 4h18v13H9l-6 4V4Z", "M9 8a3 3 0 0 1 6 0c0 2-3 2-3 4", "M12 14v.1"]]].forEach(([label, text, paths]) => {
-    const button = item(prompts, "button", ""); button.type = "button";
-    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg"); icon.setAttribute("viewBox", "0 0 24 24"); icon.setAttribute("aria-hidden", "true");
-    paths.forEach((d) => { const path = document.createElementNS("http://www.w3.org/2000/svg", "path"); path.setAttribute("d", d); icon.appendChild(path); });
-    button.appendChild(icon); item(button, "span", label);
-    button.addEventListener("click", () => {
-      chatMenuRequested = false; welcome.hidden = true; $("chat-back-to-menu").hidden = false;
-      $("chat-message").value = text; updateChatControls(); $("chat-message").focus();
+  const panel = $("chat-suggestions"), opening = panel.hidden;
+  chatMenuRequested = opening;
+  panel.hidden = !opening; $("chat-back-to-menu").hidden = false;
+  $("chat-back-to-menu").setAttribute("aria-expanded", String(opening));
+  if (!panel.children.length) {
+    const title = item(panel, "h2", "Du kan for eksempel spørre om");
+    title.setAttribute("tabindex", "-1");
+    const prompts = item(panel, "div", ""); prompts.className = "chat-prompts";
+    chatTopics.forEach(([label, text]) => {
+      const button = item(prompts, "button", label); button.type = "button";
+      button.addEventListener("click", () => {
+        panel.hidden = true; $("chat-back-to-menu").setAttribute("aria-expanded", "false");
+        $("chat-message").value = text; updateChatControls(); $("chat-message").focus();
+      });
     });
-  });
-  if (focus) welcome.focus();
-  scrollChat();
+  }
+  if (focus) (opening ? panel.children[0] : $("chat-back-to-menu")).focus();
 }
 $("chat-back-to-menu").addEventListener("click", () => showChatMenu());
 async function syncChatState(generation = chatGeneration) {
-  const state = await api("/api/chat/state", { headers: { "X-Hamar-Token": token } });
-  if (generation !== chatGeneration || state.revision < chatRevision) return null;
+  const bank = chatBank;
+  const state = await api("/api/chat/state", bank ? { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify(bank) } : { headers: { "X-Hamar-Token": token } });
+  if (generation !== chatGeneration || chatBank !== bank || state.revision < chatRevision) return null;
   chatRevision = state.revision;
   emptyChat(); state.messages.forEach(renderChatMessage);
   return state;
@@ -782,7 +832,25 @@ async function loadChat() {
     const data = await api("/api/chat/options");
     if (generation !== chatGeneration) return;
     chatChoices = Array.isArray(data.choices) ? data.choices : []; chatSearchAllowed = data.web_search_allowed === true;
-    const state = await syncChatState(generation);
+    if (Array.isArray(data.municipalities)) {
+      officialMunicipalHosts = new Set(data.municipalities.filter(m => ["hamar", "elverum", "gjovik"].includes(m.id)
+        && /^www\.[a-z0-9-]+\.kommune\.no$/u.test(m.official_host)).map(m => m.official_host));
+    }
+    if (homeSelection) {
+      const requested = homeSelection === "openai" ? chatChoices.find(c => c.available && c.provider === "openai" && c.model === "gpt-4.1-mini")
+        : chatChoices.find(c => c.available && c.provider === "ollama" && c.provider + "|" + c.model === previous)
+          || chatChoices.find(c => c.available && c.provider === "ollama" && c.default)
+          || chatChoices.find(c => c.available && c.provider === "ollama");
+      const oldKey = chatBank ? chatBank.provider + "|" + chatBank.model : null;
+      const nextKey = requested ? requested.provider + "|" + requested.model : null;
+      if (oldKey !== nextKey) {
+        if (oldKey) chatDrafts.set(oldKey, $("chat-message").value);
+        chatBank = requested ? { provider: requested.provider, model: requested.model } : null;
+        chatRevision = 0; chatLastRequest = null; chatResetRequired = nextKey ? chatResetBanks.has(nextKey) : false;
+        $("chat-message").value = nextKey ? chatDrafts.get(nextKey) || "" : "";
+      }
+    }
+    const state = homeSelection && !chatBank ? { messages: [], revision: 0 } : await syncChatState(generation);
     if (!state || generation !== chatGeneration) return;
     $("chat-provider").replaceChildren();
     const placeholder = item($("chat-provider"), "option", "Velg AI …"); placeholder.value = "";
@@ -794,9 +862,17 @@ async function loadChat() {
     const retained = chatChoices.find((c) => c.available && c.provider + "|" + c.model === previous);
     const local = !previous && state.messages.length === 0 ? chatChoices.find((c) => c.available && c.provider === "ollama" && c.default)
       || chatChoices.find((c) => c.available && c.provider === "ollama") : null;
-    const selected = retained || local;
+    const requested = homeSelection === "openai"
+      ? chatChoices.find((c) => c.available && c.provider === "openai" && c.model === "gpt-4.1-mini")
+      : homeSelection === "ollama" ? (retained?.provider === "ollama" ? retained
+        : chatChoices.find((c) => c.available && c.provider === "ollama" && c.default)
+          || chatChoices.find((c) => c.available && c.provider === "ollama")) : null;
+    const selected = homeSelection ? requested : retained || local;
     $("chat-provider").value = selected ? selected.provider + "|" + selected.model : "";
     if (selected) chatSelectionKey = $("chat-provider").value;
+    if (!homeOpening && selected && chatResetRequired) {
+      await resetChat(); return;
+    }
     // Only an available local model can become the automatic default. Cloud is always manual.
     const pausedCloud = chatChoices.find((c) => c.provider === "openai" && c.variant !== "advanced" && !c.available);
     const pausedAdvanced = chatChoices.some((c) => c.variant === "advanced" && !c.available);
@@ -810,29 +886,37 @@ async function loadChat() {
       : "";
     $("chat-search-help").hidden = !chatSearchAllowed;
     chatReady = true;
-    $("chat-status").textContent = selected ? "" : state.messages.length ? "Velg AI for å starte en ny samtale." : "Lokal AI er ikke klar. Start Ollama og trykk Oppdater, eller velg et annet aktivert alternativ.";
+    $("chat-status").textContent = chatResetRequired ? "Ny samtale er ikke bekreftet. Trykk Oppdater før du sender noe nytt." : selected ? "" : homeSelection === "openai"
+      ? "ChatGPT mini er ikke tilgjengelig. Ingen melding sendes. Den som drifter tjenesten må aktivere valget."
+      : state.messages.length ? "Velg AI for å starte en ny samtale." : "Lokal AI er ikke klar. Start Ollama og trykk Oppdater, eller velg et annet aktivert alternativ.";
   } catch (_) {
     if (generation !== chatGeneration) return;
     chatReady = false; $("chat-status").textContent = "Vi fikk ikke kontakt med Aisha. Prøv Oppdater om et øyeblikk.";
   } finally { if (generation === chatGeneration) { chatLoading = false; updateChatControls(); } }
 }
 async function resetChat() {
+  const bank = chatBank;
+  const bankKey = bank ? bank.provider + "|" + bank.model : null;
+  if (bankKey) chatResetBanks.add(bankKey);
+  chatResetRequired = true;
   const generation = ++chatGeneration;
   chatAbort?.abort(); chatBusy = false; chatLastRequest = null;
   chatResetting = true; chatLoading = false; chatChecking = false;
   $("chat-retry").hidden = true; $("chat-message").value = ""; emptyChat();
   $("chat-log").setAttribute("aria-busy", "false"); chatReady = false; updateChatControls();
   try {
-    const operation = chatResetQueue.catch(() => {}).then(() => api("/api/chat/reset", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: "{}" }));
+    const operation = chatResetQueue.catch(() => {}).then(() => api("/api/chat/reset", { method: "POST", headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify(bank || {}) }));
     chatResetQueue = operation.catch(() => {});
     const state = await operation;
-    if (generation !== chatGeneration) return;
-    chatRevision = state.revision; chatReady = true;
+    if (generation !== chatGeneration || chatBank !== bank) return;
+    if (bankKey) chatResetBanks.delete(bankKey);
+    chatRevision = state.revision; chatReady = true; chatResetRequired = false;
     $("chat-status").textContent = state.busy ? "Ny samtale er gjort klar. Aisha arbeider fortsatt med forrige melding; vent litt før du sender en ny." : "Ny samtale er klar. Ingen tidligere meldinger sendes videre.";
   } catch (_) { if (generation === chatGeneration) $("chat-status").textContent = "Nullstilling kunne ikke bekreftes. Trykk Oppdater før du sender noe nytt."; }
   finally { if (generation === chatGeneration) { chatResetting = false; updateChatControls(); } }
 }
 async function sendChat(retry = false) {
+  if (homeOpening || chatResetRequired) return;
   if (!chatReady || chatBusy || chatLoading || chatResetting || chatChecking) return;
   const choice = chatChoice(); if (!choice) return;
   const generation = ++chatGeneration;
@@ -856,11 +940,11 @@ async function sendChat(retry = false) {
     $("chat-message").value = ""; $("chat-status").textContent = "Bruk maksimalt 1000 tegn uten personopplysninger, kontaktdata eller hemmeligheter."; return;
   }
   chatBusy = true; chatAbort = new AbortController();
-  chatLastRequest = { message, provider: choice.provider, model: choice.model, web_search: $("chat-web-search").checked, revision: chatRevision };
+  chatLastRequest = { message, provider: choice.provider, model: choice.model, web_search: false, revision: chatRevision, ...(chatBank ? { model_history: true } : {}) };
   $("chat-retry").hidden = true; $("chat-message").value = "";
   renderChatMessage({ role: "user", text: message });
   const pending = renderChatMessage({ role: "assistant", text: "Aisha skriver", pending: true });
-  $("chat-log").setAttribute("aria-busy", "true"); $("chat-status").textContent = "Aisha skriver …"; updateChatControls();
+  $("chat-log").setAttribute("aria-busy", "true"); $("chat-status").textContent = "Aisha undersøker spørsmålet ditt …"; updateChatControls();
   try {
     const response = await api("/api/chat", { method: "POST", signal: chatAbort.signal,
       headers: { "Content-Type": "application/json", "X-Hamar-Token": token }, body: JSON.stringify(chatLastRequest) });
@@ -871,6 +955,9 @@ async function sendChat(retry = false) {
   } catch (error) {
     if (generation !== chatGeneration) return;
     pending.remove();
+    if (Array.isArray(error.serviceLinks) && error.serviceLinks.length) renderChatMessage({
+      role: "assistant", text: "Jeg kunne ikke bekrefte opplysningene nå. Du kan undersøke tjenestesiden selv.",
+      ai_generated: false, service_links: error.serviceLinks });
     if (choice.provider === "openai" && ["provider_authentication", "provider_quota", "provider_timeout", "provider_rate_limit", "provider_unavailable", "provider_model_unavailable", "provider_configuration", "provider_response_invalid", "provider_response_incomplete"].includes(error.code)) {
       chatProviderErrors.add(choice.provider + "|" + choice.model); refreshChatLabels();
     }
@@ -882,20 +969,77 @@ async function sendChat(retry = false) {
   }
 }
 function selectAishaMode(chat) {
+  $("aisha-home").hidden = true; $("additional-navigation").hidden = false;
   $("municipal-mode").hidden = chat; $("chat-mode").hidden = !chat;
   $("mode-chat").setAttribute("aria-pressed", String(chat)); $("mode-municipal").setAttribute("aria-pressed", String(!chat));
   document.querySelector(".skip").href = chat ? "#chat-message" : "#query";
   if (chat) { $("chat-message").focus(); if (!chatLoading && !chatBusy && !chatResetting && !chatChecking) return loadChat(); }
-  else return refreshMunicipalOptions();
+  else return portalReady ? refreshMunicipalOptions() : loadPortal();
 }
+function showIntroStep(step, focus = true) {
+  if (!Number.isInteger(step) || step < 1 || step > 5) return;
+  introStep = step; homeFocusPending = null;
+  for (let index = 1; index <= 5; index++) $("intro-step-" + index).hidden = index !== step;
+  $("intro-progress").textContent = "Steg " + step + " av 5";
+  $("intro-back").hidden = step === 1; $("intro-restart").hidden = step === 1; $("intro-skip").hidden = step === 5;
+  const heading = $(step === 1 ? "welcome-title" : "intro-title-" + step);
+  $("aisha-home").setAttribute("aria-labelledby", step === 1 ? "welcome-title" : "intro-title-" + step);
+  document.querySelector(".skip").href = "#" + (step === 1 ? "welcome-title" : "intro-title-" + step);
+  if (focus) heading.focus();
+}
+function showAishaHome(focus = true) {
+  $("aisha-home").hidden = false; $("chat-mode").hidden = true; $("municipal-mode").hidden = true;
+  $("additional-navigation").hidden = true;
+  showIntroStep(focus ? 5 : introStep, false);
+  if (focus) {
+    homeFocusPending = homeOpening ? $("intro-title-5") : null;
+    (homeFocusPending || $(homeReturnTarget)).focus();
+  }
+}
+async function enterAishaChat(provider) {
+  if (homeOpening) return;
+  const current = chatChoice(), oldKey = chatSelectionKey || $("chat-provider").value;
+  if ((chatBusy || chatResetting || chatChecking || chatLoading) && provider !== current?.provider) {
+    $("home-status").textContent = "Aisha arbeider fortsatt. Vent litt før du bytter AI."; return;
+  }
+  homeReturnTarget = provider === "openai" ? "home-openai" : "home-local";
+  const returning = homeSelection === provider && chatReady && !chatResetRequired && current?.provider === provider;
+  homeSelection = provider;
+  $("aisha-home").hidden = true; $("municipal-mode").hidden = true; $("chat-mode").hidden = false;
+  $("additional-navigation").hidden = false;
+  document.querySelector(".skip").href = "#chat-message";
+  if (returning) { updateChatControls(); $("chat-message").focus(); return; }
+  homeOpening = true; updateChatControls();
+  try {
+    await loadChat();
+  } finally {
+    homeOpening = false; updateChatControls();
+    if (!$("aisha-home").hidden) {
+      if (introStep === 5 && homeFocusPending && document.activeElement === homeFocusPending) $(homeReturnTarget).focus();
+      homeFocusPending = null;
+    } else if (!$("chat-mode").hidden) {
+      if (chatChoice()) $("chat-message").focus(); else $("chat-refresh").focus();
+    }
+  }
+}
+$("home-local").addEventListener("click", () => enterAishaChat("ollama"));
+$("home-openai").addEventListener("click", () => enterAishaChat("openai"));
+$("chat-switch-model").addEventListener("click", () => enterAishaChat(homeSelection === "openai" ? "ollama" : "openai"));
+for (let step = 1; step < 5; step++) $("intro-next-" + step).addEventListener("click", () => showIntroStep(step + 1));
+$("intro-back").addEventListener("click", () => showIntroStep(Math.max(1, introStep - 1)));
+$("intro-restart").addEventListener("click", () => showIntroStep(1));
+$("intro-skip").addEventListener("click", () => showIntroStep(5));
+$("chat-home").addEventListener("click", () => showAishaHome());
+$("municipal-home").addEventListener("click", () => showAishaHome());
+$("brand-home").addEventListener("click", (event) => { event.preventDefault(); showAishaHome(); });
 $("mode-chat").addEventListener("click", () => selectAishaMode(true));
 $("mode-municipal").addEventListener("click", () => selectAishaMode(false));
 $("chat-refresh").addEventListener("click", loadChat);
 $("chat-reset").addEventListener("click", resetChat);
-$("chat-provider").addEventListener("change", async () => { const choice=chatChoice(); if (!choice) return; chatSelectionKey=choice.provider+"|"+choice.model; if (chatRevision || chatBusy || chatLastRequest) await resetChat(); updateChatControls(); });
+$("chat-provider").addEventListener("change", async () => { const choice=chatChoice(); if (!choice) return; chatSelectionKey=choice.provider+"|"+choice.model; if (homeSelection) return loadChat(); if (chatRevision || chatBusy || chatLastRequest) await resetChat(); updateChatControls(); });
 $("chat-web-search").addEventListener("change", async () => { if (chatRevision || chatBusy || chatLastRequest) await resetChat(); updateChatControls(); });
 $("chat-message").addEventListener("input", updateChatControls);
 $("chat-message").addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey && !event.isComposing) { event.preventDefault(); $("chat-form").requestSubmit(); } });
 $("chat-form").addEventListener("submit", (event) => { event.preventDefault(); sendChat(); });
 $("chat-retry").addEventListener("click", () => sendChat(true));
-document.addEventListener("DOMContentLoaded", () => selectAishaMode(true), { once: true });
+document.addEventListener("DOMContentLoaded", () => showAishaHome(false), { once: true });
