@@ -533,7 +533,7 @@ class ProviderSelectionTests(unittest.TestCase):
         from hamar_agent.ollama_provider import OllamaClient, OllamaConfig
         output = self.smoke_output()
         def transport(url, headers, body, timeout, limit):
-            prompt = json.loads(body)["messages"][0]["content"]
+            prompt = json.loads(body)["messages"][-1]["content"]
             paragraph = json.loads(prompt.split("SOURCE_PARAGRAPHS=", 1)[1].splitlines()[0])[0]
             return json.dumps({"message": {"content": json.dumps({"claims": [{"id": "c1",
                 "text": paragraph["text"], "paragraph_id": paragraph["id"], "evidence_quote": paragraph["text"]}]})}}).encode()

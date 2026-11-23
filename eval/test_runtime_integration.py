@@ -28,7 +28,7 @@ def envelope(claims):
 
 
 def echo_transport(url,headers,body,timeout,limit):
-    prompt=json.loads(body)["messages"][0]["content"]
+    prompt=json.loads(body)["messages"][-1]["content"]
     if "SOURCE_PARAGRAPHS=" in prompt:
         paragraphs=json.loads(prompt.split("SOURCE_PARAGRAPHS=",1)[1].splitlines()[0])
         id,text=paragraphs[0]["id"],paragraphs[0]["text"]

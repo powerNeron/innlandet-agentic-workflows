@@ -223,7 +223,7 @@ def experiment(case,architecture,provider,repeat):
         return json.dumps({'claims':claims},ensure_ascii=False)
     if provider=='ollama_mock':
         def post(url,headers,body,timeout,limit):
-            try:text=model(json.loads(body)['messages'][0]['content'])
+            try:text=model(json.loads(body)['messages'][-1]['content'])
             except TimeoutError:raise OllamaError('Synthetic timeout',code='provider_timeout') from None
             return json.dumps({'message':{'content':text}}).encode()
         client=OllamaClient(OllamaConfig(model='synthetic-local-fixture'),transport=post)

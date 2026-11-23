@@ -206,7 +206,7 @@ def _experiment(provider, policy_name, case):
     if provider == 'ollama':
         def transport(url, headers, body, timeout, limit):
             data = json.loads(body)
-            system, prompt = data['messages'][0]['content'].split('\n\n', 1)
+            system, prompt = data['messages'][0]['content'], data['messages'][-1]['content']
             text = scripted(system, prompt, data['options']['num_predict'])
             return json.dumps({'message': {'content': text}}).encode()
         client = OllamaClient(OllamaConfig(), transport=reviewed_transport(transport))

@@ -257,7 +257,7 @@ class RegionalResearchTests(unittest.TestCase):
                 if provider=='ollama':
                     def transport(url,headers,body,timeout,limit):
                         payload=json.loads(body)
-                        return json.dumps({'message':{'content':json.dumps(choose(payload['messages'][0]['content']))}}).encode()
+                        return json.dumps({'message':{'content':json.dumps(choose(payload['messages'][-1]['content']))}}).encode()
                     client=OllamaClient(OllamaConfig(),transport=transport)
                 else:
                     sdk=SimpleNamespace(responses=SimpleNamespace(create=lambda **kwargs:SimpleNamespace(
@@ -820,7 +820,7 @@ class CompletePolicyRuntimeTests(unittest.TestCase):
                 return {'claims':[dict(id='c1',text=paragraph['text'],paragraph_id=paragraph['id'],evidence_quote=paragraph['text'])]}
             if provider=='ollama':
                 def transport(url,headers,body,timeout,limit):
-                    prompt=json.loads(body)['messages'][0]['content']
+                    prompt=json.loads(body)['messages'][-1]['content']
                     return json.dumps({'message':{'content':json.dumps(choose(prompt))}}).encode()
                 client=OllamaClient(OllamaConfig(),transport=transport)
             else:

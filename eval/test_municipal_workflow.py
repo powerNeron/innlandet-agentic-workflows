@@ -260,7 +260,7 @@ class MunicipalTests(unittest.TestCase):
     def test_real_portal_citations_and_json_download(self):
         # Echo the actual context paragraph ID using actual Ollama parser.
         def echo(url,headers,body,timeout,limit):
-            prompt=json.loads(body)['messages'][0]['content'];paras=json.loads(prompt.split('SOURCE_PARAGRAPHS=',1)[1].splitlines()[0]);p=paras[0]
+            prompt=json.loads(body)['messages'][-1]['content'];paras=json.loads(prompt.split('SOURCE_PARAGRAPHS=',1)[1].splitlines()[0]);p=paras[0]
             return envelope([record(text=p['text'],quote=p['text'],paragraph=p['id'])])
         s=service(echo);app=WebApplication(s)
         headers={'Host':'127.0.0.1:8000','Origin':'http://127.0.0.1:8000','Content-Type':'application/json','X-Hamar-Token':app.token}

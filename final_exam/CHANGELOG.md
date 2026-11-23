@@ -448,3 +448,13 @@
 - `eval/evaluate_verification.py` now reports detected/missed expected synthetic findings, recall, a clean negative control, and additional findings that have not been adjudicated. It does not label those additional findings as false positives. Existing final-exam campaign functions remain intact.
 - Regression coverage added in `eval/test_chat_quality_review.py` and `eval/test_evaluate_verification.py`. Full offline command `python -B -m unittest discover -s eval -p 'test_*.py' -q`: 578 tests passed. `git diff --check` passed. No Ollama inference or human scoring session was run; no model-quality results were fabricated.
 - Workflow instruction: future completed change batches in this collaboration will receive a dated changelog entry and a descriptive local commit before being reported as saved. Remote pushes remain unauthorized unless the user explicitly requests one.
+
+
+## 2026-11-23 - Ollama source prompt boundary repair (uncommitted)
+
+- Baseline revision: b6344ca97eb13cdb65c8f27e40709e6200c065f7 on exam/final.
+- Sanitized prompt summary: separate trusted system policy from user source data; JSON-encode source title and paragraphs; preserve the selected two-class stress campaign and adapt its Ollama test transports.
+- A synthetic source-injection regression deliberately returns an unsupported claim with a genuine quote and verifies that number/content findings remain visible.
+- Validation: 13 focused Ollama tests and 8 selected integration tests passed; git diff --check passed. The broader eval run is blocked in this checkout because hamar_agent/question_router.py is absent and tests requiring unique output paths cannot write to protected output/; no full-suite pass is claimed.
+- Code/test patch SHA-256 (excluding this log): 0e67bfed541ad0742743aed91544237f6a7639a4909f708ac808fc00eade23fd.
+- Independent read-only Verifier review accepted with no findings at baseline b6344ca97eb13cdb65c8f27e40709e6200c065f7 for code/test patch SHA-256 0e67bfed541ad0742743aed91544237f6a7639a4909f708ac808fc00eade23fd. The code/test patch has not changed since review; changes remain uncommitted and no live source/provider was used.

@@ -256,7 +256,7 @@ class LiveResearchTests(unittest.TestCase):
                 return {'claims':[dict(id='c1',text=item['text'],paragraph_id=item['id'],evidence_quote=item['text'])]}
             if provider=='ollama':
                 def transport(url,headers,body,timeout,limit):
-                    answer=choose(json.loads(body)['messages'][0]['content'])
+                    answer=choose(json.loads(body)['messages'][-1]['content'])
                     return json.dumps({'message':{'content':json.dumps(answer)}}).encode()
                 client=OllamaClient(OllamaConfig(),transport=transport)
             else:

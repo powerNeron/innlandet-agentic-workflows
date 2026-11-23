@@ -191,7 +191,7 @@ class RequestBoundSourceTests(unittest.TestCase):
         self.calls=[]
         def transport(url,headers,body,timeout,limit):
             payload=json.loads(body);self.calls.append(payload)
-            prompt=payload['messages'][0]['content']
+            prompt=payload['messages'][-1]['content']
             p=json.loads(prompt.split('SOURCE_PARAGRAPHS=',1)[1].splitlines()[0])[0]
             return json.dumps({'message':{'content':json.dumps({'claims':[{'id':'c1','text':p['text'],
                 'paragraph_id':p['id'],'evidence_quote':p['text']}]})}}).encode()

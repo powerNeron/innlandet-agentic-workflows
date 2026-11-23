@@ -464,7 +464,7 @@ class SourceRenewalTests(unittest.TestCase):
     def dated_service(self):
         def transport(url, headers, body, timeout, limit):
             payload = json.loads(body)
-            prompt = payload["messages"][0]["content"]
+            prompt = payload["messages"][-1]["content"]
             paragraphs = json.loads(prompt.split("SOURCE_PARAGRAPHS=", 1)[1].splitlines()[0])
             p = paragraphs[0]
             claim = {"id": "c1", "text": p["text"], "paragraph_id": p["id"], "evidence_quote": p["text"]}
