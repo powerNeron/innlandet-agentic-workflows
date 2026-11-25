@@ -191,10 +191,29 @@ class MunicipalityRegistry:
             values.append(Municipality(**row))
         return cls(values)
 
+    def _place_names(self,entry):
+        localities={
+            ('hamar','3403'):(
+                'Ridabu','Ingeberg','Slemsrud'
+            ),
+            ('elverum','3420'):(
+                'Hernes','Heradsbygd','S\u00f8rskogbygda'
+            ),
+            ('gjovik','3407'):(
+                'Biri','Hunndalen','Snertingdal'
+            )
+        }
+        return (
+            entry.name,*entry.aliases,
+            *localities.get(
+                (entry.id,str(entry.municipality_number)),()
+            )
+        )
+
     def resolve(self,question,context=None):
         text=_place_text(question);matches=[]
         for entry in self.entries.values():
-            for alias in (entry.name,*entry.aliases):
+            for alias in self._place_names(entry):
                 for found in re.finditer(r'(?<!\w)'+re.escape(_place_text(alias))+r'(?!\w)',text):
                     matches.append((found.start(),found.end(),entry.id))
         # A full compound place wins over an alias nested in that same span.
@@ -205,19 +224,27 @@ class MunicipalityRegistry:
         # This narrow signal is intentionally not a complete place classifier.
         location=re.search(r'\bi\s+([\w-]+)(?:\s+kommune)?\s*[?!.]*\s*$',text)
         if location and (ids or context is not None):
-            known={_place_text(a) for m in self.entries.values() for a in (m.name,*m.aliases)}
+            known={_place_text(a) for m in self.entries.values() for a in self._place_names(m)}
             if location[1] not in known|{'innlandet','dag','år','morgen','kommunen','byen'}:
                 raise ResearchError('research_municipality_unknown')
+        clauses=re.split(r'(?<=[?!.;])\s+',question)
+        places=tuple(
+            place for clause in clauses
+            if (place:=explicit_place(clause)) is not None
+        )
         if ids:
             entry=self.entries[ids.pop()]
-            place=explicit_place(question)
-            if place is not None and _place_text(place) not in {_place_text(a) for a in (entry.name,*entry.aliases,'Innlandet')}:
+            allowed_places={
+                _place_text(a)
+                for a in (*self._place_names(entry),'Innlandet')
+            }
+            if any(_place_text(p) not in allowed_places for p in places):
                 raise ResearchError('research_municipality_unknown')
             if not entry.current():raise ResearchError('research_registry_expired')
             if entry.requires_region and not re.search(r'\binnlandet\b',text):
                 raise ResearchError('research_municipality_ambiguous')
             return entry
-        if explicit_place(question):raise ResearchError('research_municipality_unknown')
+        if places:raise ResearchError('research_municipality_unknown')
         if context is not None:
             entry=self.entries.get(context)
             if entry is None or not entry.current():raise ResearchError('research_registry_expired')
@@ -229,7 +256,7 @@ class MunicipalityRegistry:
 
     def strip_names(self,question):
         question=''.join(c for c in unicodedata.normalize('NFKC',question) if unicodedata.category(c)!='Cf')
-        aliases=sorted({alias for m in self.entries.values() for alias in (m.name,*m.aliases)},key=len,reverse=True)
+        aliases=sorted({alias for m in self.entries.values() for alias in self._place_names(m)},key=len,reverse=True)
         for alias in aliases:question=re.sub(r'(?<!\w)'+re.escape(alias)+r'(?!\w)',' ',question,flags=re.I)
         return ' '.join(question.split())
 
@@ -466,6 +493,7 @@ class ResearchApproval:
     input_review_evidence_sha256: str | None = None
     content_tag: str = 'main'
     navigation_links: tuple = ()
+    national_guidance_reviewed: bool = False
 
     def __post_init__(self):
         _validate_url(self.url)
@@ -486,11 +514,15 @@ class ResearchApproval:
                     ('text/plain','full_document'),('text/html','reviewed_html_service_excerpts'))
                 or self.reuse_reviewed is not True or self.non_personal_input_reviewed is not True
                 or type(self.external_processing_reviewed) is not bool
+                or type(self.national_guidance_reviewed) is not bool
                 or type(self.authority_tier) is not int or self.authority_tier not in (1,2,3)
                 or self.municipality_id is not None and not re.fullmatch('[a-z][a-z0-9-]{1,59}',self.municipality_id)
                 or self.authority_tier==1 and self.municipality_id is None
                 or date.fromisoformat(self.reviewed_on)>date.fromisoformat(self.expires_on)):
             raise ValueError('Invalid or incomplete research approval')
+        if self.national_guidance_reviewed and (self.authority_tier!=2 or self.municipality_id is not None
+                or any(p.fact_scope and p.fact_scope[3] not in ('national','nasjonal','norge','norway') for p in self.excerpts)):
+            raise ValueError('General national guidance cannot attest municipality-specific conditions')
         if self.content_type=='text/html':
             if (self.authority_tier!=1 or self.content_tag not in ('main','article')
                     or not isinstance(self.input_sha256,str) or not re.fullmatch('[0-9a-f]{64}',self.input_sha256)
@@ -499,7 +531,7 @@ class ResearchApproval:
                 raise ValueError('Exact official HTML input, paragraph and input-review evidence required')
         elif self.input_sha256 is not None or self.input_review_evidence_sha256 is not None or self.content_tag!='main':
             raise ValueError('HTML input metadata cannot authorize a plain-text source')
-        if self.content_type=='text/html' or self.authority_tier==1:
+        if self.content_type=='text/html' or self.authority_tier==1 or self.national_guidance_reviewed:
             for excerpt in self.excerpts:
                 money=re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\b(?:kr\.?|NOK)\s*\d|\bgratis\b',excerpt.text,re.I)
                 if money and not excerpt.fact_scope:
@@ -554,7 +586,8 @@ class ResearchAnswer(dict):
 
 
 class ResearchBinding:
-    def __init__(self,service,owner,revision,approvals,request_id,observations,authorized,municipality=None,municipal=False,*,question=None):
+    def __init__(self,service,owner,revision,approvals,request_id,observations,authorized,municipality=None,municipal=False,*,question=None,
+                 evidence_scope='answer',requested_municipality=None):
         self.service,self.owner,self.revision=service,owner,revision
         self.approvals,self.request_id=approvals,request_id
         self.question=question
@@ -562,12 +595,19 @@ class ResearchBinding:
         self.observations=tuple(observations)
         self.authorized=authorized
         self.municipality,self.municipal=municipality,municipal
+        self.evidence_scope=evidence_scope
+        self.requested_municipality=requested_municipality
+        self.scope_fingerprint=self._scope_hash()
         self.registry=service.municipalities
         self.registry_fingerprint=self.registry.fingerprint() if self.registry else None
         self.active_municipalities=service.active_municipalities
         self.index=None;self.index_fingerprint=None;self.receipts_fingerprint=None
 
     def assert_publishable(self):
+        if self.scope_fingerprint!=self._scope_hash():raise ResearchError('research_source_invalid')
+        if self.evidence_scope=='national_guidance' and (self.municipal or self.municipality is not None
+                or any(a.authority_tier!=2 or a.municipality_id is not None or not a.national_guidance_reviewed for a in self.approvals)):
+            raise ResearchError('research_source_invalid')
         if ((self.question is not None and type(self.question) is not str)
                 or hashlib.sha256((self.question or '').encode()).hexdigest()!=self.question_sha256):
             raise ResearchError('research_source_invalid')
@@ -581,7 +621,11 @@ class ResearchBinding:
                     or any(not a.current() or self.service.approvals.get(a.source_id)!=a for a in self.approvals)):
                 raise ResearchError('research_permission_revoked')
             self.service.require_active(self.municipality)
-            if self.municipal and self.question:
+            if self.question:
+                from .discovery import monetary_subject_matches
+                if any(not monetary_subject_matches(self.question,a,self.municipality) for a in self.approvals):
+                    raise ResearchError('research_source_invalid')
+            if (self.municipal or self.evidence_scope=='national_guidance') and self.question:
                 for approval in self.approvals:
                     for excerpt in approval.excerpts:
                         if not re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\b(?:kr\.?|NOK)\s*\d|\bgratis\b',excerpt.text,re.I):continue
@@ -604,6 +648,10 @@ class ResearchBinding:
             if self.index_fingerprint is not None and self.index_fingerprint!=self._index_hash():
                 raise ResearchError('research_source_invalid')
             self.owner.admit_tool('research_source_binding')
+
+    def _scope_hash(self):
+        return hashlib.sha256(json.dumps([self.evidence_scope,self.requested_municipality,
+            self.municipal,self.municipality.id if self.municipality else None],sort_keys=True).encode()).hexdigest()
 
     def _receipts_hash(self):
         return hashlib.sha256(json.dumps(self.observations,sort_keys=True).encode()).hexdigest()
@@ -638,7 +686,8 @@ class ResearchBinding:
         return dict(policy='request_bound',request_id=self.request_id,sources=len(self.observations),
             received_bytes=sum(o['bytes'] for o in self.observations),corpus_sha256=self.index_fingerprint or self.receipts_fingerprint,
             observation_method='configured_approved_observer; physical transport not inferred',
-            municipality_id=self.municipality.id if self.municipality else None)
+            municipality_id=self.municipality.id if self.municipality else None,
+            evidence_scope=self.evidence_scope,requested_municipality=self.requested_municipality)
 
     @contextmanager
     def publication_guard(self):
@@ -700,12 +749,14 @@ class ResearchService:
         with self.lock:
             self.revoked=True;self.revision+=1
 
-    def plan(self,question,context=None,require_municipal=False):
+    def plan(self,question,context=None,require_municipal=False,*,evidence_scope='answer'):
+        if evidence_scope not in ('answer','national_guidance'):raise ResearchError('research_source_invalid')
         from .question_router import canonical_question
         terms=set(re.findall(r'\w+',_place_text(question)+' '+_place_text(canonical_question(question))
             +' '+(municipal_need(question) or '')))
         from .question_router import QuestionRouter
         municipal=require_municipal or QuestionRouter(municipalities=self.municipalities).route(question).municipal
+        if evidence_scope=='national_guidance':municipal=False
         entry=None
         if self.municipalities:
             try:entry=self.municipalities.resolve(question,context)
@@ -715,10 +766,18 @@ class ResearchService:
         self.require_active(entry)
         eligible=[a for a in self.approvals.values()
             if (municipal or a.authority_tier!=1)
-            and (a.municipality_id is None or entry is not None and a.municipality_id==entry.id)]
+            and (a.municipality_id is None or entry is not None and a.municipality_id==entry.id)
+            and (evidence_scope!='national_guidance' or a.authority_tier==2 and a.municipality_id is None
+                and a.national_guidance_reviewed)]
         matches=[a for a in eligible if terms.intersection(
             token for word in a.keywords for token in re.findall(r'\w+',_place_text(canonical_question(word))))
             ]
+        # Rank WITHIN authority tiers, including when a weaker source matched
+        # a keyword. Text overlap must never hide a relevant official source.
+        from .discovery import catalog_matches
+        for tier in (1,2,3):
+            if not any(a.authority_tier==tier for a in matches):
+                matches.extend(catalog_matches(question,[a for a in eligible if a.authority_tier==tier],entry))
         if self.discoverer is not None:
             # A semantic/index search adapter can nominate approved identities,
             # never arbitrary URLs or new trust. Existing authority gates follow.
@@ -733,15 +792,30 @@ class ResearchService:
             # Semantic suggestions may broaden discovery, not hide an already
             # matched official/public source to select a weaker authority.
             matches=list({a.source_id:a for a in (*matches,*(allowed[key] for key in identifiers))}.values())
+        from .discovery import monetary_subject_matches
+        matches=[a for a in matches if monetary_subject_matches(question,a,entry)]
         primary=[a for a in matches if a.authority_tier==1]
         if municipal and not primary:raise ResearchError('research_no_official_sources')
         compare=bool(re.search(r'\b(?:sammenlign\w*|forskjell\w*|motstrid\w*|begge|compare)\b',question,re.I))
         if primary and not compare:matches=primary
         elif matches and not compare:
             tier=min(a.authority_tier for a in matches);matches=[a for a in matches if a.authority_tier==tier]
+        # Relevance can nominate a fact, never conceal a conflicting edition
+        # of that same reviewed entity/attribute/period/geography/unit. Close
+        # the selected corpus over exact scopes within its authority tiers.
+        # Whole multi-paragraph sources can introduce another matching scope;
+        # the finite catalog closure still obeys the four-source refusal limit.
+        chosen={a.source_id:a for a in matches}
+        while True:
+            scopes={(a.authority_tier,p.fact_scope) for a in chosen.values() for p in a.excerpts if p.fact_scope}
+            extra=[a for a in eligible if a.source_id not in chosen
+                and any(p.fact_scope and (a.authority_tier,p.fact_scope) in scopes for p in a.excerpts)]
+            if not extra:break
+            chosen.update((a.source_id,a) for a in extra)
+        matches=list(chosen.values())
         selected=tuple(sorted(matches,key=lambda a:(a.authority_tier,a.source_id)))
         if len(selected)>4:raise ResearchError('research_source_limit')
-        return selected,entry,municipal
+        return selected,None if evidence_scope=='national_guidance' else entry,municipal
 
     def can_answer_municipal(self,question):
         if not self.configured() or self.municipalities is None:return False
@@ -791,14 +865,14 @@ class ResearchService:
         question=' '.join(dict.fromkeys(word for a in selected for word in a.keywords))+' i '+entry.name
         return self.retrieve_for_query(question,provider=provider)
 
-    def prepare(self,question,*,provider,authorized,municipality_context=None,require_municipal=False):
+    def prepare(self,question,*,provider,authorized,municipality_context=None,require_municipal=False,evidence_scope='answer'):
         from .chat import validate_message
         validate_message(question)
         owner=current_run()
         if owner is None or not authorized() or not self.configured():
             raise ResearchError('research_unavailable')
         with self.lock:
-            selected,municipality,municipal=self.plan(question,municipality_context,require_municipal)
+            selected,municipality,municipal=self.plan(question,municipality_context,require_municipal,evidence_scope=evidence_scope)
             revision=self.revision
         if not selected:
             raise ResearchError('research_no_sources')
@@ -807,9 +881,22 @@ class ResearchService:
         if provider=='openai' and any(not a.external_processing_reviewed
                 or self.external_authorized is not None and not self.external_authorized(a) for a in selected):
             raise ResearchError('research_external_not_approved')
+        external_policy=self.external_authorized
+        def still_authorized():
+            # Recheck before/after every fetch, SDK dispatch and publication.
+            # Initial consent is not a capability to keep transmitting after
+            # the owner revokes the selected source's external processing.
+            return (authorized() and (provider!='openai' or self.external_authorized is external_policy
+                and all(a.external_processing_reviewed and (external_policy is None or external_policy(a)) for a in selected)))
         request_id=uuid.uuid4().hex
         started=datetime.now(timezone.utc)
-        binding=ResearchBinding(self,owner,revision,selected,request_id,(),authorized,municipality,municipal,question=question)
+        requested=None
+        if evidence_scope=='national_guidance' and self.municipalities is not None:
+            entry=self.municipalities.resolve(question,municipality_context)
+            self.require_active(entry)
+            requested=entry.id if entry else None
+        binding=ResearchBinding(self,owner,revision,selected,request_id,(),still_authorized,municipality,municipal,question=question,
+            evidence_scope=evidence_scope,requested_municipality=requested)
         observations=[];total=0
         for approval in selected:
             binding.assert_publishable()
@@ -895,6 +982,15 @@ class ResearchService:
         binding.receipts_fingerprint=binding._receipts_hash()
         return binding
 
+    def prepare_guidance(self,question,*,provider,authorized):
+        """Fresh public-authority guidance; never municipal confirmation.
+
+        This is an explicit separate scope, not a retry with municipal guards
+        removed from the original binding. Existing approvals/transfer gates
+        still apply. No cached data, snippets or model knowledge can substitute.
+        """
+        return self.prepare(question,provider=provider,authorized=authorized,evidence_scope='national_guidance')
+
     def prompt(self,question,binding,history=()):
         binding.assert_publishable()
         evidence=[dict(source_id=a.source_id,paragraph_id=p.id,text=p.text,authority_tier=a.authority_tier)
@@ -937,13 +1033,20 @@ class ResearchService:
             if checked.has_findings:raise ValueError
         except (ValueError,TypeError,KeyError,StopIteration):
             raise ResearchError('research_claim_unsupported') from None
-        return ResearchAnswer(dict(text=value['quote'],citations=[dict(url=source.url,title=source.title)],
+        result=ResearchAnswer(dict(text=value['quote'],citations=[dict(url=source.url,title=source.title)],
             web_search_used=True,web_search_calls=0,source_observation_count=len(binding.observations),
             research_verified=True,verification_scope='Exact approved excerpt and request binding; not factual truth',
+            answer_complete=False,
             authority='official_municipal' if binding.municipal else 'public_supplement' if source.authority_tier==2 else 'general_source',
             municipality_id=binding.municipality.id if binding.municipality else None,
             source_receipts=list(binding.observations),response_origin='model',
             service_links=self.navigation_for(binding.question) if binding.municipal else []),binding)
+        if binding.evidence_scope=='national_guidance':
+            notice='Dette er generell veiledning fra en offentlig myndighet. Kommunens egne tilbud og vilkår er ikke bekreftet.'
+            result.update(text=notice+'\n\n'+result['text'],evidence_scope='national_guidance',
+                requested_municipality=binding.requested_municipality,local_conditions_confirmed=False,
+                municipality_id=None,source_cautions=[notice])
+        return result
 
 
 INNLANDET_REFERENCES = (

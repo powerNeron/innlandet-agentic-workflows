@@ -1,0 +1,126 @@
+{
+  "role": "Independent Verifier",
+  "status": "FAIL; stage4 independently tested; no production or academic approval",
+  "scope": "Hamar, Elverum and Gjovik active; retain 46 identities for future expansion",
+  "base_commit": "a633b343437c60e7a7dd3d593fb84f37c0e2164a",
+  "evidence_root": "output/verifier-exam-scope-20261120-0c3656c5",
+  "snapshot": "stage4/snapshot-manifest.json; immutable copy of an uncommitted candidate; later concurrent changes require re-review",
+  "verifier_owned_files": [
+    "eval/test_exam_scope_verifier.py",
+    "docs/verifier-exam-scope-20261120.json"
+  ],
+  "production_changes_by_verifier": [],
+  "sanitized_prompt_summary": "Independently verify the final three-municipality exam scope, broader service retrieval, inclusive two-choice UI, prior NO/EN safety controls and exam readiness. Own only new tests/report/evidence; leave production repairs and shared files to Implementer. Preserve all prior work. No deletion, installation, paid calls, commit or push.",
+  "test_results": {
+    "python": "Python 3.12.10; full network-blocked harness; 701 test methods; 10 failed subcases in two new contract methods; zero errors; exit 1",
+    "targeted": "12 new Verifier methods; 10 failed subcases in two methods; zero errors; exit 1",
+    "ui": "30/30 Node VM/DOM groups pass; exit 0; controlled DOM is not native browser rendering",
+    "research_campaign": "20 general and 34 regional scripted contracts pass, including 44 regional requests; compatibility/development fixtures do not establish actual three-municipality site coverage",
+    "retained_temporal_failure": "8/8 exact recent-weekday/spelled-date provider/configuration cases publish the injected unsupported 8765 with one model dispatch and zero source calls; no genuine-model hallucination claim",
+    "approved_unknown_category_control": "6/6 positive routes pass: an individually approved fictional startlaan full-text source reaches chat, search and answer for both adapters with exact source binding; demonstrates an extensible reviewed catalog",
+    "static_ui": "Native buttons and guide structure, active/future copy, elderly inclusion, privacy/cost disclosure and accessible log names pass static inspection. Declared black/#f8cfe0 contrast 14.993:1, declared entry height 88px; no computed-layout or screen-reader claim",
+    "native_browser": "Authorized isolated synthetic Chrome attempt failed before DevTools; no screenshot or native keyboard/layout result",
+    "integrity": "All stage4 copied source hashes remained unchanged during tests; working-tree production/test changes after stage4 are not approved",
+    "own_tests": "The Verifier authored the new regression file. These results do not constitute independent approval of its own test code; Implementer/human review remains required."
+  },
+  "areas": [
+    {"area": "Three active municipalities before DNS/HTTP and in municipal APIs", "status": "PASS", "scope": "All 43 inactive identities; two simulated adapters; active three positives and follow-up rejection; request payload cannot expand scope"},
+    {"area": "Inactive-municipality messaging with acquisition disabled", "status": "FAIL", "finding": "SCOPE-02"},
+    {"area": "46-record and historical preservation", "status": "PASS", "scope": "Original identity records and membership evidence unchanged; only active_municipalities added. Main remains 7a953ffcee2c146f4ad03c7ceaf0b1038d7281da; no working changes to COM2/resultat/fixtures/AGENTS/SPEC"},
+    {"area": "Topic-independent exact-approved service catalog", "status": "PASS", "scope": "Unknown service positive control across chat/search/answer and both simulated providers; not actual web coverage"},
+    {"area": "Shipped broad service acquisition readiness", "status": "FAIL", "finding": "SCOPE-01"},
+    {"area": "UI structure and simulated behavior", "status": "PASS", "scope": "30 groups; two pink choices, exact mini model, no fallback, explicit Send, history/back/reset races and source/cost notices"},
+    {"area": "Native responsive rendering, keyboard, screen-reader and elderly usability", "status": "NOT VERIFIED", "scope": "Browser failed before DevTools; no user study or real assistive-technology evidence"},
+    {"area": "V-01c and V-01b/V-02b/V-02c/V-03b", "status": "PASS", "scope": "Only reproduced NO/EN cases and existing synthetic regressions, not universal semantic/privacy resistance"},
+    {"area": "SSRF/DNS/TLS seams, robots, injection, consent, revocation, budgets and abandonment", "status": "PASS", "scope": "Existing controlled regressions included in the independently executed full suite; real-wire/OS isolation not inferred"},
+    {"area": "All known source-duty safety findings closed", "status": "FAIL", "finding": "V-T02"},
+    {"area": "Full Python regression", "status": "FAIL", "scope": "701 methods; 10 failed subcases; zero errors"},
+    {"area": "Fresh permitted real-source acquisition and genuine model quality", "status": "NOT VERIFIED", "scope": "No actual municipal retrieval or inference in this review; registry metadata is not URL/paragraph permission or successful site-format evidence"},
+    {"area": "Consistent final exam problem/method/evaluation documentation", "status": "FAIL", "finding": "SCOPE-DOC01"},
+    {"area": "Complete academic submission and A-level readiness", "status": "NOT VERIFIED", "scope": "Official PDF sections 3-5 checked; final paper and human-owned evidence not supplied/verified here"}
+  ],
+  "tested_passes": [
+    "Both policy loaders preserve 46 identities and enforce the three active identities",
+    "All 43 inactive identities reject before DNS/HTTP on both mocked adapters",
+    "All 43 inactive chat requests reject explicitly on both mocked adapters",
+    "Each active place publishes its own synthetic SFO source on both mocked adapters",
+    "Inactive municipality follow-up does not fetch, generate or mutate history",
+    "Scope mutation invalidates an already prepared answer",
+    "V-01c English fee cases require source-bound publication or zero-model guidance"
+  ],
+  "findings": [
+    {
+      "id": "SCOPE-01",
+      "severity": "HIGH delivery/readiness gap; safe refusal is not a privacy defect",
+      "status": "FAIL in stage4 readiness contract; generic approved-catalog positive control PASS",
+      "files": ["docs/innlandet-research.json", "hamar_agent/live_research.py:96", "hamar_agent/research.py"],
+      "reproduction": "Enabled synthetic live service: Hva koster trygghetsalarm i Gjovik?; Hvilke svommehaller finnes i Elverum?; Hva er soknadsfristen for startlan i Gjovik?; Hvor finner jeg kommunens servicetorg i Hamar? Exact Norwegian inputs in the test file and targeted.log.",
+      "observed": "Eight provider/question subcases make zero source transport attempts. The dynamic HTML adapter recognizes a limited service vocabulary and the shipped generic catalog is empty. A separate exact-approved fictional startlaan control passes all six provider/API combinations, so a blanket claim that the architecture supports only hardcoded categories would be incorrect. The open gap is permitted broad input/discovery availability for the shipped exam policy.",
+      "acceptance": "Use the existing topic-independent reviewed catalog/discovery path with separately approved exact non-personal inputs for the requested service families, or a reviewed general discovery adapter. Test the three active municipalities and fresh receipt binding. Unknown raw HTML, URLs and personal contacts must remain unauthorized; do not weaken privacy or add one category per counterexample."
+    },
+    {
+      "id": "SCOPE-02",
+      "severity": "MEDIUM",
+      "status": "FAIL in stage4",
+      "files": ["hamar_agent/chat.py", "hamar_agent/question_router.py"],
+      "reproduction": "ChatBackend.research_service=None; Hva koster SFO i Lillehammer?; both mocked adapters",
+      "observed": "HTTP 200 application guidance directs the user to Kommunal informasjon without stating that Lillehammer is outside the three active municipalities. No model or source call occurs.",
+      "acceptance": "The server identifies an inactive municipality even with acquisition disabled, and clearly states the active scope before source or model dispatch. Preserve general non-municipal knowledge questions."
+    },
+    {
+      "id": "V-T02",
+      "severity": "HIGH",
+      "status": "OPEN; independently reproduced in stage4",
+      "files": ["hamar_agent/question_router.py:75", "hamar_agent/question_router.py:235", "hamar_agent/chat.py:438"],
+      "reproduction": "Hva ble resultatet i kampen på mandag?; Give me a recap of the news from 19 November 2026.; both adapters with acquisition absent/enabled",
+      "observed": "8/8 cases dispatch one scripted model call, no source call and publish the unsupported injected answer 8765. Exact source hashes, requests, payloads and statuses are in temporal-probe-v2.json. The ISO-date variant in v1 instead stops at input validation and is not counted as a semantic-gate repair.",
+      "acceptance": "Preserve exact red cases; enforce the underlying current/recent-fact source requirement before answer dispatch without blocking stable explanations. Re-run exact cases, full regression and independent frozen-snapshot review."
+    },
+    {
+      "id": "SCOPE-DOC01",
+      "severity": "MEDIUM",
+      "status": "FAIL for consistency of the reviewed documentation set",
+      "files": ["SPEC.md:5", "final_exam/requirements.csv", "final_exam/report_outline.csv", "README.md", "final_exam/CHANGELOG.md"],
+      "observed": "SPEC still frames the goal as Hamar only; the final matrix/outline do not establish the new three-municipality scope or elderly inclusion as current acceptance criteria. Historical full-Innlandet aspirations must not be mistaken for active exam coverage. The new landing copy itself correctly states all three and the future vision.",
+      "acceptance": "Append a current exam scope/decision with problem, goals, success/refusal criteria, method and evaluation for Hamar/Elverum/Gjovik and digital inclusion. Preserve historical text and the future 46 vision. Add owner-scope criteria separately from official PDF requirements/weights; do not invent an official all-46 production obligation."
+    }
+  ],
+  "test_method_corrections": [
+    "The first Verifier cohort compared the public error message with an error code; corrected to error_code. Those 88 assertion failures were test mistakes, not production defects.",
+    "The stage2 municipal API probe omitted the required empty GET body; corrected before the next run. Its two errors are not production findings.",
+    "The stage3 API fixture omitted client.config.model; corrected before stage4. Its two errors are not production defects.",
+    "Stage3 old heading expectations, inherited general-policy test data and Node fixture globals were fixed by Implementer; stage4 has zero errors and 30 passing UI groups. Earlier failures are preserved and do not reject those later fixes.",
+    "The static UI v1 probe's Gjovik literal was altered by PowerShell stdin encoding; v2 uses a Unicode escape. All nine static checks pass; there was no missing-place UI defect.",
+    "The first generic-catalog API-answer fixture returned an unconfigured Mock; v2 supplies a valid exact-claim response and all six routes pass. The old 422 results are not product defects.",
+    "The ISO-date temporal probe stops at input validation. V2 reuses the intended spelled-date form and reproduces all eight bypasses; the ISO control is retained without claiming a source-gate repair."
+  ],
+  "collaboration": {
+    "implementer_thread": "01a1d45f-aab5-72d2-8327-21d5e458c13c",
+    "direct_message_status": "Rejected: thread already has an active writer, code -32600",
+    "handoff": "This shared report and new regression file provide the concrete findings. Both direct handoff attempts failed with the active-writer error; successful message delivery is NOT claimed. Implementer owns all production repairs, README, policy and the continuous CHANGELOG. The user can relay this report. A matching final freeze and independent retest are required."
+  },
+  "priority_for_implementer": [
+    "P0: close V-T02 against exact red cases and obtain independent re-review",
+    "P1: resolve permitted broad service input/acquisition readiness for the active three without weakening source/privacy controls",
+    "P1: SCOPE-02 inactive-place handling even with acquisition disabled",
+    "P1: reconcile current problem/method/evaluation scope and elderly inclusion in exam documents",
+    "P1: native 320/390/768/1440px and zoom/keyboard/assistive-technology checks plus authentic elderly/novice usefulness evaluation; no simulation-as-user-study claim",
+    "P1: genuine permitted site-format/source success for the exact final revision; no stale probe or merely configured host counts as success",
+    "P2: final English 7-8-page student-authored NeurIPS preprint paper; quantitative and qualitative results; two official fault classes with red/repair/regression evidence; five safe-operation measures; authentic demo feedback, eight substantive meetings, corrected agent excerpts and a full raw evaluation",
+    "P2: explicitly deliver ignored raw evidence and reproduce normal/evaluation runs from the actual public submission; repository access and immutable exam tag only after separate human authorization"
+  ],
+  "not_verified": [
+    "Final UI and native accessibility/rendering",
+    "Actual permitted source acquisition on this exact candidate",
+    "Genuine model quality; no paid calls",
+    "Full final regression and new matching manifest after the ongoing Implementer changes",
+    "Human-owned paper, demo, qualitative ratings and authentic appendices"
+  ],
+  "authority": {
+    "pdf": "final_exam/project_KIUA_2003.pdf",
+    "sha256": "4c41b5078656301d3c3aab9893299692fe65337b5261409b7d1c063f1d0fe6e5",
+    "reviewed": "Sections 3-5 via local standard-library PDF stream extraction; source PDF remains authoritative",
+    "scope": "Three-municipality pilot and elderly inclusion are owner requirements; no earned rubric points or grade certified."
+  },
+  "final_acceptance": "Human; this is an independent FAIL receipt for stage4 only. Verifier changed no production code and made no Git mutation."
+}

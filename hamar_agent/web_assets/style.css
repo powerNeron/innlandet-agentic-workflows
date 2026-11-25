@@ -312,3 +312,22 @@ html{font-size:20px}
 .aisha-home,.intro-next,.intro-secondary,.entry-bubble{box-sizing:border-box}
 @media(max-width:650px){.intro-navigation{flex-direction:column}.intro-secondary{width:100%}.intro-next{padding:16px;min-height:72px}}
 @media(forced-colors:active){.intro-next,.intro-secondary{border-color:ButtonText;background:ButtonFace;color:ButtonText}}
+
+
+/* Aisha simplified public interface */
+#municipal-mode,
+#mode-municipal,
+[data-legacy-portal="true"],
+#chat-mode .chat-answer-label,
+#chat-mode .chat-bubble > details {
+    display: none !important;
+}
+
+
+/* Public Aisha navigation only */
+.mode-selector,
+#mode-municipal,
+#mode-chat,
+#municipal-mode {
+    display: none !important;
+}

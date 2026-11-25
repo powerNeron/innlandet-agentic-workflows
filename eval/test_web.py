@@ -50,12 +50,12 @@ class WebTests(unittest.TestCase):
                 'Jeg kan hjelpe deg med å finne og forstå offentlig informasjon fra Hamar, Elverum og Gjøvik kommune.',
                 'Målet vårt er å kunne hjelpe innbyggere i alle kommunene i Innlandet i fremtiden.',
                 'Velg lokal AI – Ollama','Velg ChatGPT mini – OpenAI',
-                'OpenAI','kostnader','passord','sensitive personopplysninger'):
+                'Velg en av oss!','Meldinger behandles av OpenAI.','Ikke del passord eller personopplysninger.'):
             self.assertIn(text,home)
         guide=home.split('<details id="aisha-guide"',1)[1].split('</details>',1)[0]
         self.assertIn('<summary>Slik bruker du Aisha</summary>',guide)
         self.assertEqual(guide.count('<li>'),5)
-        self.assertIn('Trykk Enter eller Send.',guide)
+        self.assertIn('Trykk Send eller Enter.',guide)
         self.assertIn('href="#welcome-title"',html)
 
     def test_introduction_has_five_native_steps_with_one_main_action_and_safe_escape(self):
@@ -88,7 +88,7 @@ class WebTests(unittest.TestCase):
                 'Hopp over introduksjonen','Start på nytt','Steg 1 av 5',
                 'AI kan være nyttig, men kan også gjøre feil. Derfor bør viktig informasjon kontrolleres.',
                 'Hvis jeg ikke kan bekrefte noe, skal jeg si fra.',
-                'Velkommen inn i den digitale fremtiden – sammen med Aisha!'):
+                'Teknologi er for alle. Prøv deg frem i ditt eget tempo!'):
             self.assertIn(text,html)
 
     def test_i01_first_step_explains_municipal_help_and_second_includes_older_novice_users(self):
@@ -670,20 +670,30 @@ class RegionalStartupTests(unittest.TestCase):
                 self.assertEqual(main(args),0)
             policy=captured['chat_backend'].research_service
             self.assertIs(captured['service'].request_sources,policy)
-            self.assertIsNone(policy.fetcher);self.assertEqual(policy.configured(),live)
+            if not live:self.assertIsNone(policy.fetcher)
+            self.assertEqual(policy.configured(),live)
             self.assertEqual(captured['chat_backend'].search_allowed(),live)
             if live:
-                self.assertTrue(policy.reviewed_only)
+                from hamar_agent.internet_research import InternetResearchService,PublicQuestionRouter
+                self.assertIsInstance(policy,InternetResearchService)
+                self.assertIsInstance(captured['chat_backend'].question_router,PublicQuestionRouter)
+                self.assertEqual(policy.approvals,{})
                 from hamar_agent.run_control import run_scope
                 from hamar_agent.research import ResearchError
                 from unittest.mock import Mock
-                discovery=Mock(side_effect=AssertionError('Production chat must not broaden an exact approval'))
-                with patch.object(policy,'_discover',discovery),run_scope():
+                discovery=Mock(return_value=())
+                with patch.object(policy.search,'search',discovery), \
+                        patch.object(policy.http,'document',side_effect=ResearchError('research_unavailable')) as official,run_scope():
                     with self.assertRaises(ResearchError) as refused:
                         name=next(iter(policy.municipalities.entries.values())).name
                         policy.prepare('Fortell om testtjeneste i '+name+'.',provider='ollama',authorized=lambda:True,require_municipal=True)
-                    self.assertEqual(refused.exception.code,'research_no_official_sources')
-                discovery.assert_not_called()
+                    self.assertEqual(refused.exception.code,'research_no_sources')
+                    self.assertEqual(official.call_count,1)  # Empty search may try the official root; no real network.
+                # Empty fact-approval catalogs do not block authorized search.
+                self.assertEqual(discovery.call_count,2)
+                self.assertEqual(discovery.call_args_list[0].kwargs['official_host'],
+                                 next(iter(policy.municipalities.entries.values())).official_host)
+                self.assertIsNone(discovery.call_args_list[1].kwargs['official_host'])
             self.assertEqual(captured['chat_backend'].question_router.classifier is not None,local_router)
             self.assertEqual(captured['chat_backend'].policy().max_calls,2 if local_router else 1)
             for provider,model in (('ollama','llama3.2:3b'),('openai','gpt-4.1-mini')):

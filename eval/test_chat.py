@@ -990,5 +990,182 @@ class ChatTests(unittest.TestCase):
         self.assertEqual(len(self.calls[-1]['kwargs']['input']),1)
 
 
+
+import unittest
+
+
+class NativeOpenAISearchTests(unittest.TestCase):
+
+    def setUp(self):
+        import os
+        from unittest.mock import Mock,patch
+        from hamar_agent.chat import ChatBackend
+        from hamar_agent.question_router import QuestionPlan
+
+        environment=patch.dict(
+            os.environ,
+            {"HAMAR_CHAT_OPENAI_NATIVE_SEARCH":"true"}
+        )
+        environment.start()
+        self.addCleanup(environment.stop)
+
+        self.service=Mock()
+        self.service.automatic_municipal=True
+        self.service.configured.return_value=True
+        self.service.prepare.side_effect=AssertionError(
+            "Unexpected local retrieval"
+        )
+
+        self.client=Mock()
+        self.router=Mock()
+
+        self.backend=ChatBackend(
+            research_service=self.service,
+            web_authorized=True,
+            question_router=self.router,
+            client_factory=Mock(return_value=self.client)
+        )
+
+        self.backend.managed_reply=Mock(return_value=None)
+        self.backend.instructions=Mock(return_value="Test")
+        self.backend.authorize_openai_selection=Mock()
+
+        self.question="Hva slags tilbud har kulturskolen i Elverum?"
+
+        self.router.plan.return_value=QuestionPlan(
+            "municipal",self.question,True,True,"test"
+        )
+
+        self.backend.effective_question=Mock(
+            return_value=self.question
+        )
+
+        self.request={
+            "provider":"openai",
+            "model":"gpt-4.1-mini",
+            "web_search":False
+        }
+
+        self.client.generate.side_effect=self.cited_answer
+
+    def context(self):
+        import json
+        return json.dumps({
+            "messages":[
+                {"role":"user","content":self.question}
+            ],
+            "web_search":False
+        })
+
+    def cited_answer(self,instructions,context):
+        import json
+        data=json.loads(context)
+
+        self.assertTrue(data["web_search"])
+        self.assertTrue(data["require_web_search"])
+        self.assertEqual(len(data["messages"]),1)
+
+        self.client._research_authorized()
+
+        return {
+            "text":"Dette er et syntetisk testsvar.",
+            "citations":[{
+                "url":"https://www.elverum.kommune.no/",
+                "title":"Syntetisk kilde"
+            }],
+            "web_search_used":True,
+            "web_search_calls":1
+        }
+
+    def test_native_search_bypasses_local_extraction(self):
+        answer=self.backend.generate(
+            self.request,self.context()
+        )
+        self.service.prepare.assert_not_called()
+        self.assertTrue(answer["web_search_used"])
+        self.assertEqual(answer["web_search_calls"],1)
+        self.assertTrue(answer["citations"])
+        self.assertFalse(answer.get("research_verified",False))
+        self.assertEqual(answer["response_origin"],"model")
+
+    def test_native_search_requires_citations(self):
+        from hamar_agent.chat import OpenAIProviderError
+
+        def empty(instructions,context):
+            answer=self.cited_answer(instructions,context)
+            answer["citations"]=[]
+            return answer
+
+        self.client.generate.side_effect=empty
+
+        with self.assertRaises(OpenAIProviderError):
+            self.backend.generate(self.request,self.context())
+
+    def test_native_search_revocation(self):
+        import os
+        from hamar_agent.chat import ChatError
+
+        def revoked(instructions,context):
+            answer=self.cited_answer(instructions,context)
+            os.environ["HAMAR_CHAT_OPENAI_NATIVE_SEARCH"]="false"
+            return answer
+
+        self.client.generate.side_effect=revoked
+
+        with self.assertRaises(ChatError):
+            self.backend.generate(self.request,self.context())
+
+    def test_native_search_private_input_is_blocked(self):
+        from hamar_agent.chat import ChatError
+
+        self.question="Min e-post er test@example.invalid"
+
+        with self.assertRaises(ChatError):
+            self.backend.generate(self.request,self.context())
+
+        self.client.generate.assert_not_called()
+
+    def test_missing_local_sources_use_native_fallback(self):
+        from hamar_agent.research import ResearchError
+        from hamar_agent.question_router import QuestionPlan
+
+        self.question="Hvordan s\u00f8ker jeg om kommunal bolig i Elverum?"
+
+        self.router.plan.return_value=QuestionPlan(
+            "municipal",self.question,True,True,"test"
+        )
+
+        self.service.prepare.side_effect=ResearchError(
+            "research_no_sources"
+        )
+
+        answer=self.backend.generate(
+            self.request,self.context()
+        )
+
+        self.service.prepare.assert_called_once()
+        self.assertTrue(answer["web_search_used"])
+
+    def test_permission_failure_never_uses_native_fallback(self):
+        from hamar_agent.research import ResearchError
+        from hamar_agent.question_router import QuestionPlan
+
+        self.question="Hvordan s\u00f8ker jeg om kommunal bolig i Elverum?"
+
+        self.router.plan.return_value=QuestionPlan(
+            "municipal",self.question,True,True,"test"
+        )
+
+        self.service.prepare.side_effect=ResearchError(
+            "research_permission_revoked"
+        )
+
+        with self.assertRaises(ResearchError):
+            self.backend.generate(self.request,self.context())
+
+        self.service.prepare.assert_called_once()
+        self.client.generate.assert_not_called()
+
+
 if __name__=='__main__':
     unittest.main()

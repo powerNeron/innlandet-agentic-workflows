@@ -207,8 +207,8 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   e.evaluate('renderChatMessage('+JSON.stringify({role:'assistant',text:'Velg Kommunal informasjon.',ai_generated:false,response_origin:'application_guidance',web_search_used:false,citations:[]})+')');
   const bubble=e.get('chat-log').children.at(-1).children.at(-1);
   const label=bubble.children.find(n=>n.className==='chat-answer-label');
-  assert.equal(label.textContent,'Veiledning fra Aisha · ikke kildekontrollert');
-  assert(!label.textContent.includes('AI-generert'));assert.equal(e.counts().posts,0);
+  assert.equal(label,undefined);
+  assert(bubble.children.some(n=>n.className==='chat-text' && n.textContent==='Velg Kommunal informasjon.'));assert.equal(e.counts().posts,0);
   checks.push('zero-call application guidance is not labelled as model-generated');
  }
  {
@@ -525,7 +525,7 @@ async function chatUnitTests(sourcePath,apiResponse=null){
   assert.equal(e.counts().posts,0);assert(e.get('chat-selected-model').textContent.includes('ChatGPT mini'));
   e.get('chat-message').value='Et generelt syntetisk spørsmål.';await e.evaluate('sendChat()');
   assert.equal(e.sent[0].provider,'openai');assert.equal(e.sent[0].model,'gpt-4.1-mini');
-  assert(e.get('chat-processing').textContent.includes('betalt'));checks.push('cloud entrance selects exact gpt-4.1-mini; advanced model never substitutes; only explicit Send generates');
+  assert(e.get('chat-processing').hidden || !e.get('chat-processing').textContent.includes('betalt'));checks.push('cloud entrance selects exact gpt-4.1-mini; advanced model never substitutes; only explicit Send generates');
  }
  {
   const e=environment();e.data.choices[0].model='gpt-4.1-mini';e.data.choices[0].available=false;

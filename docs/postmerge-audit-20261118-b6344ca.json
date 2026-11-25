@@ -1,0 +1,288 @@
+{
+  "record_type": "post_merge_regression_and_exam_gap_audit",
+  "recorded_at": "2026-11-18T11:13:39.207563+00:00",
+  "revision": "b6344ca97eb13cdb65c8f27e40709e6200c065f7",
+  "branch": "exam/final",
+  "summary": "Merge og eksisterende regresjoner består. A-nivå er ikke dokumentert; prioriterte hull gjelder kilde/personvern, faktisk kvalitet, reproduksjon og studentenes eksamensleveranse.",
+  "authority": {
+    "assignment": "final_exam/project_KIUA_2003.pdf",
+    "assignment_sha256": "4c41b5078656301d3c3aab9893299692fe65337b5261409b7d1c063f1d0fe6e5",
+    "checked_pages": [
+      3,
+      4,
+      5
+    ],
+    "rubric": {
+      "problem_and_specification": 15,
+      "harness_design_and_implementation": 30,
+      "evaluation_and_stress_testing": 35,
+      "scientific_and_explorative_contribution": 20
+    },
+    "limitations": "Ingen karakter eller A-grense er beregnet. Eventuelle nyere Canvas-endringer er ikke kontrollert. Tidligere matrise forblir historisk/provisorisk."
+  },
+  "scope": {
+    "application_code_changed": false,
+    "commits": 0,
+    "pushes": 0,
+    "fetches": 0,
+    "source_retrievals": 0,
+    "genuine_model_calls": 0,
+    "paid_calls": 0,
+    "installations": 0,
+    "prior_files_deleted_or_replaced": 0,
+    "existing_changelog_append_only": true,
+    "sanitized_prompt": "Fortsett eksisterende Aisha KommuneAgent; kontroller merge b6344ca, kjør full regresjon, undersøk siste sikkerhetsrettinger, samarbeid med eksisterende Verifier og identifiser reelle A-gap. Bevar COM2/historikk; ingen commit eller push."
+  },
+  "merge": {
+    "parents": [
+      "4ffdd841eeaa89654c8ead96b543113e32d0810b",
+      "f9413fc72524cc7d2f5a7fc8ba003b0f1d3a38bc"
+    ],
+    "merge_base": "d018c2b092794f638716e4a28085d68664480be2",
+    "exclusive_files_identical": 20,
+    "only_shared_changed_file": "final_exam/CHANGELOG.md",
+    "both_changelog_contributions_preserved": true,
+    "all_14_non_changelog_frozen_repair_files_identical": true,
+    "main_ref_unchanged": true,
+    "comp2_files_identical_to_main": 23,
+    "pre_documentation_tracked_changes": [],
+    "remote_scope": "HEAD og lokal origin/exam/final peker på b6344ca. Ingen ny nettverkskontroll av GitHub; dette fastslår ikke hvem som pushet."
+  },
+  "executed_checks": [
+    {
+      "check": "full_offline_python_3_12_10",
+      "methods": 660,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "exit_code": 0,
+      "evidence": "offline-py312.log"
+    },
+    {
+      "check": "full_offline_project_python_3_13_7",
+      "methods": 660,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "exit_code": 0,
+      "evidence": "offline-py313.log"
+    },
+    {
+      "check": "node_vm_dom",
+      "groups": 25,
+      "exit_code": 0,
+      "evidence": "node-unit.stdout.log",
+      "limit": "Ingen native nettleserrendering eller skjermlesertest."
+    },
+    {
+      "check": "general_research",
+      "contracts": 20,
+      "passed": 20,
+      "evidence": "research/metrics.json"
+    },
+    {
+      "check": "regional_research",
+      "contracts": 34,
+      "passed": 34,
+      "requests": 44,
+      "correct_final_citations": 12,
+      "published_final_answers": 12,
+      "evidence": "research/regional-metrics.json"
+    },
+    {
+      "check": "exam_campaign",
+      "cases": 56,
+      "mechanical_pass_percent": 100,
+      "recoveries": 20,
+      "recovery_pass_percent": 100,
+      "query_task_completion": "4/20 = 20%; inkluderer tilsiktede avvisninger og feiltilstander",
+      "evidence": "exam-campaign/metrics.json"
+    },
+    {
+      "check": "request_bound_comparison",
+      "primary_executions": 224,
+      "recovery_executions": 152,
+      "unique_scenarios": 28,
+      "campaign_valid": true,
+      "current_policy_contracts": "112/112",
+      "simulated_historical_policy_contracts": "64/112; forventede kontrollsvakheter, ikke feil i den nye produksjonspolicyen",
+      "current_policy_answerable_completion": "20/44; feilinduserte sikre avvisninger rapporteres separat fra feil beslutninger",
+      "evidence": "request-bound/metrics.json"
+    },
+    {
+      "check": "heldout_synthetic_search",
+      "passed": true,
+      "evidence": "heldout.json"
+    },
+    {
+      "check": "synthetic_cli",
+      "exit_code": 0,
+      "evidence": "synthetic-cli.stdout.log"
+    },
+    {
+      "check": "merged_verifier_scorecard",
+      "expected_detected": "8/8",
+      "clean_control_findings": 0,
+      "unadjudicated_additional_findings": 3,
+      "evidence": "verifier-scorecard.stdout.log"
+    }
+  ],
+  "test_interpretation": "Alle modelladaptere/kilder i denne auditen er syntetiske eller mock. Repeterte metoder/kjøringer er ikke uavhengige brukerstudier. Eksakt sitatmatch er sporbarhet, ikke sannhet, nytte eller generell personvernverifikasjon.",
+  "security_regressions": [
+    {
+      "id": "V-01b",
+      "status": "PASS within executed offline scope",
+      "behavior": "Kommunale gebyrer/vilkår og korte oppfølgingsspørsmål krever kilder eller veiledning før modellkall.",
+      "tests": "eval/test_live_research.py:95,393"
+    },
+    {
+      "id": "V-02b",
+      "status": "PASS within executed offline scope",
+      "behavior": "Søskencontainere deler ikke prisperiode; overordnede vilkår beholdes.",
+      "tests": "eval/test_live_research.py:115,158,192"
+    },
+    {
+      "id": "V-02c",
+      "status": "PASS within executed offline scope",
+      "behavior": "Uavklarte fotnotemarkører gir avvisning før generering.",
+      "tests": "eval/test_live_research.py:126"
+    },
+    {
+      "id": "V-03b",
+      "status": "PASS within executed offline scope",
+      "behavior": "Små bokstaver, Unicode/usynlige tegn og personlignende enheter avvises før modell og historikk.",
+      "tests": "eval/test_live_research.py:139,210"
+    }
+  ],
+  "live_evidence": {
+    "current_snapshot_successful_acquisition": "NOT VERIFIED",
+    "old_successful_probe": {
+      "path": "output/NEW-hamar-sfo-final/live-source-probe.json",
+      "sha256": "aa54dab4eb4b272d0c7be90bee3c6bd4b005eed224720e4a431dabc821b1620c",
+      "success": true,
+      "started_at": "2026-11-13T20:47:44.790190+00:00",
+      "model_calls": 0,
+      "paid_calls": 0,
+      "source_hash_mismatches": [
+        "hamar_agent/live_research.py",
+        "hamar_agent/research.py",
+        "hamar_agent/chat.py"
+      ],
+      "qualifies_as_current_snapshot_evidence": false
+    },
+    "latest_highfix_probe": "output/aisha-highfix-20261113-6edd00f0/actual-source-final/live-source-probe.json",
+    "latest_highfix_probe_result": "research_unavailable / PermissionError WinError10013 før HTTP-body; 0 modell/betalte kall og 0 gjenstående workers. Parser/chat matcher nå; research.py ble rettet etter forsøket.",
+    "new_live_access": "Ikke utført. Krever dokumentert gyldig URL-/avsnittsspesifikk kilde- og personvernavklaring; kommuneregisteret alene godkjenner ikke nye sider."
+  },
+  "prioritized_gaps": [
+    {
+      "priority": "P0",
+      "id": "A01",
+      "type": "unresolved_assignment_constraint",
+      "rubric": [
+        "R01",
+        "R08",
+        "R11"
+      ],
+      "gap": "Seksjon 1 forbyr behandling av identifiserende personopplysninger. Transient full HTML og etterfølgende heuristisk filtrering dokumenterer ikke etterlevelse; eiergodkjenning eller robots-tillatelse opphever ikke oppgavekravet.",
+      "acceptance": "Dokumenter avklaring med faglærer og en etterprøvbar godkjent innholdsgrense før ny livehenting. Alternativt lever en tydelig avgrenset syntetisk eller forhåndsgodkjent løsning og beskriv hva som ikke er oppfylt. Ikke hev generell anonymisering eller forny utløpte godkjenninger."
+    },
+    {
+      "priority": "P0",
+      "id": "A02",
+      "type": "missing_current_version_evidence",
+      "rubric": [
+        "R02",
+        "R05",
+        "R06"
+      ],
+      "gap": "Ingen vellykket faktisk kildeinnhenting er dokumentert med dagens samlede sikkerhetskode. Det gamle SFO-forsøket har tre avvikende modulhasher.",
+      "acceptance": "Etter A01 og nødvendige konkrete kildegodkjenninger: kjør et lite forhåndsdefinert representativt sett gjennom faktisk app, både nyttige godkjente svar og sikre feil, med revisjon/kildehasher, receipts, dato/vilkår og null etterarbeidere. Alle 46 nettsteder er ikke et eget eksamenskrav; avgrens dekningen ærlig."
+    },
+    {
+      "priority": "P1",
+      "id": "A03",
+      "type": "qualitative_evaluation_not_verified",
+      "rubric": [
+        "R01",
+        "R06",
+        "R10",
+        "R11"
+      ],
+      "gap": "Eksisterende kvalitative protokoller og menneskelige scorekort er verktøy; utfylte autentiske vurderinger av dagens svar er ikke funnet. HTTP200, nøkkelord og sitatmatch måler ikke faktisk nytte.",
+      "acceptance": "La studentene vurdere reelle, tillatte svar mot kjente forventninger for korrekthet, relevans, kontekst, usikkerhet og norsk klarhet. Bevar uenighet og alvorlige feil. Skill modellgenerert svar, veiledning og avvisning; rapporter tellere/nevnere. LLM-dommer og betalt OpenAI-sammenligning er ikke obligatoriske."
+    },
+    {
+      "priority": "P1",
+      "id": "A04",
+      "type": "scientific_analysis_and_scope",
+      "rubric": [
+        "R02",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10"
+      ],
+      "gap": "Stort testantall erstatter ikke et presist suksessmål eller rapportens kausale analyse. Feil/rettehistorikk finnes, men må knyttes til dagens system og to valgte offisielle perturbasjonsklasser.",
+      "acceptance": "Presenter eksisterende ekte før/etter-feil, nøyaktig injeksjonspunkt, propagering gjennom trinnene, valgt reparasjon og identisk moteksempel/full regresjon. Bruk input perturbation og dependency failure der bevisene faktisk dekker dem. Beskriv absorpsjon og begrensninger. Ikke fremstille syntetisk historisk baseline som faktisk main eller mocktider som modellhastighet."
+    },
+    {
+      "priority": "P1",
+      "id": "A05",
+      "type": "clean_reproduction_and_browser_evidence",
+      "rubric": [
+        "R05",
+        "R06",
+        "R08"
+      ],
+      "gap": "Denne auditen kjørte i eksisterende checkout. Dagens rene leveranse, native nettleser/tilgjengelighet og vertsrettighetsnekt er ikke kontrollert av disse testene. output/ med rålogger og review er ignorert av Git.",
+      "acceptance": "Reproduser dokumentert normalkjøring og evaluering fra en separat ren kopi/clone uten private output-filer eller hemmeligheter. Pakk godkjente rålogger og kontekst/testdata for vedlegg. Kontroller faktisk UI på relevante skjermbredder. Utfør eventuelle rettighetsprober bare isolert med syntetiske sentineler; dokumenter faktiske tillatte/nektede handlinger uten å utlede håndheving fra konfigurasjon. Native UI er prosjektverifikasjon, ikke et separat PDF-krav."
+    },
+    {
+      "priority": "P1",
+      "id": "A06",
+      "type": "mandatory_student_deliverables_not_supplied_here",
+      "rubric": [
+        "R03",
+        "R04",
+        "R10",
+        "R11",
+        "R12"
+      ],
+      "gap": "Endelig studentkontrollert paper, reell demotilbakemelding og minst åtte autentiske møtereferater er ikke verifisert i dette repoet. Dette fastslår ikke at dokumentene mangler utenfor repoet.",
+      "acceptance": "Kontroller engelsk paper med 7–8 hovedsider i oppgitt NeurIPS2025 preprint-mal uten checklist. Beskriv bygget arkitektur og avvik fra COM2, alle fem sikkerhetskontroller, kvantitative/kvalitative resultater og stress/reparasjon som hovedvekt. Legg ved ekte promptutdrag med menneskelige korrigeringer, råoutput fra én full evaluering og minst åtte faktiske møtereferater. Dokumenter obligatorisk demo i uke46–47 og håndter faktisk tilbakemelding/livefeil. Ingen fabrikkert historikk."
+    },
+    {
+      "priority": "P1",
+      "id": "A07",
+      "type": "current_documentation_is_stale",
+      "rubric": [
+        "R05",
+        "R10",
+        "R12"
+      ],
+      "gap": "README/CHANGELOG avslutter tidligere faser med integration blocked; requirements.csv/RB02 og INN05 samt delivery-inventory inneholder eldre påstander om manglende observatør/register eller deaktivert liveoppsett. Det er historiske vurderinger, ikke dagens komplette status.",
+      "acceptance": "Bevar historikk, men legg til en tydelig gjeldende revisjonsbundet status og avstem neste kravmatrise med implementert livekode,46-register, gyldige grenser og fortsatt manglende faktisk sluttversjonstest. Ikke oppgrader A01/A02 til PASS på grunnlag av offlinegrønt. Denne rapporten og append-only CHANGELOG er auditens nye status; gamle filer er ikke overskrevet."
+    },
+    {
+      "priority": "P2",
+      "id": "A08",
+      "type": "human_authorized_submission_actions",
+      "rubric": [
+        "R05",
+        "R12"
+      ],
+      "gap": "Offentlig tilgang til faktisk innleveringsrevisjon, paperets repo-URL, uforanderlig exam-tag og Wiseflow-kvittering er ikke kontrollert her.",
+      "acceptance": "Etter eksakt uavhengig review og menneskelig sluttaksept: innhent særskilt godkjenning for eventuell commit/tag/push, kontroller offentlig innleveringsrevisjon og URL, opprett exam-tag uten senere flytting, og dokumenter levering innen oppgavens 03.12.2026 kl11:59. Avklar Canvas/tidssone hos studentene. Ingen slik fjernskriving er utført."
+    }
+  ],
+  "independent_review": {
+    "role": "existing Verifier & Quality Supervisor",
+    "thread_id": "01a1ee52-c48a-7bf2-9cd3-5173323d66ba",
+    "status": "Separate immutable receipt records the independent verdict; this Implementer report is not self-approval.",
+    "final_acceptance": "Human"
+  },
+  "evidence_root": "output/aisha-postmerge-20261118-b6344ca",
+  "evidence_binding": "baseline.json, merge-inspection.json, *.command.json, parent1/2-to-merge.patch, frozen-review-manifest.json; hashes bind the exact reviewed files and raw logs."
+}

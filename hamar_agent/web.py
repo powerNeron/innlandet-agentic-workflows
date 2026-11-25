@@ -5,6 +5,7 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
 import secrets
 from threading import Lock
@@ -19,7 +20,7 @@ from .real_sources import RealSourceError
 from .source_updates import SourceRefreshError
 from .research import ResearchError
 from .run_control import RunStopped, run_scope, checkpoint, current_run, cleanup_provider
-from .chat import ChatBackend, ChatError, ChatState, MAX_TURNS, PAGE_RATE, PROCESS_RATE, RATE_SECONDS
+from .chat import ChatBackend, ChatError, ChatState, MAX_TURNS, PAGE_RATE, PROCESS_RATE
 
 MAX_REQUEST_BYTES = 8192
 ASSETS = Path(__file__).with_name("web_assets")
@@ -59,8 +60,13 @@ def _provider_failure(error, *, status=422):
     messages = {
         "research_unavailable": ("Nettsøk er ikke tilgjengelig. Ingen nye opplysninger er bekreftet.", True),
         "research_no_sources": ("Vi har ikke godkjente kilder som dekker dette spørsmålet. Prøv å presisere temaet.", False),
+        "research_search_dependency_missing": ("Nettsøket er ikke tilgjengelig i denne installasjonen. Be den som startet Aisha kontrollere oppsettet.", False),
+        "research_search_busy": ("Nettsøket er opptatt. Vent litt og prøv igjen.", True),
         "research_source_expired": ("Kildegrunnlaget kan ikke brukes nå. Ingen nye opplysninger er bekreftet.", False),
         "research_external_not_approved": ("Disse kildene er ikke godkjent for ekstern AI. Velg lokal AI.", False),
+        "research_search_not_approved": ("Nettsøket er ikke godkjent eller klargjort ennå. Ingen nye opplysninger er bekreftet.", False),
+        "research_search_unavailable": ("Søketjenesten svarte ikke med et gyldig søkeresultat. Ingen nye opplysninger er bekreftet. Prøv igjen senere.", True),
+        "research_robots_disallowed": ("Nettstedets regler tillater ikke at Aisha henter denne siden. Ingen opplysninger fra siden er bekreftet.", False),
         "research_source_invalid": ("En kilde kunne ikke kontrolleres. Ingen nytt svar ble publisert.", True),
         "research_period_unverified": ("Kildene bekrefter ikke prisen for perioden du spør om. Oppgi gjerne et konkret år eller en dato, eller kontroller kommunens offisielle prisliste.", False),
         "research_source_conflict": ("Kildene gir motstridende opplysninger. Aisha kan ikke bekrefte svaret.", False),
@@ -71,7 +77,7 @@ def _provider_failure(error, *, status=422):
         "research_municipality_required": ("Hvilken kommune gjelder spørsmålet? Ta med kommunenavnet.", False),
         "research_municipality_inactive": ("Aisha henter foreløpig kommunal informasjon for Hamar, Elverum og Gjøvik. Denne kommunen er ikke aktiv ennå.", False),
         "research_registry_expired": ("Kommuneoversikten må kontrolleres på nytt. Ingen nytt svar ble publisert.", False),
-        "research_no_official_sources": ("Vi fant ikke en godkjent kilde fra denne kommunen. Andre nettsider kan ikke bekrefte kommunens egne vilkår.", False),
+        "research_no_official_sources": ("Jeg har ikke godkjent dokumentasjon som dekker dette fra kommunen. Ingen opplysninger om tilbud, søknad eller vilkår er bekreftet. Du kan undersøke kommunens offisielle nettside eller spørre kommunens servicetorg om veiledning. Dette betyr ikke at tilbudet mangler.", False),
         "research_source_limit": ("Spørsmålet krever flere kilder enn vi kan behandle nå. Prøv et mer avgrenset spørsmål.", False),
         "run_budget_exceeded": ("Aisha nådde grensen for dette svaret. Prøv et kortere spørsmål. Ingen nytt svar ble lagret.", False),
         "run_input_limit": ("Det er for mye informasjon å behandle på én gang. Prøv et kortere spørsmål.", False),
@@ -493,7 +499,26 @@ class WebApplication:
             response=_provider_failure(error)
             service=self.chat_backend.research_service
             links=service.navigation_for(self.chat_backend.effective_question(routing or json.loads(context)['messages'])) if service is not None and owner is not None else []
-            return _json(response.status,{**json.loads(response.body),'service_links':links})
+            status=getattr(error,'source_status',None)
+            # Only a closed, non-personal status projection crosses the API.
+            # No raw URL/path/label, user text or upstream exception text leaks.
+            public_status={}
+            if type(status) is dict:
+                if status.get('discovery') in ('not_attempted','candidates_only'):
+                    public_status['discovery']=status['discovery']
+                if status.get('reason') in ('no_matching_reviewed_source','candidate_content_requires_review'):
+                    public_status['reason']=status['reason']
+                for field in ('admitted_sources','catalog_entries'):
+                    if type(status.get(field)) is int and 0<=status[field]<=256:public_status[field]=status[field]
+            from .internet_research import safe_source_diagnostics
+            trace=safe_source_diagnostics(getattr(error,'source_diagnostics',()))
+            # Measured RunState counters, never a guessed zero on error.
+            run=current_run()
+            snapshot=run.snapshot() if run is not None else {}
+            return _json(response.status,{**json.loads(response.body),'service_links':links,
+                'source_diagnostics':trace,
+                'provider_tasks_started':snapshot.get('provider_tasks_started'),
+                **({'source_status':public_status} if public_status else {})})
         except (OllamaError, OpenAIProviderError, RunStopped, ResearchError) as error:
             return _provider_failure(error)
         except Exception:
@@ -706,6 +731,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="Reviewed Innlandet identities and exact source policy; never enables network access")
     parser.add_argument("--enable-live-research", action="store_true",
                         help="Explicit owner-authorized bounded official HTML research; no cloud source consent")
+    parser.add_argument("--search-url",help="SearXNG JSON /search endpoint; public content search has no domain allowlist or paid API")
     parser.add_argument("--enable-local-router", action="store_true",
                         help="Opt in to one budgeted local Ollama classification helper; never grants source permissions")
     parser.add_argument("--router-model", default="llama3.2:3b", help="Already installed local classification model; no downloads")
@@ -733,9 +759,11 @@ def main(argv: list[str] | None = None) -> int:
             if not real_mode:
                 raise ValueError("Regional source policy cannot use synthetic/demo mode")
             if args.enable_live_research:
-                from .live_research import LiveResearchService
-                research=LiveResearchService.from_reviewed_policy(
-                    args.research_policy or Path('docs/innlandet-research.json'),enabled=True,reviewed_only=True)
+                from .internet_research import InternetResearchService,PublicQuestionRouter
+                research=InternetResearchService.from_policy(
+                    args.research_policy or Path('docs/innlandet-research.json'),enabled=True,
+                    endpoint=args.search_url or os.environ.get('HAMAR_SEARCH_URL') or None)
+                question_router=PublicQuestionRouter(question_router.classifier,municipalities=research.municipalities)
             else:
                 from .research import ResearchService
                 research = ResearchService.from_reviewed_policy(args.research_policy)

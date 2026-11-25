@@ -1,0 +1,63 @@
+{
+  "record_type": "post_merge_security_audit_addendum",
+  "revision": "b6344ca97eb13cdb65c8f27e40709e6200c065f7",
+  "supersedes": "The first audit's existing-test PASS is limited to those cases. This new counterexample prevents an overall security PASS. Preserve the first report and frozen manifest as an earlier audit stage.",
+  "related_report": "docs/postmerge-audit-20261118-b6344ca.json",
+  "overall_security_status": "FAIL: known source-duty bypass; repair and independent re-review required",
+  "existing_full_regression_status": "PASS: 660/660 on Python 3.12 and 3.13; no source or test changes after those runs",
+  "finding": {
+    "id": "V-01c",
+    "severity": "HIGH",
+    "priority": "P0 before claims of secure completion",
+    "title": "English municipal nursing-home fee questions bypass mandatory sources",
+    "references": [
+      "hamar_agent/research.py:168",
+      "hamar_agent/research.py:188",
+      "hamar_agent/research.py:209",
+      "hamar_agent/chat.py"
+    ],
+    "trigger": "How much does a nursing home cost in Hamar?",
+    "second_trigger": "What is the nursing home fee in Hamar?",
+    "control": "Hva koster sykehjem i Hamar?",
+    "expected": "A municipal fee request requires approved current sources or zero-model-call guidance/refusal. Unsupported language must not silently authorize ordinary unsourced generation.",
+    "observed": "With the source service absent and web_search=false, both mocked adapters return HTTP 200, make one model-adapter call, make zero source calls, publish the supplied fictional 9999-kroner answer and retain the turn. The Norwegian control makes zero model calls and does not publish the fictional price.",
+    "cases": {
+      "english_cases": 4,
+      "english_unsafe_dispatch_and_publication": 4,
+      "norwegian_controls": 2,
+      "norwegian_controls_blocked_before_model": 2
+    },
+    "cause": "Source-duty service and intent detection recognizes Norwegian nursing-home/fee wording but does not classify these equivalent English municipal requests. They reach the general-chat route.",
+    "merge_relationship": "The affected application files match the frozen repair and first merge parent byte for byte. This is an uncovered policy gap present in the retained implementation, not evidence that the merge dropped a repair.",
+    "limits": "This is an actual API/control-flow reproduction with injected synthetic model replies, not evidence that a genuine model hallucinated this amount. No official service facts, live source access, genuine inference, paid call or personal information were used.",
+    "evidence": [
+      "output/aisha-postmerge-20261118-b6344ca/probe_english_source_duty.py",
+      "output/aisha-postmerge-20261118-b6344ca/english-source-duty.json",
+      "output/aisha-postmerge-20261118-b6344ca/english-source-duty.command.json",
+      "output/aisha-postmerge-20261118-b6344ca/english-source-duty.stdout.log"
+    ],
+    "reproduction": "python -B -X utf8 output/aisha-postmerge-20261118-b6344ca/probe_english_source_duty.py",
+    "reproduction_note": "The probe writes an exclusive JSON artifact and must be copied/configured with a fresh evidence destination for re-execution. Its recorded exit 1 is the reproduced security failure; do not overwrite the existing result.",
+    "repair_acceptance": [
+      "Define supported input languages explicitly and enforce source duty before general generation; unsupported municipal wording must produce guidance/refusal.",
+      "Add both-provider API regressions for these English cases, with the research service absent and enabled; prove no unsourced model dispatch/publication.",
+      "Retain Norwegian source-duty and ordinary supported programming/private-travel controls; cover language changes and short municipal follow-ups.",
+      "Preserve this failing evidence, run the identical counterexample and full regression after a scoped repair, freeze the exact patch, and obtain independent Verifier re-review. No fix is claimed in this audit."
+    ]
+  },
+  "scope": {
+    "application_changes": 0,
+    "test_suite_changes": 0,
+    "commits": 0,
+    "pushes": 0,
+    "source_requests": 0,
+    "genuine_model_calls": 0,
+    "paid_calls": 0
+  },
+  "independent_review": {
+    "existing_original_verifier_thread": "01a1d45f-b06f-7f72-a6db-71d305dd2c56",
+    "newer_verifier_thread": "01a1ee52-c48a-7bf2-9cd3-5173323d66ba",
+    "status": "Independent reproduction and final scoped verdict are recorded separately; this addendum is not self-approval."
+  },
+  "final_acceptance": "Human; A-level readiness is not established."
+}

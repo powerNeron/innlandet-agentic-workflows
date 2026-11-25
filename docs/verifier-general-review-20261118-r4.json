@@ -1,0 +1,196 @@
+{
+  "role": "Verifier & Quality Supervisor; read-only application review",
+  "overall_status": "FAIL",
+  "scope": "Exact uncommitted general-router frozen-v3 candidate; no production or A-grade approval",
+  "base_commit": "b6344ca97eb13cdb65c8f27e40709e6200c065f7",
+  "branch": "exam/final",
+  "implementer_manifest": "output/aisha-general-router-20261118-38be5b35/frozen-v3/manifest.json",
+  "implementer_manifest_sha256": "b5c7f8721a018b43c81a998c1c175fb4ff46e9bc903ca11cd31b353adf200e3d",
+  "review_snapshot": "output/verifier-general-20261118-r4/snapshot-manifest.json",
+  "evidence_root": "output/verifier-general-20261118-r4",
+  "version_scope": "All 13 reviewed files matched the Implementer freeze at collection; 277 source/context files were copied exclusively. All copied source hashes remained unchanged during the tests. Later working-tree changes are not approved by these results and require a new matching freeze/re-review.",
+  "independence": "This session previously authored the older audit documents and probe helpers. It does not independently approve that earlier work. Current production changes were written in a separate Implementer session; this review changed no production/test source and grants no global acceptance.",
+  "sanitized_instruction": "Continue the existing Verifier role without new agents. Review general source-aware routing, NO/EN, context changes, 46 municipalities, actual controlled-adapter answers, safety, UI, regression and exam requirements. No deletion, installation, paid API, commit or push.",
+  "areas": [
+    {
+      "area": "Architecture and broad routing",
+      "status": "FAIL",
+      "reason": "Separation of question plans, permissions, retrieval and verification is useful, but default intent decisions remain concept/regex driven and have reproduced freshness bypasses and general-topic overblocking. The optional local classifier does not establish general coverage."
+    },
+    {
+      "area": "V-01c exact English municipal fee counterexamples",
+      "status": "PASS",
+      "scope": "Both mocked adapters, research service absent/enabled, sources required or no-model refusal. Closure is limited to the reproduced forms in this exact freeze."
+    },
+    {
+      "area": "V-01b, V-02b, V-02c, V-03b and existing safety controls",
+      "status": "PASS",
+      "scope": "Named negative methods are included in the independently executed full offline suites. SSRF/DNS/TLS seam, redirect/robots/resource controls, injection, normalized privacy screening, revocation, cloud-source consent, budgets and kill switch pass controlled tests. No real-wire TLS/egress or general anonymity certification."
+    },
+    {
+      "area": "Current external facts",
+      "status": "FAIL",
+      "reason": "V-T02 remains independently reproduced in frozen-v3: 8 unsupported recent-date/weekday answer publications with no source calls."
+    },
+    {
+      "area": "Useful general answer delivery",
+      "status": "FAIL",
+      "reason": "10/16 fixed known-answer API contracts pass; Java/Rust and Norwegian geography are blocked as municipal requests. Responses were injected, so these are integration results, not genuine-model accuracy."
+    },
+    {
+      "area": "46-municipality register and synthetic service binding",
+      "status": "PASS",
+      "scope": "46 identity/host records match retained 2026-11-13 review metadata. All 46 resolve to their recorded identity; 36 representative service/institution contracts pass across six municipalities and both mocked adapters. The full suite also exercises all 46 with synthetic sources."
+    },
+    {
+      "area": "Real production coverage of 46 municipalities",
+      "status": "NOT VERIFIED",
+      "reason": "No fresh official source retrieval was performed. Registry metadata is not URL/paragraph approval or evidence that each site's current HTML works."
+    },
+    {
+      "area": "UI VM/DOM contracts",
+      "status": "PASS",
+      "scope": "25 groups cover local/provider choices including gpt-4.1-mini, default-off/gated search, history, pink return buttons, municipal mode, safe citations and errors. Both Python suites include UI contracts."
+    },
+    {
+      "area": "Native browser rendering and accessibility",
+      "status": "NOT VERIFIED",
+      "reason": "Three isolated Chrome attempts, including approved execution and a shorter profile path, stopped before DevTools. Logs retain GPU/profile diagnostics and the non-default-data-directory message. No screenshots or screen-reader result established."
+    },
+    {
+      "area": "Full Python regression",
+      "status": "PASS",
+      "scope": "689/689 on Python 3.12.10 and project Python 3.13.7; zero failures/errors/skips with sockets/DNS blocked. 20/20 general and 34/34 regional research contracts also pass."
+    },
+    {
+      "area": "Actual model answer quality and live OpenAI",
+      "status": "NOT VERIFIED",
+      "reason": "Only controlled adapters were used. No paid call, genuine inference or human quality score is fabricated."
+    },
+    {
+      "area": "Academic completeness and A-level readiness",
+      "status": "NOT VERIFIED",
+      "reason": "The official local assignment/rubric is available, but final student paper, authentic qualitative ratings, demo feedback, eight substantive meetings, complete appendices and clean public submission reproduction have not been verified here."
+    },
+    {
+      "area": "Preservation",
+      "status": "PASS",
+      "scope": "Reviewer writes only new audit/evidence files and isolated copies. No production edits, deletion, Git mutation, installation or paid call. main/COM2/history remain protected; concurrent Implementer edits are retained."
+    }
+  ],
+  "findings": [
+    {
+      "id": "V-T02",
+      "severity": "HIGH",
+      "status": "OPEN in reviewed frozen-v3",
+      "files": [
+        "hamar_agent/question_router.py:75",
+        "hamar_agent/question_router.py:235",
+        "hamar_agent/chat.py:483"
+      ],
+      "cases": [
+        "Hva ble resultatet i kampen på mandag?",
+        "Give me a recap of the news from 17 November 2026."
+      ],
+      "expected": "A changing recent event requires approved evidence or a clear limitation/clarification before answer dispatch. The absolute date is the day before this review.",
+      "actual": "8/8 provider/configuration executions return HTTP 200, one mocked answer-model dispatch, zero source requests and the injected unsupported 8765 answer. Plan kind=general, source_required=false. This is a control-flow finding, not a claim about a genuine model hallucinating.",
+      "controls": "The fixed yesterday/tomorrow and two-days-ago forms are separately preserved; the exact original V-01c cases are blocked.",
+      "evidence": "output/verifier-general-20261118-r4/temporal-date-results.json",
+      "reproducer": "output/verifier-general-20261118-r4/probe_temporal_dates.py",
+      "acceptance": "Preserve this red evidence. Fix the underlying temporal/epistemic classification for relative weekdays and recent absolute dates without making unrelated stable explanations source-dependent. Run these identical API cases on both adapters with/without research, full regression, and obtain exact-snapshot re-review. Do not describe two additional keywords as complete language understanding."
+    },
+    {
+      "id": "V-F02",
+      "severity": "MEDIUM",
+      "status": "OPEN in reviewed frozen-v3",
+      "files": [
+        "hamar_agent/question_router.py:235",
+        "hamar_agent/research.py:36",
+        "hamar_agent/chat.py:438"
+      ],
+      "cases": [
+        "Kan du forklare arv i Java?",
+        "Hvordan sorterer jeg en liste i Rust?",
+        "Hva er hovedstaden i Frankrike?",
+        "Hvor mange protoner finnes i Karbon?"
+      ],
+      "expected": "Stable programming/science/geography questions reach ordinary model knowledge when no current/local service fact is requested.",
+      "actual": "20 executions across these first-turn forms and a topic-change variant produce municipal guidance/refusal with no answer dispatch. The preposition plus capitalized token is treated as a municipal place. Known-answer integration independently fails 6/16 cases due to this routing.",
+      "evidence": [
+        "output/verifier-general-20261118-r4/routing-api-results.json",
+        "output/verifier-general-20261118-r4/answer-contract-results.json"
+      ],
+      "acceptance": "Separate named-entity role and municipal service intent from generic capitalization/location syntax. Preserve unknown-municipality fail-closed controls and new-topic context safety. Add varied language/domain controls, rather than an ever-growing list of permitted programming languages or countries."
+    },
+    {
+      "id": "G-01",
+      "severity": "MEDIUM",
+      "status": "Retained known Implementer limitation; not independently closed",
+      "description": "Unfamiliar nontechnical new subjects after municipal source context may clarify rather than switch. An explicit new-topic marker is a workaround, not complete natural topic switching."
+    },
+    {
+      "id": "V-C01",
+      "severity": "MEDIUM capability/coverage gap; not a source-authorization defect",
+      "status": "Coverage/approval gap",
+      "description": "The default policy contains zero general approved source documents and no public web-index provider. The new reviewed-catalog path works with mocked approved inputs, but does not supply broad real external coverage. Missing approvals must remain refusals, not stale/general-chat fallback.",
+      "acceptance": "Define a finite representative current-fact/source coverage contract, obtain the required concrete source/privacy/transfer rights, execute genuine version-bound source-only trials where authorized, and label unsupported subjects clearly. Do not crawl, renew approvals or call paid providers under this review.",
+      "priority": "P1 for the requested broad current-fact functionality"
+    },
+    {
+      "id": "V-F03",
+      "severity": "LOW",
+      "status": "OPEN in frozen-v3",
+      "description": "What is weather? is treated as a current-fact request and blocked in all four configurations, while an explicit Define weather form is exempt. This is a stable definition/wording false positive, separate from the 20 municipal-overblocking executions.",
+      "evidence": "output/verifier-general-20261118-r4/routing-api-results.json",
+      "acceptance": "Retain whole-question concept explanations without allowing an appended variable/dated factual request to bypass evidence."
+    }
+  ],
+  "result_adjudication": {
+    "routing_api_executions": 216,
+    "raw_routing_flags": "2 underspecified-context flags, 20 municipal-overblocking flags, and 4 stable-weather-definition flags; all raw observations are preserved.",
+    "important_correction": "The 2 unsourced flags are completeness follow-ups after a failed 422 first turn. That failed turn is absent from server history; these are underspecified-context/clarification cases, not independent proof of a municipal source bypass. They are excluded from the confirmed HIGH count. Raw labels/results are preserved unchanged.",
+    "confirmed_high_temporal_executions": "8/28 additional temporal-date executions against frozen-v3; 2 distinct questions x 2 adapters x 2 research states",
+    "private_cost_expectation": "R3 treats actual private flight/hotel prices as general source-dependent facts, matching the refined safety contract; they are not municipal T1 questions. R2's earlier private-price expectations remain archived and are not counted as a current functional defect.",
+    "scripted_known_answers": "10/16 pass, with mathematically/scientifically specified or code examples; not a population model-quality estimate",
+    "registry_positive_contracts": "36/36"
+  },
+  "academic_priorities": [
+    "Resolve the strict assignment no-personal-data boundary for transient HTML before claiming compliance. Owner approval and heuristic filtering do not waive the course constraint.",
+    "Define measurable positive/refusal outcomes and a bounded representative scope. Practically all legitimate subjects is not a checkable finite success criterion or an extra official rubric requirement.",
+    "Present genuine failures, stage-level propagation, repairs and identical-case/full-set regression for two selected official perturbation classes; distinguish mocks, real models, source acquisition and safe rejection from useful task completion.",
+    "Complete authentic human qualitative reviews with disagreement and material unsupported claims retained. Do not treat HTTP200, lexical checks, exact quotations or this review as semantic truth.",
+    "Verify the English 7–8-page student-controlled paper in the supplied NeurIPS2025 preprint template without checklist. Account for the built architecture and departures from COM2; include all five safe-operation measures and substantive reflection.",
+    "Verify at least eight authentic substantive meeting reports, genuine representative prompt corrections/rejections, raw output from one complete evaluation, mandatory demo participation and feedback/live failures. A promptlog DOCX exists; its existence does not establish complete/authentic appendices. Documents may exist outside this checkout.",
+    "Export approved raw evidence currently ignored under output/, reproduce normal and evaluation runs from a clean public submission, and verify the repository URL and immutable exam tag only after separate human authorization. No commit/tag/push is performed by this review."
+  ],
+  "collaboration": {
+    "implementer_thread": "01a1d45f-aab5-72d2-8327-21d5e458c13c",
+    "direct_messages": "Two attempts rejected: thread/resume failed; already has an active writer, code -32600.",
+    "fallback": "Deliver this report to the user for forwarding, as explicitly requested. Reviewer does not edit the production repair. Implementer should record the sanitized review summary/reference in the existing continuous final_exam/CHANGELOG.md when preparing the next freeze.",
+    "next_review": "New matching frozen manifest and exact red-case green evidence required before closing V-T02/V-F02. No PASS for later working-tree changes is inferred."
+  },
+  "final_acceptance": "Human; overall FAIL, no production or academic approval.",
+  "supersedes_review": "docs/verifier-general-review-20261118-r3.json",
+  "recorded_at": "2026-11-18T15:16:38.967143+00:00",
+  "method_corrections": [
+    "R1 source-copy collection omitted the newly untracked router while Implementer began work; it was not tested or used as a program-failure result. R2 includes untracked public modules.",
+    "R2 tested an earlier working candidate (686 methods). R3 tested frozen-v2 (689). R4 tests exactly frozen-v3 (689). Earlier red evidence is retained, not used to reject a later fix without re-execution.",
+    "The 2 completeness flags follow a failed 422 request absent from server history. They are not counted as demonstrated source-duty bypasses.",
+    "Private actual-price expectations were refined from general unsourced chat to general source-dependent facts; stable pricing explanations remain general."
+  ],
+  "verified_limits": {
+    "source_copy_file_count": 277,
+    "reviewed_candidate_file_count": 13,
+    "source_copy_unchanged_during_tests": true,
+    "controlled_answer_contracts": "10/16",
+    "routing_matrix_requests": 216,
+    "additional_temporal_requests": 28,
+    "representative_service_institution_requests": 36,
+    "browser_attempts": 3,
+    "browser_rendering_passes": 0,
+    "approved_general_source_documents": 0,
+    "genuine_model_calls": 0,
+    "paid_calls": 0,
+    "genuine_source_acquisition_trials": 0
+  }
+}

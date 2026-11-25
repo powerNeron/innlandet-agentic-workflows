@@ -1,10 +1,531 @@
 # Aisha Agent - Innlandet Agentic Workflows
 
-Aisha Agent (also named Hamar KommuneAgent in earlier records) is a two-student software project for KIUA-2003 at the University of Inland Norway. It helps residents and others seeking general, non-personal municipal service information for Hamar through independent service-search and AI question-answering forms.
+<!-- FINAL_EXAM_CURRENT_START -->
+
+## Final Exam - KIUA-2003
+
+**Aisha Agent - Innlandet Agentic Workflows**
+
+University of Inland Norway
+Final exam development status: 25 November 2026.
+
+Aisha is an AI-assisted municipal information and guidance system.
+Its purpose is to make public municipal services more accessible,
+particularly for elderly residents and users who need assistance
+finding information, applications and contact details.
+
+### Current functionality
+
+- Municipal service research for Hamar, Elverum and Gjøvik.
+- Norwegian-language question answering.
+- Municipality and locality recognition.
+- Context-aware follow-up questions.
+- Correction of selected municipal service spelling errors.
+- Dynamic discovery of public municipal information.
+- Official website navigation and alternative search strategies.
+- Source-grounded answers with traceable citations.
+- Direct links to municipal application forms.
+- Digital and paper application options where available.
+- Public institutional telephone numbers and click-to-call links.
+- Google Maps searches and directions to documented facilities.
+- Area-based map searches when exact addresses are unavailable.
+- Explicit uncertainty when information cannot be verified.
+- Local Ollama and optional OpenAI provider selection.
+- Separate conversation histories for the two model providers.
+
+### System architecture
+
+```mermaid
+flowchart TD
+    A[User question] --> B[Question routing]
+    B --> C[Municipality and context resolution]
+    C --> D[Public source discovery]
+    D --> E[Official HTTPS retrieval]
+    E --> F[HTML extraction and screening]
+    F --> G[Relevant evidence]
+    G --> H[Answer composition and verification]
+    H --> I[User interface]
+    I --> J[Official citations]
+    I --> K[Application links]
+    I --> L[Public telephone numbers]
+    I --> M[Google Maps]
+```
+
+The application separates source discovery, evidence extraction,
+verification and presentation. Search results and navigation links
+are not automatically treated as verified factual evidence.
+
+Municipal responses use source-grounded application logic.
+Model selection does not replace the underlying verification
+requirements.
+
+### Requirements
+
+- Python 3.12 or 3.13.
+- Ollama for local model inference.
+- Internet access for live municipal research.
+- Search dependencies listed in `requirements-search.txt`.
+- Node.js for frontend regression testing.
+- Optional OpenAI configuration for external model inference.
+
+The current local development environment uses Python 3.13.7.
+
+### Installation on Windows
+
+Run the following commands from the repository root:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+python -m pip install -r requirements-search.txt
+
+ollama pull llama3.2:3b
+ollama list
+```
+
+Ensure that Ollama is running before starting the application.
+
+### Start Aisha
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web --port 8127 --enable-live-research --model llama3.2:3b
+```
+
+Open the local website:
+
+http://127.0.0.1:8127/
+
+The application is intended for local execution.
+Live research requires an available network connection.
+
+### AI providers
+
+| Provider | Model | Purpose |
+| --- | --- | --- |
+| Ollama | llama3.2:3b | Local AI inference |
+| OpenAI | gpt-4.1-mini | Optional external AI inference |
+
+OpenAI requires explicit authorization and valid provider
+configuration. The application must not automatically switch
+to a paid external provider.
+
+See [AI provider configuration](docs/provider-configuration.md).
+
+Never commit API keys, credentials or personal information.
+
+### Example questions
+
+- Jeg vil på dagsenter i Ridabu?
+- Hvordan søker jeg?
+- Hvem kan jeg ringe?
+- Vis meg på kart.
+- Hva slags hjemmehjelp kan jeg få i Hamar?
+- Hvordan søker jeg om trygghetsalarm i Elverum?
+- Hvordan søker jeg SFO-plass i Gjøvik?
+- Hvilke dagtilbud finnes i Gjøvik?
+
+Follow-up questions can inherit the previously established
+municipality and service context.
+
+### Source verification and security
+
+Aisha uses controlled public HTTPS retrieval and evaluates
+municipal source content before presenting factual information.
+
+The implementation includes:
+
+- URL and destination validation.
+- Bounded network and document processing.
+- Robots.txt policy handling.
+- Public content and privacy screening.
+- HTML structure and contextual evidence checks.
+- Source provenance and retrieval timestamps.
+- Exact retained source evidence.
+- Restrictions on unsupported or ambiguous content.
+- Explicit authorization for external model processing.
+
+Official application links direct users to municipal systems.
+Aisha does not submit applications or collect the information
+required to complete them.
+
+Google Maps links are navigation aids. Area-based searches are
+not presented as verified street addresses.
+
+### Testing and evaluation
+
+Run the Python regression suite:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m unittest discover -s eval -p "test_*.py" -q
+```
+
+Run frontend regression tests:
+
+```powershell
+node harness/browser_smoke.cjs --unit
+```
+
+#### Latest documented evaluation results
+
+| Evaluation | Observed result |
+| --- | --- |
+| Targeted Python regression tests | 11/11 passed |
+| Frontend VM/DOM regression groups | 39/39 passed |
+| Broad live municipal API test | 9/9 HTTP 200 responses |
+| Broad live functional checks | 6/9 passed before subsequent corrections |
+| Targeted alarm and SFO live retest | 2/2 passed |
+| Gjøvik application navigation fallback | Passed source and component checks |
+
+The broad evaluation used actual municipal websites and the
+local application configured with Ollama.
+
+The subsequent targeted retest verified the corrected application
+procedures for safety alarms and SFO.
+
+The Gjøvik fallback provides actionable application instructions,
+direct forms and a separate official guidance link while retaining
+an explicit limitation concerning unverified conditions.
+
+These results represent successive tested development states,
+not a single final combined acceptance run.
+
+Frontend VM/DOM tests do not establish actual browser rendering
+or successful external navigation.
+
+### Main implementation files
+
+| File | Responsibility |
+| --- | --- |
+| `hamar_agent/question_router.py` | Question interpretation and context routing |
+| `hamar_agent/discovery.py` | Source discovery, relevance and answer composition |
+| `hamar_agent/internet_research.py` | Controlled public research pipeline |
+| `hamar_agent/live_research.py` | HTML extraction and source-content screening |
+| `hamar_agent/research.py` | Municipal registry and research policies |
+| `hamar_agent/chat.py` | Conversation and model orchestration |
+| `hamar_agent/web.py` | Local web application and HTTP API |
+| `hamar_agent/web_assets/app.js` | Frontend interaction and service actions |
+| `eval/test_internet_research.py` | Internet research regression tests |
+| `harness/browser_smoke.cjs` | Frontend regression testing |
+
+### Known limitations
+
+- Live research depends on external website availability.
+- Response times vary with retrieval, source size and model processing.
+- Municipal website changes may affect extraction.
+- Complete coverage of every municipal service is not established.
+- Some application conditions cannot be automatically extracted.
+- Some follow-up answers require improved service-subtype precision.
+- PDF forms are provided as links; their contents are not necessarily parsed.
+- Map searches do not guarantee an exact verified destination.
+- Live end-to-end OpenAI parity remains to be verified.
+- The latest complete regression run must be recorded separately.
+
+The system is designed to prefer documented uncertainty over
+unsupported claims.
+
+### Repository and development history
+
+- `main`: preserved Compulsory 2 baseline.
+- `exam/final`: final exam development.
+
+Development history is maintained in
+[final_exam/CHANGELOG.md](final_exam/CHANGELOG.md).
+
+The historical documentation below is retained for traceability.
+Where earlier implementation descriptions differ from this section,
+the dated Final Exam section describes the newer development state.
+
+<!-- FINAL_EXAM_CURRENT_END -->
+
+Aisha Agent (also named Hamar KommuneAgent in earlier records) is a two-student KIUA-2003 project at the University of Inland Norway. Its active municipal pilot covers Hamar, Elverum and Gjøvik; the register retains all 46 Innlandet municipalities. One web application provides local Ollama and OpenAI gpt-4.1-mini chat.
 
 The real-source workflow retrieves reviewed local excerpts, asks a local model to select one complete paragraph, verifies its source and exact wording, and returns an official citation or a refusal. It permits at most one correction followed by mandatory re-verification. This is an extractive prototype: evidence matching establishes traceability, not factual truth, complete municipal coverage or semantic verification of paraphrases.
 
 **Development status:** the walking skeleton, tests and historical evaluation evidence are retained for Compulsory 2 and continued development toward the final exam. This repository is not a completed or approved academic submission.
+
+## Current entry points and reproduction
+
+[Final readiness](final_exam/READINESS.md) is the current acceptance and evidence
+map; [CHANGELOG](final_exam/CHANGELOG.md) preserves the decisions. Dated sections
+below retain earlier implementation states and source-approval policies. Their
+test counts and permissions are not acceptance of today's working files.
+
+The public-source chat remains **NOT VERIFIED**: the last ordinary-terminal
+Elverum journey fetched HTML but returned `research_no_sources`. Current parser
+corrections still need a successful actual-source test and separate final review.
+An HTTP200 or a passing mock is insufficient. PDF and Office fact extraction are
+not supported; unsupported documents supply no facts. Unknown source text is
+untrusted, and source origin, context, conditions and transfer rights are checked.
+
+Use the repository root as the working directory. Offline operation needs only
+Python3.12 or3.13. These commands need no API key, model, local catalog or search
+package and do not overwrite historical evidence:
+
+```powershell
+python -B -X utf8 -m hamar_agent --fixture fixtures/water-synthetic.json
+python -B -X utf8 -m harness.offline_tests
+python -B -X utf8 -m harness.heldout_search_eval
+node harness/browser_smoke.cjs --unit
+```
+
+Node24.14.0 is the locally tested UI runtime. Node checks use a deterministic DOM
+model; browser rendering, mobile layout and screen readers need separate tests.
+CI now selects both Python versions and the Node UI contracts; the updated
+GitHub job itself has not yet run. For fresh quantitative/qualitative evaluation
+artifacts, use a new output directory for each run:
+
+```powershell
+python -B -X utf8 -m harness.request_bound_eval --output output/request-bound-review
+python -B -X utf8 -m harness.research_eval --output output/source-contract-review
+```
+
+The first command measures scripted source/model contracts and writes
+`dataset.json`, `raw.jsonl`, `metrics.json` and tablesT1–T8. Report task completion
+separately from correct refusals. Latency and correctness from scripted adapters
+are not genuine model/site performance. Qualitative usefulness needs review of
+actual answers. The second command runs synthetic source contracts without
+external retrieval or model calls. Existing output directories are refused.
+
+For automatic public research, use the existing `.venv` with
+[requirements-search.txt](requirements-search.txt) already installed, start
+Ollama with an installed server-allowed model, then run:
+
+```powershell
+.\.venv\Scripts\python.exe -B -X utf8 -m hamar_agent.web --enable-live-research --port 8000
+```
+
+Open <http://127.0.0.1:8000>. The five-step introduction leads to either chat;
+municipal research starts on Send. No per-question checkbox is needed. No model
+is downloaded automatically. Public search receives only screened, minimized
+queries. Reviewed local-source and synthetic modes remain explicit separate
+interfaces; they never replace failed real retrieval with fictional facts.
+
+On a clean machine, the following setup requires operator authorization and
+network access; it was **not executed** in this cleanup:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-search.txt
+```
+
+The tested Python3.12 standard-library environment does not prove
+that DDGS is installed there. Keep credentials out of commands, prompts and Git;
+`.env.example` documents settings, and `.env` files are not loaded automatically.
+OpenAI needs its optional SDK and explicit privacy/cost permissions. Tests here
+make no paid OpenAI call, and evidence transfer requires its own authorization.
+
+## Implementation history: public search, 23–24 November 2026
+
+The actual 2026-11-24 Elverum inspection identified an extraction defect: an
+outer page-level `form` wrapped `main/article`, so the parser dropped all their
+headings and prose. Empty table separators survived and produced two identical
+five-token units (SHA256
+`b17b577dc04aa345119d73dbbdb11ceca55a8dcd39e26feb4d7b1192b5b9e3f4`).
+The public parser now admits inert prose inside forms enclosing an explicit
+content root; forms starting inside content and all interactive controls remain
+excluded. An omitted control creates a barrier for every fact in its owning
+scope and descendants, including application instructions; independent sibling
+scopes remain separate. Hidden page-state inputs supply no evidence. Meaningless
+separator units are rejected and exact duplicates with identical topic context
+are removed. The strict historical reviewed parser and working search/HTTP
+transport remain unchanged.
+
+The existing `--stability-chat --inspect-source <exact official URL>` probe now
+requires an actually relevant, supported candidate before continuing to chat.
+HTTP200 plus successful parsing alone is not a pass. The first actual chat answer
+must cite that exact inspected URL. Diagnostics retain only hashes, tag ancestry,
+counts and closed flags, never HTML, field values or source paragraphs. Corrected
+real Elverum application guidance remains NOT VERIFIED until this changed parser
+passes the ordinary-terminal source and actual Ollama chat journey. Synthetic
+both-adapter checks do not prove real OpenAI inference or external transfer rights.
+
+The owner now authorizes ordinary public search and transient public retrieval
+without a fixed website or excerpt allowlist. `--enable-live-research` connects
+both existing chats to the same DDGS provider and request-bound HTML
+pipeline. Search starts on Send, without a per-question checkbox. A zero-entry
+reviewed catalog no longer blocks search. The previous reviewed-only workflows
+remain available separately; historical evidence below describes those versions.
+
+For known municipalities, the first query scopes to the official website; a
+second public query provides supplementary sources when needed. The three-city
+pilot and all 46 registry identities remain preserved. Other places and general
+information can use public search without being represented as verified pilot
+coverage. No service-specific answer table is used.
+
+Start with `python -m hamar_agent.web --enable-live-research`. DDGS9.16.1 is
+the default; it requires the separate [search requirements](requirements-search.txt).
+The owner installed DDGS in `.venv` and reported5 actual Elverum search results
+in ordinary PyCharm PowerShell. The earlier public SearXNG instance returned403.
+An optional `--search-url`/`HAMAR_SEARCH_URL` configures SearXNG first, with DDGS
+fallback under the same budget. No default SearXNG URL is required.
+
+Search now calls the installed package's public API:
+`DDGS(timeout=5, proxy=<controlled local gateway>, verify=True).text(query, max_results=5, backend=...)`.
+Production explicitly tries Yahoo, Brave, then DuckDuckGo, stopping at the first
+validated usable candidate set. Each engine runs in one isolated short-lived
+process; no private engine hooks or handwritten search protocol are used.
+This replaces DDGS's random `auto` engine selection, which spent the previous
+six-tunnel allowance on different engines between identical successful/failed
+queries. Yahoo was reached in the successful report but not the failure; this
+is an observed difference, not proof of a remote engine outage or TLS cause.
+The former private
+Brave GET/DuckDuckGo POST implementation is removed from the active adapter;
+its real PyCharm run failed at a DuckDuckGo202 response before document retrieval.
+HTTP202 is not accepted as evidence. Search-result snippets never become facts.
+
+Native DDGS runs in a short-lived child behind an authenticated loopback CONNECT
+gateway. The parent validates every DNS answer and pins one public address on443;
+private destinations and non-HTTPS proxy requests refuse. Each logical query has
+at most six tunnels and20seconds, split across at most three sequential engines
+with two tunnels and six seconds per attempt; a request has at most two logical queries,
+12search transport operations and8robots/document GETs (20operations total),
+with2MiB shared wire/body accounting. Search TLS
+bytes include both directions, **not** decompressed native HTML or HTTP request
+counts inside a tunnel. The native worker has a256MiB memory limit and bounded
+output, and is terminated on timeout/revocation. DDGS's ephemeral engine cookies
+stay within that worker; no user history, credentials or inherited proxy settings
+are supplied. Providers receive the minimized non-personal query and client IP.
+Document retrieval separately retains the existing DNS/TLS/robots, no-redirect,
+HTML-size, privacy, condition and provenance checks. No result URL bypasses them.
+
+Public document HTTP now validates the whole DNS snapshot before connecting,
+deduplicates and alternates IPv4/IPv6 candidates, and tries another address only
+when connection establishment fails. TLS still uses the original hostname/SNI
+through the unchanged `retrieval._pinned_public_connection`. Certificate/TLS
+failure, permission denial10013 and revocation stop; no HTTP request is replayed
+after headers/status/body failure,403, redirects or MIME refusal. Up to64source
+connection attempts share a request cap, separately from12search/8source GETs.
+
+Polite robots pacing is cooperative and outside the I/O watchdog, still inside
+the run deadline. Default I/O limits are DNS5seconds, TCP/TLS socket3seconds,
+read8seconds and30seconds shared per HTTP GET across all IP attempts and reads.
+Trusted configuration uses `HAMAR_HTTP_DNS_SECONDS`, `HAMAR_HTTP_CONNECT_SECONDS`,
+`HAMAR_HTTP_READ_SECONDS` and `HAMAR_HTTP_TOTAL_SECONDS`; finite caps and the
+existing run/worker/byte limits remain. Individual I/O workers remain below the
+unchanged10second watchdog; no outer worker consumes capacity while launching
+another. Responses arriving after timeout are closed through an atomic ownership
+handoff, and cleanup errors never replace an active security exception.
+
+The actual diagnostic `harness.research_eval --transport-chat --inspect-source
+<exact official URL> --query <public question> --output <new directory>` performs
+robots preflight, a stdlib urllib baseline with a validated pinned-DNS TCP creator
+and original-host TLS, then production PublicHTTP and closed DOM inspection.
+It disables inherited proxies/auth/cookies/redirects, records only whether a proxy
+configuration exists, and keeps no HTML or contacts. It therefore differs from
+an unrestricted `urlopen` that may inherit system proxies. After successful
+transport it runs15actual municipal chat questions (five per pilot city) and
+one national/public guidance case, with installed local Ollama and no paid cloud.
+It stops at the first missing source answer, reports executed/successful counts,
+and does not equate a planned matrix or HTTP200 with correct source-backed chat.
+Actual five-per-city coverage, current source parsing and publication remain
+NOT VERIFIED until that owner-terminal run and independent review succeed.
+
+Successful URL candidates are reused only within that request, never as cached
+facts across new chat turns. Repeated engine starts are spaced by six seconds;
+a closed SDK rate-limit signal causes a sixty-second engine backoff, not an
+assertion that the opaque search TLS stream exposed HTTP429. An isolated socket
+reset does not invalidate a successful candidate set. When engines cannot search
+and a municipality is known, its official homepage, robots sitemap declaration
+(or standard sitemap.xml path), one index child and relevant links may nominate
+URLs under the same eight-source-GET/2MiB/global deadline budget. Sitemap XML
+is never factual evidence; nominated HTML still passes all source checks.
+DTD/entities, external-host sitemap entries, private URLs and redirects refuse.
+
+For the updated actual owner-terminal journey run `harness.research_eval
+--stability-chat --query <municipal question> --output <new output directory>`.
+It repeats the same chat question three times with fresh request-bound retrieval,
+then tests other cities/topics and public guidance in the production CLI/API.
+It stops on the first missing source-backed answer, retains sanitized receipts
+and uses real local Ollama only. No paid OpenAI call is made. Repeated real
+search and useful source-backed responses are NOT VERIFIED until that succeeds.
+
+The controlled Codex query was blocked with WinError10013 before HTTP. The
+normal-terminal **production chat** probe is prepared as `harness.research_eval
+--live-chat`; it starts the existing CLI and uses actual DDGS/source retrieval
+and local Ollama, without paid OpenAI. Owner-reported native-DDGS search success
+does not prove this controlled adapter or source-backed chat works. These remain
+NOT VERIFIED until the actual probe succeeds. The new public-API adapter reached
+the gateway through the actual production chat API in Codex, then stopped with
+WinError10013 before HTTP/source retrieval. Local negative probes also confirmed
+that the installed native client uses the proxy and private DNS answers refuse.
+These are security/path checks, not a successful real search or source answer.
+PDF/Office is still unsupported.
+
+The latest normal-terminal failure reached six CONNECT tunnels but produced
+`worker_failed`; this does not identify TLS/timeout as the cause. The relay's
+independently reproduced write-half-close defect is corrected: one EOF no longer
+discards a later response. Closed diagnostics now include nested SDK error types,
+OS codes, process exit status, relay direction and timing. No raw errors/HTML leak.
+
+`harness.research_eval --ddgs-differential --query <public search text>
+--chat-query <natural question> --output <new output directory>` explicitly
+compares direct native DDGS and the production gateway with identical query and
+worker runtime/limits. This diagnostic belongs in normal PyCharm, never as a
+Codex network workaround or an automatic chat fallback. The direct baseline
+does not have the proxy's DNS/wire-byte accounting. If the gateway search
+succeeds, the same command tests actual chat/source retrieval and local Ollama;
+paid OpenAI stays disabled. Real source-backed chat is still NOT VERIFIED until
+that owner-terminal evidence succeeds. Local synthetic TLS transfer is a
+transport check, not successful public search or municipal coverage.
+
+The subsequent real A/B proof returned five identical candidate hashes through
+both routes. Actual chat then fetched robots and two HTML pages, but admitted
+no relevant content and exhausted the old combined12-operation ledger. Search
+and gateway code are retained. The public HTML profile now reads article-local
+headers, div paragraphs and unambiguous content roots; legacy exact-reviewed
+parsing keeps its strict profile. Topic metadata follows its own article/section
+scope and is evaluated separately from the original unit. It cannot donate
+question words to a sibling or bypass a different substantive subsection.
+Inflected application words and hyphenated subjects are supported, with strict
+price/date/footnote/privacy guards preserved. Candidate URLs/snippets alone do
+not document facts.
+
+All received HTML candidates and bounded relevant official links can be tried
+before another query. Search and source quotas remain separate, monotone and
+globally finite; two source operations are reserved for public fallback. Valid
+partial guidance is retained instead of triggering an unnecessary second search.
+PDF/Office candidates are skipped without failing the whole collection. Neither
+Python environment has a maintained PDF parser or an available pdftotext tool;
+PDF extraction/facts remain unsupported, not automatically enabled by a MIME.
+Actual updated source-backed chat still requires the normal-terminal probe.
+
+The subsequent actual stability report confirms official root/sitemap/article
+HTTP200 but only two units, both irrelevant, with zero extracted headings.
+The exact served DOM cause is not inferred from those counts. Two reproduced
+content holes are corrected: a single unambiguous article may use its fetched
+HTML title for topic nomination, and relevance/support share the same procedure
+inflection signal. Topic metadata does not supply prices/years or override other
+headings or an explicit different application object. Aliased visible headings
+also require coherence with the fetched page title; URLs alone cannot override
+an explicit different service. The source-only inspection option below measures
+the actual layout without guessing CMS structure or changing search transport.
+
+Use `--stability-chat --inspect-source <exact official service URL> --query
+<public question> --output <new directory>` in `harness.research_eval` to first
+inspect that source via the existing public HTTPS/robots path, then test the
+actual chat. Inspection retains only standard-tag ancestry/active/blocked/form
+flags, finite counters, hashes and procedure/relevance/support booleans. It saves
+neither HTML, source paragraphs, attribute values nor individual contacts, and
+does not confer factual approval. An HTTP/robots failure stops the probe. Actual
+DOM attribution, corrected source-backed answers and V-C01 stay NOT VERIFIED
+until the new normal-terminal result and independent review are available.
+
+Only locally relevant, screened whole HTML units enter evidence. Search snippets
+never become facts. Official origin, dates, conditions, price-year context,
+footnotes and conflicts remain distinct checks. Responses quote source units,
+give direct links and retrieval timestamps, and make no completeness claim.
+TLS/DNS/private-address checks, robots, redirect refusal, finite shared budgets
+and revocation apply. The filter does not prove arbitrary pages anonymous or
+factually correct. PDF/Office extraction is **unsupported** without a separately
+reviewed parser. OpenAI source transfer still needs separate URL/content rights;
+without them, source excerpts can be displayed locally without calling OpenAI.
+No paid API, account, model download or dependency is enabled by public search.
+
+See [diagnosis, implemented boundaries and pending scalable policy](docs/research-discovery-policy.md).
+The unchanged consent, cost, two-model UI and separate history rules below apply.
+No uncontrolled crawling or paid requests are enabled. V-C01 and real chat
+acceptance remain open until successful source-backed journeys are documented.
 
 ## Current Innlandet research and UI preparation (2026-11-12)
 
@@ -180,7 +701,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe --version
 ```
 
-No package installation is required for the default local paths. OpenAI is an optional external provider, disabled by default. Install its separate [requirements](requirements-openai.txt) only after external processing has been explicitly authorized; follow the [provider configuration guide](docs/provider-configuration.md). No provider automatically falls back to a paid service.
+Offline and general Ollama chat need no package installation. Automatic public search additionally uses [requirements-search.txt](requirements-search.txt), pinned to the owner's existing DDGS9.16.1 environment. DDGS and its pinned dependencies declare Python3.12/3.13 compatibility; actual installed-package testing here is on3.13. The3.12 environment has no DDGS/lxml installed, so its optional installed-parser check is explicitly skipped, not called an actual3.12 DDGS pass. OpenAI is an optional external provider, disabled by default. Install its separate [requirements](requirements-openai.txt) only after external processing has been explicitly authorized; follow the [provider configuration guide](docs/provider-configuration.md). No provider automatically falls back to a paid service. No installation was performed by the agent.
 
 The application reads process environment variables. [.env.example](.env.example) is a reference; the application does not load `.env` files. Keep credentials in ignored local configuration and never commit them.
 
@@ -2160,3 +2681,48 @@ Et mislykket «Ny samtale» huskes separat per modell. Modellbytte kan ikke opph
 ## Integrert Ollama-kildegrensesnitt (23. november 2026)
 
 JeppeGs sitt bidrag fra `511b0287b62368181f52bc70de95398eb99b6195` er kombinert med den gjennomgåtte lokale Aisha-kandidaten. Kildeadapteren for Ollama sender en egen betrodd systemmelding og en egen brukermelding med strukturert JSON for tittel og kildeavsnitt. Kildetekst er fortsatt ubetrodde data. Eksisterende grenser for UTF-8-inndata, forespørsler, svar, tid og generering beholdes. Endringen gjelder også de gjennomgåtte tjenesteutdragene; den gir ingen ny kilde- eller OpenAI-overføringsgodkjenning. Begge chattene, modellbankene, pilotavgrensningen og tidligere sikkerhetsrettinger er bevart. Integrasjonsbevis og ny eksakt regresjon finnes i `output/aisha-integrated-20261123-f451a619/`.
+
+<!-- AISHA_FINAL_RELEASE_20261125 -->
+
+## Final exam release - 25 November 2026
+
+Aisha is an independent AI student prototype for Hamar,
+Elverum and Gjovik.
+
+### Implemented functionality
+
+- Five-step accessible introduction and simplified chat interface.
+- Explicit selection of Ollama llama3.2:3b or OpenAI gpt-4.1-mini.
+- Separate conversation histories for the two providers.
+- Automatic public information retrieval.
+- Optional native OpenAI web search.
+- Source citations, application links, public telephone actions
+  and map navigation where supported.
+- Request-bound source checks, privacy screening and bounded execution.
+- Legacy municipal portal retained internally but hidden from public navigation.
+
+### Final regression
+
+- Python offline suite: 899/899 passed (175.237 seconds).
+- Deterministic Node VM/DOM regression: 39/39 passed.
+- Native OpenAI integration regression: 6/6 passed.
+- These automated results do not establish live factual accuracy
+  or complete browser accessibility.
+
+### Observed limitations
+
+Live tests demonstrated useful municipal guidance and cultural
+information retrieval, but coverage remains incomplete.
+Building-related questions exposed relevance and regulatory
+interpretation weaknesses. Waste-disposal questions in Gjovik
+were not successfully answered by either provider in the final
+live retest.
+
+Native OpenAI citations are not independently verified by Aisha.
+Local excerpt verification establishes source correspondence,
+not factual truth.
+
+OpenAI processes submitted questions externally when enabled,
+and API usage may incur charges. Do not submit personal data.
+The application is a student prototype, not an official
+municipal service.

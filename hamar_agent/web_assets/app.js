@@ -262,7 +262,7 @@ function renderAnswer(answer) {
   const linkedUrls = new Set();
   claims.forEach((claim) => {
     const article = item(container, "article", ""); article.className = "answer-claim";
-    item(article, "p", findings.length ? "AI-SVAR · KREVER VURDERING" : result.evidence_policy === "whole_reviewed_paragraph_verbatim" ? "KILDEUTDRAG VALGT AV AI" : "AI-SVAR").className = "answer-label";
+    item(article, "p", findings.length ? "AI-SVAR · KREVER VURDERING" : result.provider === "application:source-excerpts" ? "KILDEUTDRAG FRA AISHA" : result.evidence_policy === "whole_reviewed_paragraph_verbatim" ? "KILDEUTDRAG VALGT AV AI" : "AI-SVAR").className = "answer-label";
     item(article, "p", claim.text).className = "answer-text";
     const sources = answer.citations.filter((citation) => citation.paragraph_id === claim.paragraph_id);
     if (claim.evidence_quote) {
@@ -661,7 +661,7 @@ function updateChatControls() {
   $("chat-search-control").hidden = true;
   $("chat-web-search").checked = false;
   $("chat-processing").textContent = choice?.provider === "openai"
-    ? "Valgfri betalt AI · meldinger behandles av OpenAI."
+    ? ""
     : "";
   $("chat-processing").hidden = !choice || choice.provider !== "openai";
   renderModelChoices("chat-model-choices", "chat-provider", chatChoices, chatLoading || chatResetting || chatChecking);
@@ -672,7 +672,7 @@ function updateChatControls() {
   $("chat-cost-notice").hidden = choice?.provider !== "openai";
   if (homeSelection) {
     $("chat-selected-model").textContent = homeSelection === "openai"
-      ? "Aisha – ChatGPT mini (gpt-4.1-mini)" : "Aisha – Lokal AI (Ollama)";
+      ? "Aisha – ChatGPT mini" : "Aisha – Lokal AI (Ollama)";
     $("chat-log").hidden = !choice;
   }
 }
@@ -688,9 +688,18 @@ function renderSourceChecks(parent, answer) {
     }
     return parsed.toLocaleString("nb-NO", { timeZone: "Europe/Oslo" });
   };
+  const displayedChecks = new Set();
   answer.source_receipts.slice(0, 4).forEach((source) => {
     const checked = format(source.retrieved_at);
     if (!checked) return;
+    const checkKey = JSON.stringify([
+      checked,
+      format(source.published_at),
+      format(source.updated_at),
+      source.effective_periods || []
+    ]);
+    if (displayedChecks.has(checkKey)) return;
+    displayedChecks.add(checkKey);
     const box = item(parent, "div", ""); box.className = "source-check source-meta";
     item(box, "p", "Kilde kontrollert: " + checked);
     item(box, "p", "Publisert: " + (format(source.published_at) || "ikke oppgitt")
@@ -700,7 +709,9 @@ function renderSourceChecks(parent, answer) {
     item(box, "p", "Gyldighetsperiode oppgitt i kilden: " + (periods.join(", ") || "ikke oppgitt"));
   });
   if (Array.isArray(answer.source_cautions)) answer.source_cautions.slice(0, 2).forEach((text) => {
-    if (typeof text === "string") item(parent, "p", text.slice(0, 200)).className = "verification-note";
+    if (typeof text === "string"
+        && !(typeof answer.text === "string" && answer.text.includes(text)))
+      item(parent, "p", text.slice(0, 200)).className = "verification-note";
   });
 }
 function renderChatMessage(message) {
@@ -716,7 +727,74 @@ function renderChatMessage(message) {
   }
   const bubble = item(row, "div", ""); bubble.className = "chat-bubble";
   item(bubble, "span", message.role === "user" ? "Du" : "Aisha").className = "chat-author";
-  item(bubble, "p", message.text).className = "chat-text";
+  const readableText = message.role !== "user"
+    && message.research_verified === true
+    && typeof message.text === "string"
+    ? message.text.replace(/ \| /gu, " \u2013 ")
+    : message.text;
+  let displayText = readableText;
+
+  if (message.role !== "user" && typeof displayText === "string") {
+    displayText = displayText.replace(
+      /\n\nKildene er funnet med OpenAI-netts\u00f8k\. Opplysningene er ikke uavhengig kontrollert av Aisha\.$/u,
+      ""
+    );
+
+    if (Array.isArray(message.citations)) {
+      const urls = new Set(message.citations.map(c => c.url));
+
+      displayText = displayText.replace(
+        /\(\[[^\]\r\n]+\]\((https:\/\/[^\s)]+)\)\)/gu,
+        (match, url) => urls.has(url) ? "" : match
+      );
+    }
+  }
+
+  item(bubble, "p", displayText).className = "chat-text";
+
+  if (
+    message.role !== "user"
+    && message.response_origin === "model"
+    && message.web_search_used
+    && message.research_verified !== true
+    && Array.isArray(message.citations)
+    && message.citations.length
+    && typeof displayText === "string"
+  ) {
+    const addresses = [...new Set(
+      [...displayText.matchAll(
+        /^\s*Bes\u00f8ksadresse:\s*([^\r\n]+)$/gmu
+      )].map(m => m[1].trim())
+    )].slice(0, 5);
+
+    addresses.forEach(address => {
+      if (
+        address.length > 160
+        || !/^[\p{L} .,'\u2019-]+\d{1,4}[\p{L}]?,\s*\d{4}\s+[\p{L} .-]+$/u.test(address)
+      ) return;
+
+      const box = item(bubble, "div", "");
+      box.className = "service-navigation";
+
+      const map = new URL("https://www.google.com/maps/search/");
+      map.searchParams.set("api", "1");
+      map.searchParams.set("query", address);
+
+      const mapLink = item(box, "a", "\u00c5pne kart: " + address);
+      mapLink.href = map.href;
+      mapLink.target = "_blank";
+      mapLink.rel = "noopener noreferrer";
+
+      const route = new URL("https://www.google.com/maps/dir/");
+      route.searchParams.set("api", "1");
+      route.searchParams.set("destination", address);
+
+      const routeLink = item(box, "a", "Veibeskrivelse");
+      routeLink.href = route.href;
+      routeLink.target = "_blank";
+      routeLink.rel = "noopener noreferrer";
+    });
+  }
   if (message.role !== "user" && Array.isArray(message.municipality_choices)) {
     const choices = item(bubble, "div", ""); choices.className = "chat-prompts";
     const allowed = new Map([["hamar", "Hamar"], ["elverum", "Elverum"], ["gjovik", "Gjøvik"]]);
@@ -729,7 +807,9 @@ function renderChatMessage(message) {
       });
     });
   }
+  const displayedServiceUrls = new Set();
   if (message.role !== "user" && Array.isArray(message.service_links)) {
+    const displayedLinks = new Set();
     message.service_links.slice(0, 4).forEach((link) => {
       try {
         const url = new URL(link.url), today = new Date().toISOString().slice(0, 10);
@@ -737,9 +817,142 @@ function renderChatMessage(message) {
             || url.username || url.password || url.search || url.hash || url.href.includes("%")
             || link.content_verified !== false || !["service", "application"].includes(link.purpose)
             || !/^\d{4}-\d{2}-\d{2}$/u.test(link.approval_expires) || link.approval_expires < today) return;
+        const matchedCitation = message.research_verified === true
+            && message.web_search_used === true
+            && Array.isArray(message.citations)
+            ? message.citations.find(citation =>
+                citation && citation.url === link.url)
+            : null;
+        const linkKey = JSON.stringify([url.href, link.purpose]);
+        if (displayedLinks.has(linkKey)) return;
+        displayedLinks.add(linkKey);
         const box = item(bubble, "div", ""); box.className = "service-navigation";
-        item(box, "p", "Godkjent offisiell lenke. Innholdet på målsiden er ikke faktakontrollert i dette svaret.");
-        const anchor = item(box, "a", link.purpose === "application" ? "Gå til søknad" : "Åpne kommunens tjenesteside");
+        if (!matchedCitation)
+          item(box, "p", "Offisiell lenke. Innholdet er ikke bekreftet.");
+        const anchor = item(box, "a",
+          link.purpose === "application"
+            ? "G\u00e5 til s\u00f8knad"
+            : matchedCitation && matchedCitation.title
+              ? "\u00c5pne " + matchedCitation.title
+              : "\u00c5pne kommunens tjenesteside");
+        displayedServiceUrls.add(url.href);
+
+        if (message.research_verified === true
+            && message.web_search_used === true) {
+
+          if (Array.isArray(link.public_phones)) {
+            link.public_phones.slice(0, 3).forEach(contact => {
+              if (!contact || typeof contact.label !== "string"
+                  || !/^[23567]\d{7}$/u.test(contact.number)) return;
+
+              const number = contact.number.match(/.{2}/g).join(" ");
+              const phone = item(box, "a",
+                "Ring " + contact.label + ": " + number);
+
+              phone.href = "tel:+47" + contact.number;
+              phone.setAttribute("aria-label",
+                "Ring " + contact.label + " " + number);
+            });
+          }
+
+          if (matchedCitation && Array.isArray(link.application_actions)) {
+            const domain = url.hostname.replace(/^www\./u, "");
+
+            link.application_actions.slice(0, 3).forEach(action => {
+              try {
+                const form = new URL(action.url);
+
+                if (form.protocol !== "https:"
+                    || form.username || form.password || form.port
+                    || form.hash
+                    || !(form.hostname === domain
+                        || form.hostname.endsWith("." + domain))
+                    || typeof action.label !== "string"
+                    || action.label.length > 220) return;
+
+                const a = item(box, "a", action.label);
+                a.href = form.href;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+              } catch (_) {}
+            });
+          }
+
+          if (matchedCitation && Array.isArray(link.map_area_searches)) {
+            link.map_area_searches.slice(0, 8).forEach(query => {
+              if (typeof query !== "string"
+                  || query.length > 160) return;
+
+              const search = new URL(
+                "https://www.google.com/maps/search/"
+              );
+
+              search.searchParams.set("api", "1");
+              search.searchParams.set("query", query);
+
+              const a = item(box, "a",
+                "S\u00f8k etter tilbud i kart: " + query);
+
+              a.href = search.href;
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+            });
+          }
+
+          if (matchedCitation && Array.isArray(link.map_destinations)) {
+            link.map_destinations.slice(0, 5).forEach(destination => {
+              if (typeof destination !== "string"
+                  || destination.length > 160) return;
+
+              const search = new URL(
+                "https://www.google.com/maps/search/"
+              );
+
+              search.searchParams.set("api", "1");
+              search.searchParams.set("query", destination);
+
+              const route = new URL(
+                "https://www.google.com/maps/dir/"
+              );
+
+              route.searchParams.set("api", "1");
+              route.searchParams.set("destination", destination);
+
+              const map = item(box, "a",
+                "Vis p\u00e5 kart: " + destination);
+
+              map.href = search.href;
+              map.target = "_blank";
+              map.rel = "noopener noreferrer";
+
+              const directions = item(box, "a",
+                "Veibeskrivelse: " + destination);
+
+              directions.href = route.href;
+              directions.target = "_blank";
+              directions.rel = "noopener noreferrer";
+            });
+          }
+
+          if (matchedCitation
+              && !Array.isArray(link.map_destinations)
+              && typeof link.map_query === "string"
+              && link.map_query.length <= 140) {
+
+            const destination = new URL(
+              "https://www.google.com/maps/search/"
+            );
+            destination.searchParams.set("api", "1");
+            destination.searchParams.set("query", link.map_query);
+
+            const map = item(box, "a",
+              "S\u00f8k etter tjenesten p\u00e5 kart");
+
+            map.href = destination.href;
+            map.target = "_blank";
+            map.rel = "noopener noreferrer";
+          }
+        }
         anchor.href = url.href; anchor.target = "_blank"; anchor.rel = "noopener noreferrer";
         if (link.purpose === "application") item(box, "p", "Du har ikke søkt om tjenesten ved å åpne lenken.");
       } catch (_) { /* Metadata never authorizes arbitrary destinations. */ }
@@ -751,11 +964,18 @@ function renderChatMessage(message) {
     for (let i = 0; i < 3; i++) item(dots, "i", "");
   }
   if (message.role !== "user" && !message.pending && !message.welcome) {
-    renderSourceChecks(bubble, message);
-    item(bubble, "p", message.ai_generated === false ? "Veiledning fra Aisha · ikke kildekontrollert" : "AI-generert svar · kan inneholde feil").className = "chat-answer-label";
-    if (message.web_search_used) item(bubble, "p", message.research_verified === true
-      ? "Kontrollert mot oppgitte kilder · ikke kommunal verifisering eller sannhetsgaranti"
-      : "Kilder fra nettsøk · ikke kommunalt kildekontrollert").className = "chat-answer-label";
+    // Source diagnostics remain available in the backend.
+
+    if (message.web_search_used) {
+      const sourceDetails = item(bubble, "details", "");
+      sourceDetails.hidden = true;
+      item(sourceDetails, "summary", "Kildegrunnlag og kontroll");
+      renderSourceChecks(sourceDetails, message);
+      item(sourceDetails, "p", message.research_verified === true
+        ? "Kontrollert mot oppgitte kilder \u00b7 ikke kommunal verifisering eller sannhetsgaranti"
+        : "Kilder fra netts\u00f8k \u00b7 ikke kommunalt kildekontrollert"
+      ).className = "chat-answer-label";
+    }
     if (message.web_search_used && Array.isArray(message.citations)) {
       const list = item(bubble, "ul", ""); list.className = "chat-citations";
       message.citations.forEach((citation) => {
@@ -767,6 +987,7 @@ function renderChatMessage(message) {
               || labels.some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u.test(label))
               || /^(?:0x[0-9a-f]+|[0-9]+)$/u.test(labels.at(-1))) return;
           url.hostname = host;
+          if (displayedServiceUrls.has(url.href)) return;
           const li = item(list, "li", ""), link = item(li, "a", citation.title || url.hostname);
           link.href = url.href; link.target = "_blank"; link.rel = "noopener noreferrer";
         } catch (_) { /* Never turn untrusted schemes into links. */ }
@@ -882,7 +1103,7 @@ async function loadChat() {
       : pausedCloud.reason || "OpenAI må klargjøres av den som drifter tjenesten. Du kan fortsatt bruke lokal AI."
       : pausedAdvanced ? "Utvidet AI er ikke aktivert. OpenAI-alternativet i listen kan fortsatt velges." : "";
     $("chat-search-help").textContent = chatSearchAllowed
-      ? "Bruk bare godkjente offentlige kilder når du trenger oppdatert informasjon."
+      ? ""
       : "";
     $("chat-search-help").hidden = !chatSearchAllowed;
     chatReady = true;
@@ -951,7 +1172,7 @@ async function sendChat(retry = false) {
     if (generation !== chatGeneration) return;
     pending.remove(); renderChatMessage(response.reply); chatRevision = response.revision; chatLastRequest = null;
     chatProviderErrors.delete(choice.provider + "|" + choice.model); refreshChatLabels();
-    $("chat-status").textContent = response.turns >= 8 ? "Start en ny samtale når du vil fortsette." : response.reply.web_search_used ? "Aisha har svart med kilder fra nettsøk." : "Du kan gjerne stille et oppfølgingsspørsmål.";
+    $("chat-status").textContent = response.turns >= 8 ? "Start en ny samtale når du vil fortsette." : response.reply.web_search_used ? "" : "Du kan gjerne stille et oppfølgingsspørsmål.";
   } catch (error) {
     if (generation !== chatGeneration) return;
     pending.remove();

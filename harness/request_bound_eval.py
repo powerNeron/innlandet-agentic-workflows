@@ -6,7 +6,6 @@ human usefulness, genuine model variance or cloud/local model performance.
 """
 import argparse
 from dataclasses import asdict, replace
-from datetime import datetime, timezone
 import csv
 import hashlib
 import importlib.util
@@ -19,8 +18,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from eval.evaluate_verification import percent, latency_summary
-from eval.test_source_updates import (FIXTURE_TEXT, FIXTURE_RAW, FIXTURE_ROBOTS, FIXTURE_URL,
-                                      fixture_approval, fixture_index)
+from eval.test_source_updates import FIXTURE_TEXT, FIXTURE_RAW, FIXTURE_ROBOTS, fixture_approval
 from hamar_agent.ollama_provider import OllamaClient, OllamaConfig, OllamaError
 from hamar_agent.openai_provider import OpenAIClient, OpenAIConfig
 from hamar_agent.real_sources import MunicipalWorkflowService
@@ -29,7 +27,7 @@ from hamar_agent.search import index_document, SearchIndex
 from hamar_agent.schemas import Source, Paragraph
 from hamar_agent.html_extract import service_candidates
 from hamar_agent.web import WebApplication
-from hamar_agent.run_control import RunPolicy, RunStopped, run_scope, current_run, active_workers
+from hamar_agent.run_control import RunPolicy, RunStopped, run_scope, active_workers
 
 CURRENT_TEXT='Fiktivt oppdatert testutdrag om vann. Testgebyret er 300 kroner.'
 CURRENT_RAW=('<main><p>'+CURRENT_TEXT+'</p></main>').encode()

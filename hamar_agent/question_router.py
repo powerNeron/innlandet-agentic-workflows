@@ -82,6 +82,273 @@ def canonical_question(question):
     return ' '.join(text.split())
 
 
+
+SERVICE_FAMILIES = (('dagsenter', 'dagopphold', 'dagaktivitetstilbud', 'dagtilbud', 'dagsaktivitetstilbud', 'dagaktivitet'), ('sfo', 'skolefritidsordning'), ('sykehjem', 'sjukeheim'), ('barnehage', 'barnehageplass'), ('renovasjon', 'avfallsinnsamling'))
+
+def service_families(text):
+    return tuple(
+        family for family in SERVICE_FAMILIES
+        if any(re.search(
+            r'(?<!\w)'+re.escape(term)+r'(?!\w)',
+            text,re.I
+        ) for term in family)
+    )
+
+def service_alias_text(text):
+    for family in SERVICE_FAMILIES:
+        pattern=r'(?<!\w)(?:'+ '|'.join(
+            re.escape(w) for w in sorted(
+                family,key=len,reverse=True
+            )
+        )+r')(?!\w)'
+        text=re.sub(pattern,family[0],text,flags=re.I)
+    return text
+
+def one_edit(a,b):
+    if a==b or abs(len(a)-len(b))>1:
+        return False
+    if len(a)==len(b):
+        differences=[i for i,(x,y) in enumerate(zip(a,b)) if x!=y]
+        return len(differences)==1 or (
+            len(differences)==2
+            and differences[1]==differences[0]+1
+            and a[differences[0]]==b[differences[1]]
+            and a[differences[1]]==b[differences[0]]
+        )
+    if len(a)>len(b):
+        a,b=b,a
+    return any(b[:i]+b[i+1:]==a for i in range(len(b)))
+
+def correct_municipal_spelling(question):
+    cities=("hamar","elverum","gj\u00f8vik","gjovik")
+    services={
+        value.casefold() for _,value in CONCEPTS
+        if value.isalpha() and len(value)>=5
+    }
+    services.update(
+        value for family in SERVICE_FAMILIES
+        for value in family if len(value)>=5
+    )
+    words=re.findall(r'[^\W\d_]+',question.casefold())
+
+    def unique(word,vocabulary,*,completion=False):
+        if word in vocabulary or len(word)<5:
+            return None
+        found={
+            value for value in vocabulary
+            if one_edit(word,value)
+            or (
+                completion and len(word)>=6
+                and value.startswith(word)
+                and 1<=len(value)-len(word)<=2
+            )
+        }
+        if found=={"gjovik","gj\u00f8vik"}:
+            return "gj\u00f8vik"
+        return next(iter(found)) if len(found)==1 else None
+
+    city_context=any(
+        w in cities or unique(w,cities) for w in words
+    )
+    service_context=any(
+        w in services or unique(w,services,completion=True) for w in words
+    )
+
+    if not city_context or not service_context:
+        return question
+
+    def correct(match):
+        word=match[0]
+        lower=word.casefold()
+        if lower in cities or lower in services:
+            return word
+        return unique(lower,cities) or unique(lower,services,completion=True) or word
+
+    return re.sub(r'[^\W\d_]+',correct,question)
+
+def municipal_query(question):
+    return correct_municipal_spelling(canonical_question(question))
+
+def alternative_service_query(question):
+    families=service_families(question)
+    if len(families)!=1 or re.search(
+        r'\b(?:ikke|ikkje|not)\b',question,re.I
+    ):
+        return question
+    family=families[0]
+    for term in family:
+        if re.search(r'(?<!\w)'+re.escape(term)+r'(?!\w)',question,re.I):
+            alternative=next(w for w in family if w!=term)
+            return re.sub(
+                r'(?<!\w)'+re.escape(term)+r'(?!\w)',
+                alternative,question,flags=re.I
+            )
+    return question
+
+
+
+def municipal_answer_intent(question):
+    """Classify requested information without confusing contact and eligibility."""
+
+    patterns=(
+        (
+            "application",
+            r"\b(?:s\u00f8k(?:e|er|nad(?:en|er)?)|apply|applications?)\b"
+        ),
+        (
+            "price",
+            r"\b(?:pris\w*|koster|kostnad\w*|gebyr\w*|costs?|fees?)\b"
+        ),
+        (
+            "eligibility",
+            r"\b(?:vilk\u00e5r\w*|krav\w*|"
+            r"hvem\s+kan\s+(?:s\u00f8ke|f\u00e5|motta|"
+            r"benytte|bruke|delta|ha)|"
+            r"who\s+can\s+apply|eligib\w*|requirements?)\b"
+        ),
+        (
+            "deadline",
+            r"\b(?:frist\w*|deadline\w*)\b"
+        ),
+        (
+            "hours",
+            r"\b(?:\u00e5pningstid\w*|n\u00e5r\s+\u00e5pner|opening hours)\b"
+        ),
+        (
+            "location",
+            r"\b(?:hvor\s+ligger|bes\u00f8ksadresse|adresse|where is|location)\b"
+        )
+    )
+
+    matches=[
+        (m.start(),m.end(),intent)
+        for intent,pattern in patterns
+        for m in re.finditer(pattern,question,re.I)
+    ]
+
+    eligibility_spans=[
+        (start,end)
+        for start,end,intent in matches
+        if intent=="eligibility"
+    ]
+
+    found=[
+        (start,intent)
+        for start,end,intent in matches
+        if not (
+            intent=="application"
+            and any(
+                start>=a and end<=b
+                for a,b in eligibility_spans
+            )
+        )
+    ]
+
+    return max(found)[1] if found else "overview"
+
+
+def procedural_evidence(text):
+    parts = text.split(" | ")
+    return any(
+        len(part.split()) >= 5
+        and re.search(
+            r"\b(?:s\u00f8ker|s\u00f8ke|fyll(?:er)? ut|"
+            r"send(?:er)? inn|apply|complete|submit)\b",
+            part,re.I
+        )
+        for part in parts
+    )
+
+
+
+def navigation_only(text):
+    leaf=text.rsplit(" | ",1)[-1].strip()
+
+    if len(leaf.split())>20:
+        return False
+
+    return bool(re.fullmatch(
+        r"(?:les mer(?:\s+(?:informasjon\s+)?om\s+[^.!?;|]{1,120})?"
+        r"(?:\s+her)?|les mer her|klikk her|se mer|"
+        r"tips en venn|skriv ut|del siden|"
+        r"read more(?:\s+about\s+[^.!?;|]{1,120})?|"
+        r"click here|share this page|print this page)"
+        r"\s*[.!]?",
+        leaf,re.I
+    ))
+
+def intent_evidence(text,intent):
+    if navigation_only(text):
+        return False
+
+    if intent=="application":
+        return procedural_evidence(text)
+
+    if intent=="price":
+        return bool(re.search(
+            r"\d[\d .,]*\s*(?:kr\b|kroner\b|,-)"
+            r"|\b(?:kr\.?|NOK)\s*\d"
+            r"|\b(?:gratis|vederlagsfritt|kostnadsfritt)\b",
+            text,re.I
+        ))
+
+    if intent=="deadline":
+        return bool(re.search(
+            r"\bfrist\w*\b.*(?:\d|l\u00f8pende)|"
+            r"\b(?:s\u00f8knad\w*|opptak)\b.*\bl\u00f8pende\b",
+            text,re.I
+        ))
+
+    if intent=="hours":
+        return bool(re.search(
+            r"\b(?:[01]?\d|2[0-3])[:.][0-5]\d\b"
+            r"|\bd\u00f8gn\u00e5pent\b",
+            text,re.I
+        ))
+
+    leaf=text.rsplit(" | ",1)[-1]
+    if intent=='overview':
+        return bool(
+            procedural_evidence(text)
+            or len(leaf.split())>=5 and re.search(
+                r'\b(?:er|har|gir|tilbyr|tilbys|omfatter|'
+                r'gjelder|best\u00e5r|finnes|inneb\u00e6rer|'
+                r'kan|skal|m\u00e5|is|are|provides|offers|includes)\b',
+                leaf,re.I
+            )
+        )
+    if intent=='eligibility':
+        return bool(re.search(
+            r'\b(?:m\u00e5lgruppe\w*|vilk\u00e5r\w*|'
+            r'krav\w*|forutsetning\w*|gjelder|eligib\w*)\b',
+            text,re.I
+        ) and len(leaf.split())>=5)
+    return len(leaf.split())>=5
+
+
+
+def requested_actions(question):
+    actions=[]
+
+    if re.search(
+        r'\b(?:telefon\s*nummer|telefon|kontaktnummer|'
+        r'kontaktinformasjon|ringe|ring|kontakte|'
+        r'phone|telephone|call|contact)\b',
+        question,re.I
+    ):
+        actions.append('contact')
+
+    if re.search(
+        r'\b(?:kart|kartet|kartvisning|'
+        r'hvor\s+ligger|bes\u00f8ksadresse|'
+        r'map|directions|where\s+is)\b',
+        question,re.I
+    ):
+        actions.append('map')
+
+    return tuple(actions)
+
+
 def freshness_required(question):
     # Variable facts require sources by default, independent of whether every
     # possible calendar phrase is recognized. Only a WHOLE concept/mechanism
@@ -155,6 +422,33 @@ _ELLIPSIS_FUNCTIONS=frozenset(('og hva kva når hvordan hvorfor er det dette den
 def context_ellipse(question,*,detail_pattern=None):
     """No new subject after removing intent and bilingual function words."""
     text=canonical_question(question)
+    if re.fullmatch(
+        r'\s*(?:'
+        r'hvem\s+(?:kan|skal|b\u00f8r)\s+(?:jeg|vi)\s+(?:ringe|kontakte)'
+        r'|(?:(?:er|finnes|har)\s+(?:det|du|dere)\s+'
+        r'(?:(?:noe|et|en)\s+)?)?'
+        r'(?:telefon\s*nummer|telefon|kontaktinformasjon|kontaktnummer|nummer)'
+        r'(?:\s+(?:jeg|vi)\s+kan\s+ringe)?'
+        r'|hvor\s+(?:ligger|er)\s+(?:det|dette|stedet|tilbudet|tjenesten)'
+        r'|(?:vis|finn)\s+(?:meg\s+)?'
+        r'(?:(?:det|dette|stedet)\s+)?'
+        r'(?:p\u00e5\s+)?(?:et\s+)?kart(?:et)?'
+        r'|who\s+can\s+i\s+call'
+        r'|phone\s+number'
+        r'|show\s+(?:me\s+)?(?:it\s+)?on\s+(?:a\s+)?map'
+        r')\s*[?!.]?\s*',
+        text,re.I
+    ):
+        return True
+    if re.fullmatch(
+            r'\s*(?:(?:hvordan|hvor)\s+s\u00f8k(?:er|e)'
+            r'(?:\s+(?:jeg|vi|man))?'
+            r'(?:\s+om)?(?:\s+(?:det|dette|plass))?'
+            r'|hvem\s+kan\s+s\u00f8ke'
+            r'|hva\s+er\s+vilk\u00e5rene'
+            r'|hva\s+kreves)\s*[?!.]?\s*',
+            text,re.I):
+        return True
     if detail_pattern is not None:text=detail_pattern.sub(' ',text)
     words=set(re.findall(r'\w+',text.casefold()))
     return bool(words) and not (words-_ELLIPSIS_FUNCTIONS)
@@ -177,7 +471,7 @@ def private_price_question(question):
 
 def technical_task(question):
     """An explicit technical subject, not a format word later in a fact request."""
-    return bool(re.match(r'^\s*(?:forklar|explain|define|fortell|hva (?:er|betyr)|how (?:do|to)|'
+    return bool(re.match(r'^\s*(?:forklar|explain|define|fortell|hva er forskjellen (?:på|mellom)|hva er difference between|what is (?:the )?difference between|hva (?:er|betyr)|how (?:do|to)|'
             r'write|skriv|lag|implement\w*|debug\w*|beregn|calculate)\s+'
             r'(?:(?:how|hvordan|om|do|does|i|we|jeg|vi|the|a|an|en|et|to|kan|du|det)\s+){0,6}'
             r'(?:python|program\w*|algorithm\w*|algoritm\w*|matem\w*|math\w*|'
@@ -247,11 +541,27 @@ class QuestionRouter:
         """Bounded USER context only; assistant answers never establish facts."""
         from .chat import _FOLLOWUP
         from .research import price_followup,school_overview_followup,DETAIL_INTENT,municipal_question,service_need_statement,transport_followup
-        current=canonical_question(messages[-1]['content']);registry=municipalities or self.municipalities
+        current=municipal_query(messages[-1]['content']);registry=municipalities or self.municipalities
+        def join_turns(left,right):
+            left=left.strip();right=right.strip()
+            if not left:return right
+            if not right:return left
+            return left+(' ' if left[-1] in '.?!;' else '. ')+right
+
         def followup(text):
             polite=re.sub(r'^\s*(?:(?:og\s+)?(?:kan|kunne|vil)\s+du\s+|og\s+)','',text,flags=re.I)
-            return bool(_FOLLOWUP.fullmatch(polite) or context_ellipse(text)
-                or price_followup(text) or school_overview_followup(text) or transport_followup(text))
+            if (_FOLLOWUP.fullmatch(polite) or context_ellipse(text)
+                    or price_followup(text) or school_overview_followup(text)
+                    or transport_followup(text)):
+                return True
+            clauses=tuple(
+                part.strip()
+                for part in re.split(r'[?!;]+|\.\s+',polite)
+                if part.strip()
+            )
+            return len(clauses)>1 and all(
+                followup(part) for part in clauses
+            )
         def place_only(text):
             detail=price_followup(text)
             if registry is not None and detail and detail['place']:return registry.resolve(text) is not None
@@ -271,7 +581,7 @@ class QuestionRouter:
         for index in range(len(messages)-2,-1,-1):
             message=messages[index]
             if message['role']!='user':continue
-            text=canonical_question(message['content'])
+            text=municipal_query(message['content'])
             if place_only(text):
                 if newest is None:newest=text
             elif not followup(text):
@@ -285,13 +595,34 @@ class QuestionRouter:
         # Retain the topic, but let the latest explicit detail replace an older
         # municipal price/deadline intent. A previous fee cannot answer hours.
         if (detail or latest_detail) and municipal_question(prior):prior=DETAIL_INTENT.sub(' ',prior)
-        if not detail and latest_detail:prior+=' '+latest_detail
+        if not detail and latest_detail:prior=join_turns(prior,latest_detail)
         if newest is not None:
+            from .research import ResearchError
+            selected=registry.resolve(newest)
+            previous=None
+            if prior:
+                try:
+                    previous=registry.resolve(prior)
+                except ResearchError as error:
+                    if error.code!='research_municipality_unknown':
+                        raise
+            if (
+                newest==current and selected and previous
+                and selected.id==previous.id
+                and not price_followup(current)
+                and not transport_followup(current)
+            ):
+                return prior.strip()
+
             prior=registry.strip_names(prior)
             prior=re.sub(r'\b(?:i\s+)?Innlandet\b',' ',prior,flags=re.I)
-            prior=re.sub(r'\b(?:i|for|fra)\s*[?!.]*\s*$',' ',prior,flags=re.I)+' '+newest
+            prior=re.sub(
+                r'\b(?:i|for|fra|p\u00e5)\s*(?=[?!.;]|$)',
+                ' ',prior,flags=re.I
+            )
+            prior=join_turns(prior,newest)
             if newest==current:return prior.strip()
-        return (prior+' '+current).strip()
+        return join_turns(prior,current)
 
     def plan(self,messages,*,municipalities=None):
         effective=self.resolve_context(messages,municipalities)
@@ -299,7 +630,7 @@ class QuestionRouter:
         # Context normalization must not erase a duty found in the raw turn.
         if not value.source_required and freshness_required(messages[-1]['content']):
             value=replace(value,kind='current',source_required=True,reason='current_external_facts')
-        if value.kind=='general' and effective==canonical_question(messages[-1]['content']):
+        if value.kind=='general' and effective==municipal_query(messages[-1]['content']):
             # Unparsed short qualifiers after a sourced topic are ambiguous,
             # never permission for plain model facts. A clear new question or
             # task can change topic; an earlier clarification cannot erase duty.
@@ -313,12 +644,12 @@ class QuestionRouter:
                         value=QuestionPlan('clarify',effective,True,prior.municipal,'unresolved_sourced_follow_up',follow_up=True)
                         break
                     if independent_task(messages[index]['content']):break
-        return replace(value,follow_up=value.follow_up or effective!=canonical_question(messages[-1]['content']))
+        return replace(value,follow_up=value.follow_up or effective!=municipal_query(messages[-1]['content']))
 
     def route(self,question,*,municipalities=None):
         from .research import municipal_question,municipal_term_definition,explicit_place,FEE_INTENT
         municipalities=municipalities or self.municipalities
-        canonical=canonical_question(question)
+        canonical=municipal_query(question)
         if municipal_question(canonical):
             return QuestionPlan('municipal',canonical,True,True,'deterministic_source_duty')
         if freshness_required(question) or freshness_required(canonical):
@@ -355,7 +686,11 @@ class QuestionRouter:
         # explicit municipality/service requests remain guarded by research.
         factual=re.search(r'\?|\b(?:hva|hvilk\w*|hvordan|når|hvor|what|which|how|when|where|'
             r'list\w*|oversikt\w*|vis|show|finn|find|fortell|beskriv|tell|describe|informasjon)\b',canonical,re.I)
-        if local and (factual or institution_facts) and (not technical or institution_facts) and not private_price_question(canonical):
+        # A resident's statement of need can be a request without a question
+        # mark or a registered service word. Place + intent establish duty;
+        # this is not a catalog of supported municipal topics.
+        need=re.match(r'^\s*(?:(?:jeg|vi|i|we)\s+)?(?:trenger|ønsker|vil|skal|need|want|would like)\b',canonical,re.I)
+        if local and (factual or institution_facts or need) and (not technical or institution_facts) and not private_price_question(canonical):
             return QuestionPlan('municipal',canonical,True,True,'uncertain_local_factual_request')
         if not canonical.strip(' ?!.'):
             return QuestionPlan('clarify',canonical,False,False,'missing_question')

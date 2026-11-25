@@ -191,8 +191,47 @@ class ServiceHTML(HTMLParser):
     """Text/links only; execution, external assets, forms and contacts are inert."""
     SKIP={'script','style','noscript','iframe','object','embed','svg','template','footer','address','figcaption','aside'}
     VOID={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
-    def __init__(self):
+    UI_ROLES=frozenset(('navigation','banner','contentinfo','search'))
+    SEARCH_FIELDS=frozenset(('q','query','search','searchtext','searchstring','sok','søk'))
+    SEARCH_UI_WORDS=frozenset(('search søk sok søke søkefelt søkeord søketekst nettsted nettstedet '
+        'nettside nettsiden side siden på i etter innhold go finn menu main meny hovedmeny '
+        'navigation navigasjon hovednavigasjon banner content info').split())
+    PRINT_ATTRIBUTES=frozenset(('type','onclick','id','class','style','role','name','value','disabled','tabindex','title','aria-label','aria-description'))
+    TEXT_ANNOTATIONS=frozenset(('title','aria-label','aria-description','aria-valuetext','aria-roledescription'))
+    TEXT_REFERENCES=frozenset(('aria-labelledby','aria-describedby','aria-details','aria-errormessage','aria-controls','aria-owns'))
+    STRUCTURE_LABEL=re.compile(r'(?:ingress|innleiing|innledning|introduksjon|intro|introduction|lead|'
+        r'innhald|innhold|hovudinnhald|hovedinnhold|sideinnhold|artikkelinnhold|artikkeltekst|brødtekst|'
+        r'artikkel|article|content|main content|body|body text)',re.I)
+    FIELD_ROLES=frozenset(('textbox','searchbox','combobox','listbox','option','spinbutton','slider','checkbox','radio','switch'))
+    READ_ONLY_ROLES=frozenset(('document','main','article','region','group','tabpanel','heading','paragraph',
+        'list','listitem','table','rowgroup','row','columnheader','rowheader','cell','img','none','presentation',
+        'navigation','banner','contentinfo','search','separator','note','status','alert','figure','definition','term'))
+    UNSUPPORTED_STYLE=re.compile(r'vertical-align\s*:\s*super\b|\b(?:content|counter(?:-reset|-increment|-set)?|quotes)\s*:|url\s*\(',re.I)
+    STATIC_TAGS=frozenset(('div','section','p','ul','ol','li','h1','h2','h3','h4','h5','h6','span',
+        'strong','em','b','i','u','s','small','br','table','thead','tbody','tfoot','tr','th','td','caption',
+        'dl','dt','dd','blockquote','a','img'))
+    STATIC_ROLES={'div':{'group','region','tabpanel'},'section':{'group','region','tabpanel'},
+        'ul':{'list'},'ol':{'list'},'li':{'listitem'},'a':{'link'},'table':{'table'},
+        'thead':{'rowgroup'},'tbody':{'rowgroup'},'tfoot':{'rowgroup'},'tr':{'row'},
+        'th':{'columnheader','rowheader','cell'},'td':{'cell'}}
+    DIAGNOSTIC_ARIA=frozenset(('aria-hidden','aria-live','aria-atomic','aria-busy','aria-relevant','aria-expanded',
+        'aria-required','aria-disabled','aria-selected','aria-checked','aria-pressed','aria-level','aria-modal',
+        'aria-haspopup','aria-current'))|TEXT_ANNOTATIONS|TEXT_REFERENCES
+    DIAGNOSTIC_TAGS=frozenset(('html','head','body','main','article','header','nav','section','div','aside','footer',
+        'form','details','fieldset','button','input','textarea','select','option','label','p','ul','ol','li','span'))
+    def __init__(self,*,public_layout=False,disclosures=None):
         super().__init__(convert_charrefs=True)
+        self.public_layout=public_layout;self.content_titles=[];self.title_parts=[];self.title_overflow=False
+        self.content_root_refusal=None
+        self.scope_owner_ids={};self.next_owner_id=0;self.block_owners=[];self.topic_titles={};self.unit_contexts=[]
+        self.article_owner_paths=[];self.heading_diagnostics=dict(seen=0,inactive=0,blocked=0)
+        self.structure_nodes=[];self.control_diagnostics=[];self.layout_search_forms={};self.control_labels={};self.ui_positions={}
+        self.annotations=[];self.metadata_diagnostics=[];self.node_metadata={};self.heading_ids={};self.id_counts={};self.id_nodes={}
+        self.unit_decisions=[];self.control_references={};self.control_text={}
+        self.disclosures=disclosures or {};self.collect_dom=public_layout and disclosures is None
+        self.dom={};self.dom_positions={};self.dom_text=[];self.disclosure_ranges=[];self.disclosure_positions={}
+        self.disclosure_diagnostics=[]
+        self.wrapper_forms={};self.form_control_owners=set()
         self.stack=[];self.blocks=[];self.block_kinds=[];self.parts=[];self.links=[];self.anchor=None
         self.forms=[];self.form=None;self.published=None;self.updated=None;self.noindex=False
         self.main_roots=0;self.article_roots=0
@@ -205,7 +244,7 @@ class ServiceHTML(HTMLParser):
         self.directory_inherited=();self.directory_excluded=set();self.directory_heading_starts={}
         self.directory_rows={}
 
-    def flush(self):
+    def flush(self,*,kind=None):
         if self.parts:
             text=' '.join(''.join(self.parts).split());self.parts=[]
             if any(tag=='tr' for tag,_ in self.stack):
@@ -216,10 +255,15 @@ class ServiceHTML(HTMLParser):
             overflow=len(text)>900
             if overflow:text=''  # Never truncate a condition or a private-data signal into admissible evidence.
             self.extracted_bytes+=len(text.encode('utf-8'))
-            if len(self.blocks)>=256 or self.extracted_bytes>65536:raise ResearchError('research_source_limit')
+            if len(self.blocks)>=(1024 if self.public_layout else 256) or self.extracted_bytes>65536:raise ResearchError('research_source_limit')
             self.blocks.append(text)
-            kind=next((tag for tag,_ in reversed(self.stack) if tag in ('h1','h2','h3','h4','h5','h6','p','tr','li','summary','legend')),'')
+            kind=kind or next((tag for tag,_ in reversed(self.stack) if tag in ('h1','h2','h3','h4','h5','h6','p','tr','li','summary','legend')),
+                'block' if self.public_layout else '')
+            if self.public_layout and kind=='h1':
+                label=None if overflow else text;self.content_titles.append(label)
+                self.topic_titles.setdefault(self.owner_path(),[]).append((label,len(self.blocks)-1))
             self.block_kinds.append('barrier:'+kind if overflow else kind)
+            self.block_owners.append(self.owner_path())
             if re.fullmatch(r'h[1-6]',kind):
                 level=int(kind[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]
                 start=self.directory_heading_starts.pop(level,len(self.directory_links))
@@ -239,18 +283,588 @@ class ServiceHTML(HTMLParser):
     def active(self):
         return any(tag in ('main','article') or i in self.main_positions or i in self.article_positions for i,(tag,_) in enumerate(self.stack))
 
+    def owner_path(self):return tuple(self.scope_owner_ids[position] for position in sorted(self.scope_owner_ids))
+
+    def form_text_allowed(self):
+        return all(self.wrapper_forms.get(i,False) for i,(tag,_) in enumerate(self.stack) if tag=='form')
+
     def scope_event(self,kind):
-        if len(self.blocks)>=256:raise ResearchError('research_source_limit')
+        if len(self.blocks)>=(1024 if self.public_layout else 256):raise ResearchError('research_source_limit')
         self.blocks.append('');self.block_kinds.append(kind)
+        self.block_owners.append(self.owner_path())
+
+    def _search_ui_text(self,state,text):
+        if state['chars']+len(text)>300:state['valid']=False;return
+        state['chars']+=len(text);state['text'].append(text)
+
+    def _search_ui_attributes(self,state,attrs):
+        if self.UNSUPPORTED_STYLE.search(attrs.get('style','')):state['valid']=False
+        for key in ('aria-label','title','placeholder','alt'):
+            if attrs.get(key):self._search_ui_text(state,attrs[key])
+        # Unknown accessible semantics/references can carry a condition. Do
+        # not guess that an unhandled ARIA attribute is harmless decoration.
+        if any(key.startswith('aria-') and key!='aria-label' for key in attrs):state['valid']=False
+        if any(key in attrs for key in ('form','formaction','formmethod','formenctype','formtarget','formnovalidate','list')):state['valid']=False
+        if attrs.get('role','').casefold() not in ('',*self.UI_ROLES,'none','presentation','img','group','region','searchbox','textbox','button'):state['valid']=False
+
+    def _known_ui_words(self,parts):
+        return all(word.strip(':?.') in self.SEARCH_UI_WORDS
+            for word in _screening_text(' '.join(parts)).casefold().split())
+
+    def _ui_metadata_known(self,attrs):
+        state=dict(valid=True,chars=0,text=[])
+        self._search_ui_attributes(state,attrs)
+        return state['valid'] and self._known_ui_words(state['text'])
+
+    def _search_ui_child(self,tag,attrs):
+        for state in self.layout_search_forms.values():
+            self._search_ui_attributes(state,attrs)
+            if tag=='sup':state['valid']=False
+            if tag=='input':
+                kind=attrs.get('type','text').casefold()
+                if kind=='hidden':continue  # State values are never evidence or diagnostics.
+                if kind in ('search','text') and attrs.get('name','').casefold() in self.SEARCH_FIELDS:
+                    state['queries']+=1
+                    if attrs.get('value'):state['valid']=False  # Unreviewed prefilled query/user state.
+                elif kind in ('button','submit'):
+                    self._search_ui_text(state,attrs.get('value',''))
+                    if attrs.get('name','').casefold() not in ('',*self.SEARCH_FIELDS):state['valid']=False
+                else:state['valid']=False
+            elif tag=='button':
+                if attrs.get('type','submit').casefold() not in ('button','submit'):state['valid']=False
+                if attrs.get('name','').casefold() not in ('',*self.SEARCH_FIELDS):state['valid']=False
+            elif tag in ('form','textarea','select','option','datalist','output'):state['valid']=False
+
+    def _finish_search_ui(self,position,*,explicit_close=False):
+        state=self.layout_search_forms.pop(position)
+        clean=bool(explicit_close and state['valid'] and 1<=state['queries']<=2
+            and self._known_ui_words(state['text']))
+        if not clean:self.form_control_owners.add(state['owner'])
+        if state['event'] is not None:
+            state['event'].update(layout_ui=clean,tainted=not clean,layout_search_status='clean' if clean else 'refused')
+
+    @staticmethod
+    def _control_action(labels):
+        labels=[_screening_text(value).strip().casefold() for value in labels if value.strip()]
+        kinds={'print':r'(?:skriv ut(?: (?:denne )?siden)?|print(?: this page)?)[.!]?',
+            'share':r'(?:del(?: (?:denne )?siden)?|share(?: this page)?)[.!]?',
+            'search':r'(?:søk|search)[.!]?'}
+        return next((kind for kind,pattern in kinds.items() if labels and all(re.fullmatch(pattern,label) for label in labels)),'unknown')
+
+    def _print_control_syntax(self,tag,attrs):
+        """A closed read-only print action; a UI label alone grants nothing."""
+        if tag not in ('button','input') or set(attrs)-self.PRINT_ATTRIBUTES:return False
+        if attrs.get('role','').casefold() not in ('','button'):return False
+        handler=attrs.get('onclick') or ''
+        if not re.fullmatch(r'\s*(?:window\.)?print\(\)\s*;?\s*(?:return\s+false\s*;?)?\s*',handler):return False
+        kind=attrs.get('type','submit' if tag=='button' else 'text').casefold()
+        if kind not in ('button','submit'):return False
+        if kind=='submit' and not re.search(r'\breturn\s+false\s*;?\s*$',handler):return False
+        return not self.UNSUPPORTED_STYLE.search(attrs.get('style') or '')
+
+    def _control_child(self,tag,attrs):
+        for label in self.control_labels.values():
+            if not label['deferred']:continue
+            if tag not in ('span','i','b','strong','em','small','br'):label['structure']=False
+            if set(attrs)-{'id','class','style','role','aria-hidden','aria-label','aria-description','title'}:label['structure']=False
+            if attrs.get('role','').casefold() not in ('','none','presentation','img'):label['structure']=False
+            if attrs.get('aria-hidden','false').casefold() not in ('true','false'):label['structure']=False
+            if self.UNSUPPORTED_STYLE.search(attrs.get('style') or ''):label['structure']=False
+            for key in ('aria-label','aria-description','title'):
+                if attrs.get(key):label['labels'].append(attrs[key])
+
+    def _finish_control(self,position,*,explicit_close=False):
+        label=self.control_labels.pop(position)
+        action='unknown' if label['overflow'] else self._control_action([*label['labels'],' '.join(label['parts'])])
+        approved=bool(label['deferred'] and explicit_close and label['structure'] and action=='print')
+        if label['deferred'] and not approved:self.form_control_owners.add(label['owner'])
+        if label['event'] is not None:
+            label['event'].update(ui_action=action,label_complete=explicit_close,nonqualifying_print=approved)
+            if label['deferred']:label['event']['tainted']=not approved
+            label['event']['label_words']=len(' '.join([*label['labels'],*label['parts']]).split())
+            if not label['overflow']:self.control_text[label['event']['source_node']]=' '.join([*label['labels'],*label['parts']])
+
+    @classmethod
+    def structural_metadata(cls,tag,attrs):
+        structural={key for key,values in (('aria-live',{'off','polite','assertive'}),
+            ('aria-atomic',{'true','false'}),('aria-busy',{'false'}),('aria-hidden',{'false'})) if attrs.get(key) in values}
+        relevant=attrs.get('aria-relevant','').split()
+        if relevant and (relevant==['all'] or set(relevant)<={'additions','removals','text'}):structural.add('aria-relevant')
+        if re.fullmatch(r'h[1-6]',tag) and attrs.get('aria-level')==tag[1]:structural.add('aria-level')
+        if tag in ('main','article','section','div') and cls.STRUCTURE_LABEL.fullmatch(' '.join(attrs.get('aria-label','').split())):
+            structural.add('aria-label')
+        return structural
+
+    def static_text_markup(self,node):
+        """Closed inert markup vocabulary shared by wrapper and pane proofs."""
+        tag=node['tag'];a=node['attrs']
+        if tag not in self.STATIC_TAGS or node['ambiguous'] or not node['closed'] or node['stateful'] or node['forbidden']:return False
+        if a.get('id') and self.id_counts.get(a['id'])!=1:return False
+        if a.get('role','') not in {'','none','presentation'}|self.STATIC_ROLES.get(tag,set())|({'heading'} if re.fullmatch(r'h[1-6]',tag) else set()):return False
+        allowed={'id','class','style','lang','dir','role','title','tabindex','contenteditable','hidden'}|self.DIAGNOSTIC_ARIA
+        allowed|=({'href','target','rel'} if tag=='a' else {'colspan','rowspan','scope'} if tag in ('td','th')
+            else {'src','alt','width','height','loading','decoding'} if tag=='img' else set())
+        allowed|={'data-disclosure','data-collapse','data-accordion'} if tag=='div' else set()
+        if set(a)-allowed:return False
+        if 'contenteditable' in a and a['contenteditable'].casefold()!='false':return False
+        if any(key.startswith('data-') and value not in ('','true','collapse','accordion') for key,value in a.items()):return False
+        if self.UNSUPPORTED_STYLE.search(a.get('style','')):return False
+        if any(key in a and not re.fullmatch(r'[1-9][0-9]?',a[key]) for key in ('rowspan','colspan')):return False
+        if 'scope' in a and a['scope'] not in ('row','col','rowgroup','colgroup'):return False
+        if tag=='img' and (a.get('alt')!='' or any(a.get(k) for k in self.TEXT_ANNOTATIONS|self.TEXT_REFERENCES)):return False
+        return True
+
+    def inert_layout_container(self,node,caption=None):
+        if node['tag'] not in ('div','h1','h2','h3','h4','h5','h6') or node['hidden'] or not self.static_text_markup(node):return False
+        structural=self.structural_metadata(node['tag'],node['attrs'])
+        normal=lambda value:' '.join(_screening_text(value).casefold().split())
+        for key,value in node['attrs'].items():
+            if key in self.TEXT_ANNOTATIONS and value.strip():
+                if key not in structural and (caption is None or normal(value)!=normal(caption)):return False
+            elif key in self.TEXT_REFERENCES:
+                if value.strip():return False
+            elif key.startswith('aria-') and key not in structural:return False
+        return True
+
+    def _start_metadata(self,position,tag,attrs,*,ambiguous=False):
+        # Accessibility text may contain a condition absent from visible prose.
+        # Keep it transient and require its complete representation in a unit;
+        # neither an ARIA name nor a tooltip is permission to discard it.
+        if tag=='title':
+            for node in self.node_metadata.values():node['qualifies_title']=True
+        structural=self.structural_metadata(tag,attrs);structure_label='aria-label' in structural
+        literals=tuple((key,value) for key,value in attrs.items() if key in self.TEXT_ANNOTATIONS and value.strip()
+            and not (key=='aria-label' and structure_label))
+        # Empty IDREFs have no target. Announcement settings and a matching
+        # native heading level describe the UI, never eligibility or facts.
+        references=tuple((key,value) for key,value in attrs.items() if key in self.TEXT_REFERENCES and value.strip())
+        if self.nodes in self.disclosures.get('panels',{}):
+            structural.add('aria-hidden')
+            # The proven controller label is retained as the panel's summary.
+            if attrs.get('aria-labelledby')==self.disclosures['panels'][self.nodes]['button_id']:
+                references=tuple(pair for pair in references if pair[0]!='aria-labelledby')
+                structural.add('aria-labelledby')
+        unknown_keys=tuple(key for key in attrs if key.startswith('aria-') and key not in self.TEXT_ANNOTATIONS|self.TEXT_REFERENCES|{'aria-hidden'}|structural)
+        unknown=ambiguous or bool(unknown_keys)
+        unknown=unknown or 'aria-hidden' in attrs and attrs['aria-hidden'].casefold()!='false' and 'aria-hidden' not in structural
+        heading_id=attrs.get('id') if re.fullmatch(r'h[1-6]',tag) else None
+        if literals or references or unknown or heading_id or any(key.startswith('aria-') or key=='title' for key in attrs):
+            safe_states={'false','true','off','polite','assertive','additions','removals','text','all','additions text'}
+            metadata=[dict(attribute=key if key in self.DIAGNOSTIC_ARIA else 'other',
+                value_state=value.casefold() if value.casefold() in safe_states else 'other',
+                has_value=bool(value),tokens=len(value.split())) for key,value in attrs.items()
+                if key.startswith('aria-') or key=='title']
+            self.node_metadata[position]=dict(start=len(self.blocks),literals=literals,references=references,
+                unknown=unknown,heading_id=heading_id,owner=self.owner_path(),
+                inline=any(t in ('p','li','tr','h1','h2','h3','h4','h5','h6') for t,_ in self.stack),
+                qualifies_title=tag=='title' or any(t=='title' for t,_ in self.stack),
+                diagnostic=dict(source_node=self.nodes,tag=tag if tag in self.DIAGNOSTIC_TAGS or re.fullmatch(r'h[1-6]|title',tag) else 'other',
+                    attributes=metadata,duplicate_attributes=ambiguous,
+                    structural_attributes=sorted(structural),
+                    structure_label_class='layout' if structure_label else 'none',
+                    empty_reference_attributes=sorted(key for key in self.TEXT_REFERENCES if key in attrs and not attrs[key].strip()),
+                    unsupported_attributes=[key if key in self.DIAGNOSTIC_ARIA else 'other' for key in unknown_keys]))
+
+    def _finish_metadata(self,position,*,explicit_close=False):
+        node=self.node_metadata.pop(position)
+        start=node['start'];end=max(start+int(node['inline']),len(self.blocks))
+        if node['heading_id']:
+            # Only one complete native heading can resolve a source reference.
+            labels=[i for i in range(start,min(end,len(self.blocks)))
+                if re.fullmatch(r'h[1-6]',self.block_kinds[i])]
+            value=labels[0] if explicit_close and len(labels)==1 else None
+            identifier=node['heading_id']
+            self.heading_ids[identifier]=None if identifier in self.heading_ids else value
+        evidence_check=bool(node['literals'] or node['references'] or node['unknown'])
+        node['diagnostic'].update(block_start=start,block_end=end,owner=list(node['owner']),closed=explicit_close,
+            requires_evidence_check=evidence_check or not explicit_close)
+        if node['diagnostic']['attributes'] or node['diagnostic']['duplicate_attributes']:
+            self.metadata_diagnostics.append(node['diagnostic'])
+        if evidence_check or not explicit_close:
+            node.update(end=end,unknown=node['unknown'] or not explicit_close)
+            self.annotations.append(node)
+
+    def annotation_rejection(self,components,component_indices,*,document_title=False):
+        """First concrete, closed refusal reason; no attribute text or raw IDs."""
+        normal=lambda value:' '.join(_screening_text(value).casefold().split())
+        represented={normal(value) for value in components if value}
+        for node in self.annotations:
+            if not (document_title and node['qualifies_title']
+                    or any(node['start']<=i<node['end'] for i in component_indices)):continue
+            base=dict(source_node=node['diagnostic']['source_node'])
+            if node['unknown']:
+                return dict(base,reason='duplicate_attributes' if node['diagnostic']['duplicate_attributes'] else
+                    'unclosed_annotation' if not node['diagnostic']['closed'] else 'unsupported_attribute_semantics')
+            for attribute,value in node['literals']:
+                if normal(value) not in represented:return dict(base,reason='unrepresented_attribute_text',attribute=attribute)
+            for attribute,reference in node['references']:
+                ids=reference.split()
+                # Text equality cannot borrow a similarly named sibling heading.
+                # Resolve to an actual complete heading in THIS unit's lineage.
+                if not ids:return dict(base,reason='empty_reference',attribute=attribute)
+                for identifier in ids:
+                    count=self.id_counts.get(identifier,0)
+                    target=self.id_nodes.get(identifier,{})
+                    detail=dict(base,attribute=attribute,target_node=target.get('source_node'),target_tag=target.get('tag'),
+                        target_block=self.heading_ids.get(identifier))
+                    if count!=1:return dict(detail,reason='missing_reference_target' if not count else 'duplicate_reference_target')
+                    if self.heading_ids.get(identifier) is None:return dict(detail,reason='target_is_not_complete_native_heading')
+                    if self.heading_ids[identifier] not in component_indices:return dict(detail,reason='reference_outside_unit_context')
+        return None
+
+    def annotations_match(self,components,component_indices,*,document_title=False):
+        return self.annotation_rejection(components,component_indices,document_title=document_title) is None
+
+    def finalise_control_diagnostics(self):
+        for event in self.control_diagnostics:
+            relation=self.control_references.get(event['source_node'],{})
+            targets=[]
+            for identifier in relation.get('controls',())[:4]:
+                target=self.id_nodes.get(identifier,{})
+                targets.append(dict(source_node=target.get('source_node'),tag=target.get('tag'),owner=target.get('owner'),
+                    unique=self.id_counts.get(identifier)==1,blocked=target.get('blocked'),
+                    reciprocal_label=bool(relation.get('id') and relation['id'] in target.get('labelledby',()))))
+            event['controlled_targets']=targets
+        self.control_references.clear()
+
+    def static_disclosure_plan(self):
+        """Nominate complete static widgets, never facts or permission to fetch.
+
+        Only a closed, non-submitting controller, at most four inert single-child
+        wrappers, and the next sibling panel may use the existing details/summary
+        source grouping. The same parser then
+        reads the SAME bytes, lifting only that panel's own disclosure hiding.
+        Unknown fields, conditions, omitted text and other controls keep their
+        original barriers. Raw DOM/labels are transient and never diagnostics.
+        """
+        from .internet_research import public_unit
+        buttons=[n for n in self.dom.values() if n['tag']=='button' and n['attrs'].get('aria-controls')]
+        if len(buttons)>64:return {}
+        targets={}
+        for node in buttons:
+            for identifier in node['attrs']['aria-controls'].split():targets[identifier]=targets.get(identifier,0)+1
+        proposed={};diagnostics=[]
+        normal=lambda text:' '.join(_screening_text(text).casefold().split())
+        def text_in(node):
+            return ''.join(data for _,data in self.dom_text[node['text_start']:node['text_end']])
+        def panel_text(node):
+            # Preserve block boundaries without splitting an inline identity
+            # into independently screened fragments or gluing headings to prose.
+            parts=[];current=None;buffer=[]
+            for source,data in self.dom_text[node['text_start']:node['text_end']]:
+                ancestor=source
+                while ancestor!=node['source_node'] and self.dom[ancestor]['tag'] not in ('p','li','tr','summary','legend','h1','h2','h3','h4','h5','h6'):
+                    ancestor=self.dom[ancestor]['parent']
+                if current is not None and current!=ancestor:
+                    text=' '.join(' '.join(buffer).split())
+                    if text:parts.append(text)
+                    buffer=[]
+                current=ancestor;buffer.append(data)
+            text=' '.join(' '.join(buffer).split())
+            if text:parts.append(text)
+            return ' | '.join(parts)
+        def safe_data(key,value,identifier):
+            if key == 'data-vfact-read':return value == ''
+            if key in ('data-toggle','data-bs-toggle'):return value=='collapse'
+            if key in ('data-target','data-bs-target'):return value=='#'+identifier
+            return key in ('data-disclosure','data-collapse','data-accordion') and value in ('','true','collapse','accordion')
+        def navigation_attrs(node):
+            from urllib.parse import urlsplit
+            a=node['attrs']
+            if node['tag']!='a':return a
+            if a.get('onclick','').strip()!='window.open(this.href); return false;':
+                return a
+            if 'data-id' in a and not re.fullmatch(r'[0-9]{1,20}',a['data-id']):
+                return a
+            href=a.get('href','')
+            if not href or '\\' in href or any(ord(c)<32 or ord(c)==127 for c in href):
+                return a
+            try:
+                u=urlsplit(href)
+                safe=(
+                    u.scheme=='https' and bool(u.hostname)
+                    and not u.username and not u.password
+                    and not any(c.isspace() for c in href)
+                    or u.scheme=='tel'
+                    and bool(re.fullmatch(r'\+?[0-9][0-9 ()-]{3,31}',u.path))
+                    and not u.query and not u.fragment
+                    or u.scheme=='mailto'
+                    and bool(re.fullmatch(r'[^@\s?#]+@[^@\s?#]+',u.path))
+                    and not u.query and not u.fragment
+                )
+            except ValueError:return a
+            if not safe:return a
+            return {k:v for k,v in a.items() if k not in ('onclick','data-id')}
+        def fail(event,reason):event['reason']=reason
+        for button in buttons:
+            a=button['attrs'];number=button['source_node'];ids=a['aria-controls'].split()
+            event=dict(control_node=number,status='refused');diagnostics.append(event)
+            if not button['closed'] or button['ambiguous']:fail(event,'unclosed_or_ambiguous_button');continue
+            if a.get('id') and self.id_counts.get(a['id'])!=1:fail(event,'ambiguous_button_identity');continue
+            if not button['active'] or button['hidden'] or button['parent_blocked'] or button['forbidden'] or button['stateful']:
+                fail(event,'excluded_button_ancestry');continue
+            if a.get('type')!='button' or a.get('aria-expanded') not in ('true','false') or len(ids)!=1:
+                fail(event,'not_single_static_disclosure');continue
+            identifier=ids[0];target_id=self.id_nodes.get(identifier,{}).get('source_node');panel=self.dom.get(target_id)
+            event['panel_node']=target_id
+            if self.id_counts.get(identifier)!=1 or targets.get(identifier)!=1 or panel is None:
+                fail(event,'missing_or_ambiguous_panel');continue
+            if not panel['closed'] or panel['ambiguous']:fail(event,'unclosed_or_ambiguous_panel');continue
+            event.update(panel_own_hidden=panel['hidden'],panel_parent_blocked=panel['parent_blocked'],
+                panel_excluded=panel['forbidden'])
+            if panel['tag'] not in ('div','section') or panel['parent_blocked'] or panel['forbidden'] or panel['stateful']:
+                fail(event,'excluded_panel_ancestry');continue
+            if button['owner']!=panel['owner']:fail(event,'cross_owner_relation');continue
+            root=button;wrappers=[]
+            parent=self.dom.get(button['parent'])
+            while parent and parent['source_node']!=panel['parent'] and len(wrappers)<4:
+                if (parent['tag'] not in ('div','h1','h2','h3','h4','h5','h6')
+                        or parent['children']!=[root['source_node']] or parent['text']):break
+                wrappers.append(parent);root=parent;parent=self.dom.get(parent['parent'])
+            if not parent or parent['tag']!='div' or parent['source_node']!=panel['parent'] or not parent['closed']:
+                fail(event,'not_closed_sibling_group');continue
+            siblings=parent['children'];position=siblings.index(root['source_node'])
+            if position+1>=len(siblings) or siblings[position+1]!=target_id or button['end']>=target_id:
+                fail(event,'panel_not_next_sibling');continue
+            allowed={'id','type','class','style','role','title','aria-label','aria-description','aria-controls','aria-expanded','tabindex'}
+            if a.get('role','') not in ('','button') or any(key not in allowed and not safe_data(key,value,identifier) for key,value in a.items()):
+                fail(event,'unknown_button_semantics');continue
+            if self.UNSUPPORTED_STYLE.search(a.get('style','')):
+                fail(event,'unsupported_button_note');continue
+            descendants=[n for n in self.dom.values() if number<n['source_node']<=button['end']]
+            if any(n['tag'] not in ('span','i','b','strong','em','small','br') or n['ambiguous']
+                    or set(n['attrs'])-{'id','class','style','role','aria-hidden','title','aria-label','aria-description'}
+                    or n['attrs'].get('role','') not in ('','none','presentation','img')
+                    or self.UNSUPPORTED_STYLE.search(n['attrs'].get('style','')) for n in descendants):
+                fail(event,'unsupported_button_children');continue
+            caption=' '.join(text_in(button).split())
+            if (not caption or len(caption)>200 or not public_unit(caption)
+                    or re.search(r'[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]|\[\s*(?:\d{1,3}|[a-zA-Z])\s*\]',caption)):
+                fail(event,'unreviewable_button_label');continue
+            labels=[value for n in (button,*descendants) for key,value in n['attrs'].items()
+                if key in self.TEXT_ANNOTATIONS and value.strip()]
+            if any(normal(value)!=normal(caption) for value in labels):fail(event,'unrepresented_button_annotation');continue
+            if any(not self.inert_layout_container(wrapper,caption) for wrapper in wrappers):
+                fail(event,'unresolved_heading_wrapper');continue
+            full=caption+' | '+panel_text(panel)
+            event['source_screen_passed']=not (len(full)>900 or not public_unit(full) or re.search(r'[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]|\[\s*(?:\d{1,3}|[a-zA-Z])\s*\]',full))
+            if len(full)>900 or (not event['source_screen_passed'] and not panel['hidden']):
+                fail(event,'unreviewable_complete_panel');continue
+            subtree=[n for n in self.dom.values() if target_id<=n['source_node']<=panel['end']]
+            unsafe=None
+            for node in subtree:
+                attrs=navigation_attrs(node);tag=node['tag']
+                checked=dict(node,attrs=attrs)
+                if not self.static_text_markup(checked):unsafe='non_inert_panel_markup';break
+                if tag in self.SKIP|{'form','input','textarea','select','option','label','datalist','output','button','sup'} or node['forbidden']:
+                    unsafe='interactive_or_omitted_panel_content';break
+                if node is not panel and node['hidden'] and (text_in(node).strip() or any(attrs.get(key) for key in self.TEXT_ANNOTATIONS)):
+                    unsafe='unrelated_hidden_panel_content';break
+                if any(key.startswith('on') or key.startswith('data-') or key in ('form','formaction') for key in attrs):
+                    unsafe='dynamic_panel_content';break
+                for key,value in attrs.items():
+                    if key in self.TEXT_REFERENCES and not value.strip():continue
+                    if key in self.TEXT_ANNOTATIONS and value.strip():
+                        if key not in self.structural_metadata(tag,attrs) and normal(value)!=normal(text_in(node)):unsafe='unrepresented_panel_annotation'
+                    elif key in self.TEXT_REFERENCES and value.strip():
+                        binding=node is panel and key=='aria-labelledby' and a.get('id') and value==a['id']
+                        if not binding:unsafe='unresolved_panel_reference'
+                    elif key.startswith('aria-'):
+                        valid=key in self.structural_metadata(tag,attrs) or key=='aria-hidden' and node is panel and value=='true'
+                        if not valid:unsafe='unknown_panel_aria'
+                if unsafe:break
+            if unsafe:fail(event,unsafe);continue
+            proposed[number]=dict(panel=target_id,group=parent['source_node'],root=root['source_node'],label=caption,
+                button_id=a.get('id',''),event=event)
+        # A dedicated group may contain several pairs. Unrelated human text,
+        # fields or unmatched controls outside those pairs cannot disappear.
+        def inert_group_node(node):
+            attrs = node['attrs']
+            if node['tag']=='div' and 'data-id' in attrs:
+                token=attrs['data-id']
+                if (not isinstance(token,str)
+                        or not re.fullmatch(r'[A-Za-z0-9_.:-]{0,80}',token)
+                        or '..' in token
+                        or ':' in token):
+                    return False
+                node=dict(node,attrs={
+                    key:value for key,value in attrs.items()
+                    if key!='data-id'
+                })
+            return self.inert_layout_container(node)
+        for group in {p['group'] for p in proposed.values()}:
+            members=[(number,p) for number,p in proposed.items() if p['group']==group]
+            spans=[(p['root'],self.dom[p['root']]['end']) for _,p in members]+[(p['panel'],self.dom[p['panel']]['end']) for _,p in members]
+            covered=lambda n:any(start<=n<=end for start,end in spans)
+            node=self.dom[group]
+            # Empty sibling wrappers can carry conditions too. Every uncovered
+            # node must be inert; absence of visible text grants nothing.
+            unsafe_attributes=any(group<=n['source_node']<=node['end'] and not covered(n['source_node'])
+                and not inert_group_node(n) for n in self.dom.values())
+            extra_text=any(group<=n<=node['end'] and not covered(n) and data.strip() for n,data in self.dom_text)
+            extra_controls=any(group<n['source_node']<=node['end'] and not covered(n['source_node'])
+                and n['tag'] not in ('div',) for n in self.dom.values())
+            if node['ambiguous'] or unsafe_attributes or extra_text or extra_controls:
+                for number,p in members:fail(p['event'],'unresolved_group_semantics' if unsafe_attributes else 'unrelated_group_content');proposed.pop(number)
+        self.disclosure_diagnostics=diagnostics
+        for p in proposed.values():
+            event=p['event']
+            event['structure_candidate']=True
+            if event['source_screen_passed']:
+                event.update(status='accepted',reason='complete_static_disclosure')
+            else:
+                event.update(status='refused',reason='complete_panel_content_refused')
+        return dict(buttons=frozenset(proposed),panels={p['panel']:dict(label=p['label'],button_id=p['button_id'],control_node=number)
+            for number,p in proposed.items()
+            if p['event']['source_screen_passed']}) if any(
+                p['event']['source_screen_passed'] for p in proposed.values()) else {}
+
+    def disclosure_units(self):
+        """One complete bounded pane, never a procedure stripped of conditions."""
+        units={};components={}
+        for panel in self.disclosure_ranges:
+            indices=tuple(i for i in range(panel['start'],panel['end'])
+                if self.blocks[i] or self.block_kinds[i].startswith('barrier:'))
+            leaves=[i for i in indices if self.block_kinds[i] in ('p','li','tr','block')]
+            if not leaves:continue
+            anchor=leaves[-1]
+            text=' | '.join(self.blocks[i] if not self.block_kinds[i].startswith('barrier:') else ' * ' for i in indices)
+            units[anchor]=dict(text=text,indices=indices,owner=panel['owner'],source_node=panel['source_node'])
+            components.update((i,anchor) for i in indices if i!=anchor)
+        return units,components
 
     def handle_starttag(self,tag,attrs):
         self.nodes+=1
         if self.nodes>20000 or len(self.stack)>=64:raise ResearchError('research_source_limit')
-        attrs=dict(attrs)
+        ambiguous=len(attrs)!=len({key for key,_ in attrs})
+        attrs={key:value if value is not None else '' for key,value in attrs}
+        if self.public_layout:
+            # Apply the same undefined-IDREF semantics to metadata, footnote,
+            # directory and control gates. Preserve the original ambiguity flag.
+            for key in self.TEXT_REFERENCES:
+                if key in attrs and not attrs[key].strip():attrs[key]=''
+            if attrs.get('id'):
+                self.id_counts[attrs['id']]=self.id_counts.get(attrs['id'],0)+1
+                self.id_nodes[attrs['id']]=dict(source_node=self.nodes,
+                    tag=tag if tag in self.DIAGNOSTIC_TAGS or re.fullmatch(r'h[1-6]',tag) else 'other')
+            self._search_ui_child(tag,attrs);self._control_child(tag,attrs)
+            if ambiguous:
+                for state in self.layout_search_forms.values():state['valid']=False
+                for label in self.control_labels.values():label['structure']=False
         role=(attrs.get('role') or '').strip().casefold()
-        blocked=any(item[1] for item in self.stack) or tag in self.SKIP or 'hidden' in attrs or attrs.get('aria-hidden')=='true'
+        role_tokens=tuple(role.split())
+        native_button_role=role_tokens==('button',) and (tag=='button' or tag=='input' and attrs.get('type') in ('button','submit','reset'))
+        opaque_role=bool(role_tokens and not native_button_role
+            and any(token in self.FIELD_ROLES or token not in self.READ_ONLY_ROLES for token in role_tokens))
+        own_stateful=bool(self.public_layout and ('contenteditable' in attrs and attrs['contenteditable'].casefold()!='false'
+            or opaque_role))
+        if own_stateful and not (tag=='input' and len(role_tokens)<=1 and role in ('','searchbox','textbox')):
+            for state in self.layout_search_forms.values():state['valid']=False
+            for label in self.control_labels.values():label['structure']=False
+        parent_blocked=any(item[1] for item in self.stack)
+        own_hidden='hidden' in attrs or attrs.get('aria-hidden')=='true'
+        disclosure_panel=self.nodes in self.disclosures.get('panels',{})
+        disclosure_control=self.nodes in self.disclosures.get('buttons',())
+        blocked=parent_blocked or tag in self.SKIP or own_hidden and not disclosure_panel
         blocked=blocked or bool(CONTACT.search(attrs.get('class','')+' '+attrs.get('id','')))
         active=self.active()
+        if self.collect_dom:
+            parent=self.dom_positions.get(len(self.stack)-1)
+            self.dom[self.nodes]=dict(source_node=self.nodes,tag=tag,attrs=attrs,parent=parent,children=[],text=False,
+                end=self.nodes,closed=tag in self.VOID,ambiguous=ambiguous,parent_blocked=parent_blocked,
+                text_start=len(self.dom_text),text_end=len(self.dom_text),
+                owner=self.owner_path(),active=active,hidden=own_hidden,
+                stateful=own_stateful or bool(parent is not None and self.dom[parent]['stateful']),
+                forbidden=bool(tag in self.SKIP or CONTACT.search(attrs.get('class','')+' '+attrs.get('id',''))
+                    or tag=='nav' or role in self.UI_ROLES or tag=='header' and not active))
+            if parent is not None:self.dom[parent]['children'].append(self.nodes)
+        control=tag in ('input','textarea','select','option','datalist','output','button','label') or own_stateful
+        if self.public_layout:
+            blocked=blocked or tag=='nav' or role in self.UI_ROLES or tag=='header' and not active
+            owner=self.owner_path();parent_blocked=any(item[1] for item in self.stack)
+            ui_ancestor=bool(self.ui_positions)
+            metadata_known=not ambiguous and all(self.ui_positions.values())
+            if ui_ancestor and not self.layout_search_forms and tag in ('p','label','legend','summary'):
+                # A text/field label outside the closed search form has not
+                # been shown to be navigation rather than a service condition.
+                for position in self.ui_positions:self.ui_positions[position]=False
+                metadata_known=False
+            # A role nominates a layout widget, not a permission to omit
+            # unknown service conditions. Validate its whole closed form.
+            layout_candidate=(tag=='form' and active and not owner and role in self.UI_ROLES
+                and not ui_ancestor and not parent_blocked and not self.layout_search_forms)
+            layout_ui=False
+            tainted=False;blocked_before_control=bool(blocked)
+            print_syntax=active and not self.layout_search_forms and metadata_known and self._print_control_syntax(tag,attrs)
+            print_labels=[attrs[key] for key in ('aria-label','aria-description','title') if attrs.get(key)]
+            if tag=='input' and attrs.get('value'):print_labels.append(attrs['value'])
+            passive_input=bool(tag=='input' and print_syntax and self._control_action(print_labels)=='print')
+            defer_print=False
+            # A form enclosing a content root is a page wrapper. A new form
+            # inside already-active content is an interactive UI, never prose.
+            if tag=='form' and active:
+                if layout_candidate:
+                    self.layout_search_forms[len(self.stack)]=dict(owner=owner,valid=metadata_known and attrs.get('method','get').casefold()=='get',
+                        queries=0,chars=0,text=[],event=None)
+                    self._search_ui_attributes(self.layout_search_forms[len(self.stack)],attrs)
+                elif (not parent_blocked or ui_ancestor) and not self.layout_search_forms:
+                    self.form_control_owners.add(owner);tainted=True
+                blocked=True
+            if control:
+                if active and (not parent_blocked or ui_ancestor) and not self.layout_search_forms and not (tag=='input' and attrs.get('type','').casefold()=='hidden'):
+                    if disclosure_control:pass  # Closed whole-widget proof, not a general button exception.
+                    elif tag=='button' and print_syntax:defer_print=True
+                    elif not passive_input:self.form_control_owners.add(owner);tainted=True
+                blocked=True  # No values, labels, selected options or user text.
+            event=None
+            if (control or tag=='form') and len(self.control_diagnostics)<64:
+                input_type=(attrs.get('type') or '').casefold()
+                self.control_diagnostics.append(dict(tag=tag if tag in self.DIAGNOSTIC_TAGS or re.fullmatch(r'h[1-6]',tag) else 'other',active=active,owner=list(owner),tainted=tainted,
+                    source_node=self.nodes,duplicate_attributes=ambiguous,
+                    expanded_state=attrs.get('aria-expanded') if attrs.get('aria-expanded') in ('true','false') else 'other' if 'aria-expanded' in attrs else 'absent',
+                    controls_reference=bool(attrs.get('aria-controls')),labelledby_reference=bool(attrs.get('aria-labelledby')),
+                    inside_heading=next((t for t,_ in reversed(self.stack) if re.fullmatch(r'h[1-6]',t)),None),
+                    event_handler_present=any(key.startswith('on') for key in attrs),
+                    static_disclosure=disclosure_control,
+                    role=role if role in self.UI_ROLES else 'other' if role else 'none',layout_ui=layout_ui,
+                    input_type=input_type if input_type in ('hidden','text','search','checkbox','radio','button','submit','reset','password','email','number') else 'other' if input_type else 'none',
+                    parent_blocked=parent_blocked,blocked_before_control=blocked_before_control,
+                    typed_parent=any(t in ('p','li','tr','h1','h2','h3','h4','h5','h6') for t,_ in self.stack),
+                    ancestors=[t if t in self.DIAGNOSTIC_TAGS else 'other' for t,_ in self.stack[-8:]]))
+                event=self.control_diagnostics[-1]
+                if tag in ('button','input'):
+                    # Recognize only closed generic UI phrases. Unknown labels,
+                    # JavaScript and user field values never leave this parser.
+                    labels=[attrs[k] for k in ('aria-label','aria-description','title') if attrs.get(k)]
+                    if tag=='input' and input_type in ('button','submit') and attrs.get('value'):labels.append(attrs['value'])
+                    event.update(ui_action=self._control_action(labels),associated_description=bool(attrs.get('aria-describedby') or attrs.get('aria-labelledby')),
+                        pure_print_handler=bool(re.fullmatch(r'\s*(?:window\.)?print\(\)\s*;?\s*(?:return\s+false\s*;?)?\s*',attrs.get('onclick') or '',re.I)))
+                    event['nonqualifying_print']=passive_input
+                if layout_candidate:self.layout_search_forms[len(self.stack)]['event']=self.control_diagnostics[-1]
+            if tag=='button' and (event is not None or defer_print):
+                if event is not None:event['label_complete']=False
+                self.control_labels[len(self.stack)]=dict(event=event,labels=print_labels,parts=[],chars=0,overflow=False,
+                    deferred=defer_print,owner=owner,structure=True)
+            if tag not in self.VOID and (ui_ancestor or tag=='nav' or role in self.UI_ROLES):
+                self.ui_positions[len(self.stack)]=self._ui_metadata_known(attrs)
+            if tag=='form' and not active and not blocked:self.wrapper_forms[len(self.stack)]=False
+            if event is not None:
+                self.control_references[self.nodes]=dict(controls=tuple(attrs.get('aria-controls','').split()),id=attrs.get('id'))
+                event['unknown_attribute_count']=len(set(attrs)-self.PRINT_ATTRIBUTES-self.DIAGNOSTIC_ARIA-
+                    {'placeholder','aria-expanded','aria-controls','aria-labelledby','aria-describedby','aria-hidden'})
+            if re.fullmatch(r'h[1-6]',tag):
+                self.heading_diagnostics['seen']+=1
+                if not active:self.heading_diagnostics['inactive']+=1
+                if blocked:self.heading_diagnostics['blocked']+=1
+            if (tag in ('h1','h2','h3','h4','h5','h6','p','li') or role=='heading'
+                    or 'articlebody' in (attrs.get('itemprop') or '').casefold().split()) and len(self.structure_nodes)<48:
+                safe_tags=self.DIAGNOSTIC_TAGS
+                self.structure_nodes.append(dict(tag=tag if tag in safe_tags or re.fullmatch(r'h[1-6]',tag) else 'other',
+                    active=active,blocked=bool(blocked),role_heading=role=='heading',
+                    inside_form=any(t=='form' for t,_ in self.stack),inside_nav=any(t=='nav' for t,_ in self.stack),
+                    wrapper_form_allowed=self.form_text_allowed(),
+                    article_body='articlebody' in (attrs.get('itemprop') or '').casefold().split(),
+                    ancestors=[t if t in safe_tags else 'other' for t,_ in self.stack[-8:]]))
         if tag=='meta' and not self.scope_positions:
             name=(attrs.get('property') or attrs.get('name','')).casefold();value=attrs.get('content','')
             if name in ('robots','hamarkommuneagent') and re.search(r'\b(?:noindex|none)\b',value,re.I):self.noindex=True
@@ -260,23 +874,46 @@ class ServiceHTML(HTMLParser):
             if attrs.get('itemprop','').casefold()=='datepublished':self.published=attrs['datetime']
             if attrs.get('itemprop','').casefold()=='datemodified':self.updated=attrs['datetime']
         if tag=='input' and attrs.get('type','').casefold()=='password':self.noindex=True
-        if (tag=='main' or tag in ('div','section') and role=='main') and not blocked:
-            self.main_roots+=1;self.main_positions.add(len(self.stack))
+        content_id=(attrs.get('id') or '').casefold().replace('_','-')
+        content_classes=set((attrs.get('class') or '').casefold().split())
+        marked_content=(content_id in ('main','main-content','content-main','maincontent','page-content',
+            'pagecontent','content','article-content','articlecontent')
+            or re.search(r'(?:^|-)main-?content$',content_id)
+            or bool(content_classes & {'main-content','maincontent','page-content','pagecontent',
+                'article-content','article__content'}))
+        is_main=(tag=='main' or tag in ('div','section') and (role=='main' or self.public_layout
+            and marked_content))
+        if is_main and not blocked:
+            if not self.public_layout or not self.main_positions:self.main_roots+=1
+            self.main_positions.add(len(self.stack))
         article=tag=='article' or role=='article' and tag not in self.VOID
         if article and not blocked:
             self.article_roots+=1;self.article_positions.add(len(self.stack))
+        if self.public_layout and (is_main or article) and not blocked:
+            for position in self.wrapper_forms:self.wrapper_forms[position]=True
         # Native disclosure/form groups isolate their headings and conditions
         # just like articles/ARIA groups; sibling groups cannot lend a price year.
-        semantic=tag if tag in ('article','section','table','details','fieldset') else 'article' if article else 'section' if role in ('region','group','tabpanel') else None
+        typed_parent=any(t in ('p','li','tr','h1','h2','h3','h4','h5','h6') for t,_ in self.stack)
+        if self.public_layout and active and typed_parent and (control or tag=='form') and not (defer_print or passive_input or disclosure_control):
+            self.parts.append(' * ')  # Omitted interactive material cannot silently qualify this unit.
+        semantic='details' if disclosure_panel else tag if tag in ('article','section','table','details','fieldset') else 'article' if article else 'section' if role in ('region','group','tabpanel') else 'div' if self.public_layout and tag=='div' and not typed_parent else None
         if semantic and not blocked and (active or article):
-            self.flush();self.scope_event('scope_enter:'+semantic)
+            self.flush()
+            if self.public_layout and semantic in ('article','section','table','details','fieldset'):
+                self.next_owner_id+=1;self.scope_owner_ids[len(self.stack)]=self.next_owner_id
+                if article:self.article_owner_paths.append(self.owner_path())
+            self.scope_event('scope_enter:'+semantic)
             self.scope_positions[len(self.stack)]=semantic
             self.directory_scopes[len(self.stack)]=(tuple(self.directory_headings),self.directory_inherited)
             self.directory_inherited=(*self.directory_inherited,*self.directory_headings);self.directory_headings=[]
+            if disclosure_panel:
+                self.disclosure_positions[len(self.stack)]=dict(start=len(self.blocks),owner=self.owner_path(),source_node=self.nodes)
+                self.parts.append(self.disclosures['panels'][self.nodes]['label']);self.flush(kind='summary')
         if tag=='table':self.table_header=''
         if tag=='tr':self.row_header=False
         if tag=='th':self.row_header=True
         if active and tag in ('p','li','tr','h1','h2','h3','h4','h5','h6','summary','legend'):self.flush()
+        if self.public_layout and active and tag=='div' and not typed_parent:self.flush()
         if active and re.fullmatch(r'h[1-6]',tag):
             level=int(tag[1]);self.directory_headings=[h for h in self.directory_headings if h[0]<level]
             self.directory_heading_starts[level]=len(self.directory_links)
@@ -309,10 +946,20 @@ class ServiceHTML(HTMLParser):
         if tag=='input' and self.form is not None and attrs.get('type','text').casefold() in ('text','search'):
             if attrs.get('name','').casefold() in ('q','query','search','searchtext','searchstring','sok','søk'):
                 self.form['field']=attrs['name']
-        if tag not in self.VOID:self.stack.append((tag,blocked))
+        if self.public_layout and attrs.get('id'):
+            self.id_nodes[attrs['id']].update(owner=list(self.owner_path()),blocked=bool(blocked),
+                labelledby=tuple(attrs.get('aria-labelledby','').split()))
+        if self.public_layout and not blocked:
+            self._start_metadata(len(self.stack),tag,attrs,ambiguous=ambiguous)
+            if tag in self.VOID and len(self.stack) in self.node_metadata:
+                self._finish_metadata(len(self.stack),explicit_close=True)
+        if tag not in self.VOID:
+            if self.collect_dom:self.dom_positions[len(self.stack)]=self.nodes
+            self.stack.append((tag,blocked))
 
     def handle_endtag(self,tag):
         if tag in ('p','li','tr','h1','h2','h3','h4','h5','h6','summary','legend'):self.flush()
+        if self.public_layout and tag=='div' and not any(t in ('p','li','tr','h1','h2','h3','h4','h5','h6') for t,_ in self.stack):self.flush()
         if tag=='a' and self.anchor is not None:
             href,parts,context=self.anchor
             label=' '.join(''.join(parts).split())
@@ -328,44 +975,121 @@ class ServiceHTML(HTMLParser):
         if tag=='table':self.table_header=''
         for i in range(len(self.stack)-1,-1,-1):
             if self.stack[i][0]==tag:
+                for position in list(self.control_labels):
+                    if position>=i:
+                        self._finish_control(position,explicit_close=position==i and tag=='button')
+                for position in list(self.layout_search_forms):
+                    if position>=i:self._finish_search_ui(position,explicit_close=position==i and tag=='form')
                 for position in sorted((p for p in self.directory_rows if p>=i),reverse=True):
                     row=self.directory_rows.pop(position);row_text=' '.join(row['text'].split())
                     for number in range(row['start'],len(self.directory_links)):
                         href,label,eligible,context=self.directory_links[number]
                         if row['dirty'] or row_text!=label:self.directory_links[number]=(href,label,False,context)
+                for position in list(self.disclosure_positions):
+                    if position>=i:
+                        self.flush();panel=self.disclosure_positions.pop(position)
+                        panel.update(end=len(self.blocks),closed=position==i);self.disclosure_ranges.append(panel)
                 closing=[position for position in self.scope_positions if position>=i]
                 if closing:
                     self.flush()
                     for position in sorted(closing,reverse=True):
                         self.scope_event('scope_exit:'+self.scope_positions.pop(position))
+                        self.scope_owner_ids.pop(position,None)
                         local,self.directory_inherited=self.directory_scopes.pop(position);self.directory_headings=list(local)
+                for position in list(self.node_metadata):
+                    if position>=i:self._finish_metadata(position,explicit_close=position==i)
+                for position in list(self.dom_positions):
+                    if position>=i:
+                        self.dom[self.dom_positions.pop(position)].update(end=self.nodes,closed=position==i,text_end=len(self.dom_text))
                 del self.stack[i:];self.main_positions={position for position in self.main_positions if position<i}
                 self.article_positions={position for position in self.article_positions if position<i};break
+        self.ui_positions={position:known for position,known in self.ui_positions.items() if position<len(self.stack)}
+        self.wrapper_forms={position:value for position,value in self.wrapper_forms.items() if position<len(self.stack)}
         self.directory_excluded={position for position in self.directory_excluded if position<len(self.stack)}
 
     def handle_data(self,data):
+        if self.collect_dom and self.stack and not any(tag in ('script','style','noscript','svg','template') for tag,_ in self.stack):
+            node=self.dom_positions.get(len(self.stack)-1)
+            if node is not None:
+                self.dom_text.append((node,data))
+                if data.strip():self.dom[node]['text']=True
+        for label in self.control_labels.values():
+            if label['chars']+len(data)>200:label['overflow']=True
+            else:label['parts'].append(data);label['chars']+=len(data)
+        if not any(tag in ('script','style') for tag,_ in self.stack):
+            for state in self.layout_search_forms.values():self._search_ui_text(state,data)
         if any(item[1] for item in self.stack):return
+        if self.public_layout and any(tag=='title' for tag,_ in self.stack):
+            if sum(map(len,self.title_parts))+len(data)<=240:self.title_parts.append(data)
+            else:self.title_overflow=True
         for row in self.directory_rows.values():
             if len(row['text'])+len(data)>300:row['dirty']=True
             elif not row['dirty']:row['text']+=data
         if self.anchor is not None:self.anchor[1].append(data)
         if (self.active()
-                and not any(item[0] in ('nav','header','form') for item in self.stack)):
+                and not any(item[0] in (('nav',) if self.public_layout else ('nav','header','form')) for item in self.stack)
+                and (not self.public_layout or self.form_text_allowed())):
             if (any(item[0] in ('span','small') for item in self.stack)
                     and re.fullmatch(r'\s*\d{1,3}\s*',data)):
                 self.parts.append(' * ')  # Unreviewed inline numeric annotation cannot become a price digit.
             self.parts.append(data)
 
     @classmethod
-    def parse(cls,raw):
+    def parse(cls,raw,*,public_layout=False):
+        parsed=cls._parse(
+            raw,public_layout=public_layout,disclosures=None
+        )
+
+        if public_layout and parsed.form_control_owners:
+            from .discovery import capture_static_section_proofs
+            parsed.independent_section_proofs=(
+                capture_static_section_proofs(raw,cls)
+            )
+
+        return parsed
+
+
+    @classmethod
+    def _parse(cls,raw,*,public_layout,disclosures):
         if type(raw) is not bytes or len(raw)>512*1024:raise ResearchError('research_source_limit')
-        parser=cls()
+        parser=cls(public_layout=public_layout,disclosures=disclosures)
         try:parser.feed(raw.decode('utf-8-sig',errors='strict'));parser.close();parser.flush()
         except (UnicodeError,ValueError,RecursionError):raise ResearchError('research_source_invalid') from None
+        for position in list(parser.layout_search_forms):parser._finish_search_ui(position)
+        for position in list(parser.control_labels):parser._finish_control(position)
+        for position in list(parser.node_metadata):parser._finish_metadata(position)
+        parser.annotations.sort(key=lambda node:node['diagnostic']['source_node'])
+        parser.metadata_diagnostics.sort(key=lambda node:node['source_node'])
+        parser.finalise_control_diagnostics()
         if parser.scope_positions:raise ResearchError('research_source_invalid')
         if parser.noindex:raise ResearchError('research_source_invalid')
         if parser.main_roots>1 or not parser.main_roots and parser.article_roots>1:
             parser.blocks=[]  # Discovery may continue, but ambiguous bodies are never evidence.
+            parser.content_root_refusal='ambiguous_content_roots'
+        elif not parser.main_roots and not parser.article_roots:parser.content_root_refusal='no_content_root'
+        if public_layout and disclosures is None and not parser.content_root_refusal:
+            plan=parser.static_disclosure_plan();diagnostics=parser.disclosure_diagnostics
+            parser.dom.clear();parser.dom_text.clear();parser.dom_positions.clear()
+            if plan:
+                # Same parser, source limits and admission/verification gates;
+                # the first pass only proves closed static DOM relationships.
+                candidate=cls._parse(raw,public_layout=True,disclosures=plan)
+                # A proof is not committed until every complete pane survives
+                # the canonical whole-unit privacy/annotation/condition gate.
+                # Otherwise retain the original controllers' barriers.
+                from .internet_research import public_unit
+                LiveResearchService.reviewed_html_units(candidate,None,unit_screen=public_unit)
+                admitted={d['disclosure_source_node'] for d in candidate.unit_decisions if d.get('complete_panel')
+                    and (d['emitted'] or d.get('first_refusal')=='duplicate_units') and d.get('context_state')!='rejected'}
+                if set(plan['panels'])<=admitted:
+                    parser=candidate
+                    for event in diagnostics:
+                        if event.get('structure_candidate'):
+                            event['structure_applied']=True
+                else:
+                    for event in diagnostics:
+                        if event['status']=='accepted':event.update(status='refused',reason='complete_panel_failed_source_gate')
+                parser.disclosure_diagnostics=diagnostics
         return parser
 
 
@@ -449,7 +1173,9 @@ class LiveTransport:
         self.clock=clock or time.monotonic;self.sleep=sleep or time.sleep
         self.lock=Lock();self.next_start={}
 
-    def get(self,url,session,*,robots=False):
+    def get(self,url,session,*,robots=False,document_kind='html'):
+        if document_kind not in ('html','sitemap') or robots and document_kind!='html':
+            raise ResearchError('research_source_invalid')
         safe_url(url,session.hosts,search=not robots)
         def fetch():
             session.check()
@@ -480,11 +1206,12 @@ class LiveTransport:
             try:
                 session.check()
                 path=urlsplit(url).path+('?' + urlsplit(url).query if urlsplit(url).query else '')
-                connection.request('GET',path,headers={'User-Agent':AGENT,'Accept':'text/plain' if robots else 'text/html',
+                expected_types=('text/plain',) if robots else ('application/xml','text/xml') if document_kind=='sitemap' else ('text/html',)
+                connection.request('GET',path,headers={'User-Agent':AGENT,'Accept':', '.join(expected_types),
                     'Accept-Encoding':'identity','Connection':'close','Cache-Control':'no-cache','Pragma':'no-cache'})
                 response=connection.getresponse();headers=response.headers
                 if (response.status!=200 or len(headers.get_all('Content-Type',[]))!=1
-                        or headers.get_content_type() not in (('text/plain',) if robots else ('text/html',))
+                        or headers.get_content_type() not in expected_types
                         or len(headers.get_params())>2
                         or len(headers.get_all('Content-Encoding',[]))>1
                         or headers.get_content_charset('utf-8').casefold() not in ('utf-8','utf8')
@@ -508,7 +1235,7 @@ class LiveTransport:
                 if lengths and total!=int(lengths[0]):raise ResearchError('research_source_invalid')
                 raw=b''.join(parts);observed=datetime.now(timezone.utc).isoformat()
                 record=dict(url=url,request_id=session.request_id,retrieved_at=observed,bytes=total,
-                    raw_sha256=hashlib.sha256(raw).hexdigest(),status=200,role='robots' if robots else 'html')
+                    raw_sha256=hashlib.sha256(raw).hexdigest(),status=200,role='robots' if robots else document_kind)
                 session.observe(record)
                 return raw,record,headers.get('Last-Modified')
             finally:connection.close()
@@ -556,15 +1283,17 @@ class LiveSession:
                 raise ResearchError('research_permission_revoked')
             self.owner.admit_tool('live_source_binding')
 
-    def get(self,url,*,robots=False):
+    def get(self,url,*,robots=False,document_kind='html'):
         self.check()
         try:
-            raw,record,modified=self.service.transport.get(url,self,robots=robots)
+            options={'robots':robots}
+            if document_kind!='html':options['document_kind']=document_kind
+            raw,record,modified=self.service.transport.get(url,self,**options)
             self.check()
             if (type(raw) is not bytes or type(record) is not dict or record.get('url')!=url
                     or len(raw)>(65536 if robots else 512*1024) or self.received>1024*1024 or self.requests>8
                     or record.get('request_id')!=self.request_id or type(record.get('status')) is not int
-                    or record['status']!=200 or record.get('role')!=('robots' if robots else 'html')
+                    or record['status']!=200 or record.get('role')!=('robots' if robots else document_kind)
                     or type(record.get('bytes')) is not int or record['bytes']!=len(raw)
                     or record.get('raw_sha256')!=hashlib.sha256(raw).hexdigest()):
                 raise ResearchError('research_source_invalid')
@@ -608,6 +1337,48 @@ def effective_periods(text):
         r'[^.\n]{0,35}?\b('+PERIOD_TOKEN+r')\b',text,re.I)))
 
 
+def procedural_text(text):
+    """Shared grammatical signal, never evidence of the correct service alone."""
+    return bool(re.search(r'\b(?:søknad\w*|søk(?:e[rs]?|jer|je|jast)?|send(?:e[rs]?|t|ing|ast)?|'
+        r'skjema(?:et|er|ene)?|fyll(?:e|er)?\s+ut|apply|applications?|submit(?:s|ted|ting)?|forms?)\b',text,re.I))
+
+
+def procedural_reference(text):
+    """Ordinary application syntax can refer to an established article topic.
+
+    This only recognizes grammatical references, never a service, fact or
+    approval. The caller must still reject different objects, headings,
+    conditions and unsafe source text before using the article context.
+    """
+    if not procedural_text(text):return False
+    noun=r'(?:søknad(?:en|er|ene)?|skjema(?:et|er|ene)?|applications?|forms?)'
+    determiner=r'(?:(?:en|ei|et|eit|din|ditt|den|det|the|your|an?)\s+)?'
+    action=r'(?:send(?:es|t|ast)?|lever(?:es|ast)?|fyll(?:es|ast)?\s+ut|submit(?:ted)?|sent|completed)'
+    passive=determiner+noun+r'\s+(?:(?:kan|skal|må|bør|blir|vert|is|are|must\s+be|can\s+be)\s+)?'+action
+    imperative=r'(?:send|lever|fyll\s+ut|submit|complete)\s+(?:inn\s+)?'+determiner+noun
+    infinitive=(r'for\s+å\s+søk(?:e|je)\s+plass\s+(?:kan|skal|må|bør)\s+'
+        +determiner+noun+r'\s+'+action+r'|to\s+apply\s*,\s*'+imperative)
+    # This fallback is only for an implicit reference to the article topic.
+    # Match the complete instruction, not a prefix followed by an unknown
+    # purpose, second predicate or condition. Explicit service descriptions
+    # continue through ordinary lexical/topic matching instead.
+    # A recipient is an institutional role, not an arbitrary phrase. Otherwise
+    # "to obtain a permit" could masquerade as the name of a receiving office.
+    # Compounds stay open (e.g. any office/department), without a service list.
+    institution=(r'(?:[^\W\d_][\w-]*)?(?:kontor(?:et)?|administrasjon(?:en)?|'
+        r'avdeling(?:en|a)?|etat(?:en)?|kommune(?:n)?|enhet(?:en|a)?|'
+        r'office|department|administration|authority|agency|council|municipality)')
+    possessor=r'(?:'+institution+r"(?:s|['’]s)\s+)?"
+    recipient=r'(?:\s+(?:til|to)\s+'+determiner+possessor+institution+r')?'
+    method=(r'(?:\s+(?:gjennom|via|med|through|using)\s+'+determiner+
+        r'(?:(?:digitalt?|digitale|elektronisk|elektroniske|online)\s+){0,2}'
+        r'(?:skjema(?:et|er|ene)?|søknadsskjema(?:et)?|nettportal(?:en)?|portal(?:en)?|forms?))?')
+    purpose=(r'(?:\s+for\s+(?:(?:dette|denne)\s+(?:tilbudet|tjenesten|ordningen)|'
+        r'å\s+søk(?:e|je)\s+plass))?')
+    return bool(re.fullmatch(r'\s*(?:'+passive+'|'+imperative+'|'+infinitive+r')'
+        r'(?:\s+(?:digitalt|elektronisk|online))?'+purpose+recipient+method+r'\s*[.!]?\s*',text,re.I))
+
+
 def supports_question(text,question):
     def grades(value):
         result=set()
@@ -643,8 +1414,19 @@ def supports_question(text,question):
     if re.search(r'\b(?:åpningstid\w*|åpner|stenger|åpent)\b',question,re.I):
         return bool(re.search(r'\b(?:åpningstid\w*|åpent|åpner|stenger)\b',text,re.I)
                     and re.search(r'\b\d{1,2}[.:]\d{2}\b',text))
-    if re.search(r'\bhvordan\s+søker\b',question,re.I):
-        return bool(re.search(r'\b(?:søknad\w*|søk|send|skjema)\b',text,re.I))
+    if re.search(r'\b(?:hvordan|korleis)\s+søk(?:er|jer|je|e)?\b|\bhow\b.{0,40}\bapply\b',question,re.I):
+        parts=text.split(' | ')
+        from .question_router import procedural_evidence
+
+        return (
+            procedural_text(parts[-1])
+            or any(
+                procedural_text(part)
+                and procedural_evidence(part)
+                and not part.rstrip().endswith('?')
+                for part in parts[:-1]
+            )
+        )
     return True
 
 
@@ -735,11 +1517,13 @@ class LiveResearchService(ResearchService):
                    reviewed_only=reviewed_only)
 
     def __init__(self,municipalities,*,approvals=(),enabled=False,transport=None,authorities=(),external_policy=None,
-                 supplementary_sites=(),reviewed_fetcher=None,discoverer=None,active_municipalities=None,reviewed_only=False):
+                 supplementary_sites=(),reviewed_fetcher=None,discoverer=None,active_municipalities=None,reviewed_only=False,
+                 discovery_profile=None):
         super().__init__(approvals,municipalities=municipalities,active_municipalities=active_municipalities)
         self.live_enabled=enabled is True;self.transport=transport or LiveTransport()
         if type(reviewed_only) is not bool:raise ValueError('Explicit reviewed-only boundary required')
         self.reviewed_only=reviewed_only
+        self.discovery_profile=discovery_profile  # No default grant, CLI flag or inferred domain permission.
         self.authorities=tuple(MappingProxyType(dict(a)) for a in authorities)
         self.supplementary_sites=tuple(MappingProxyType(validate_supplementary_site(s)) for s in supplementary_sites)
         self.external_policy=external_policy  # No CLI/environment blanket cloud permission.
@@ -763,6 +1547,22 @@ class LiveResearchService(ResearchService):
     def external_allowed(self,approval):
         return bool(self.external_policy and self.external_policy(approval.url,approval.text_sha256))
 
+    def prepare_guidance(self,question,*,provider,authorized):
+        # The real reviewed catalog has no public guidance entries today. A
+        # public domain record alone never supplies an excerpt or transfer right.
+        if not any(a.current() and a.authority_tier==2 and a.national_guidance_reviewed for a in self.approvals.values()):
+            raise ResearchError('research_no_sources')
+        revision,registry,catalog=self.revision,self.municipalities,self.approvals
+        fingerprint=registry.fingerprint();active=self.active_municipalities
+        reviewed=self.reviewed_sources
+        def permitted():
+            return (authorized() and self.configured() and self.revision==revision
+                and self.municipalities is registry and registry.fingerprint()==fingerprint
+                and self.approvals is catalog and self.active_municipalities==active
+                and self.reviewed_sources is reviewed
+                and dict(reviewed.approvals)==dict(catalog))
+        return reviewed.prepare(question,provider=provider,authorized=permitted,evidence_scope='national_guidance')
+
     def context_terms(self,question):
         validate_message(question)
         topic=service_topic(question)
@@ -773,7 +1573,7 @@ class LiveResearchService(ResearchService):
             for word in a.keywords if words.intersection(re.findall(r'\w+',canonical_question(word).casefold()))))[:16]
 
     @staticmethod
-    def reviewed_html_units(parsed,entry):
+    def reviewed_html_units(parsed,entry,*,unit_screen=None,diagnostics=None,allow_independent_sections=False,statement_heading_screen=None):
         """Whole context-bearing review units, never automatic approval.
 
         A reviewer approves the exact joined unit AND the full input snapshot.
@@ -781,6 +1581,7 @@ class LiveResearchService(ResearchService):
         and scope barriers cannot silently disappear from a condition.
         """
         def screened(text):
+            if unit_screen is not None:return unit_screen(text)
             # This is a review-candidate screen, not the typed automatic HTML
             # allowlist. Only an exact separately reviewed input/unit may be
             # admitted by _fetch_reviewed_html. Unknown words confer no trust.
@@ -788,45 +1589,177 @@ class LiveResearchService(ResearchService):
             try:privacy_check(text);validate_message(text,reply=True)
             except ValueError:return False
             return True
-        headings=[];inherited=();group=None;contexts=[];units=[]
-        for block,kind in zip(parsed.blocks,parsed.block_kinds):
+        def reject(reason):
+            if diagnostics is not None:diagnostics[reason]=diagnostics.get(reason,0)+1
+            if decision is not None and 'first_refusal' not in decision:decision['first_refusal']=reason
+        def passed(stage):
+            if diagnostics is not None:diagnostics[stage+'_passed']=diagnostics.get(stage+'_passed',0)+1
+        public_layout=getattr(parsed,'public_layout',False)
+        parsed.unit_contexts=[];parsed.unit_scope_text=[];parsed.unit_decisions=[];decision=None
+        if diagnostics is not None:diagnostics.update(parsed_events=len(parsed.blocks),candidate_units=0,emitted_units=0)
+        if public_layout:
+            for event in parsed.control_diagnostics:
+                text=parsed.control_text.get(event['source_node'])
+                if text is not None:event['label_public_screen']=screened(text)
+            parsed.control_text.clear()
+        def document_context(owner,components,component_indices):
+            # Metadata is separate nomination context, never injected before
+            # relevance. A sibling article/section cannot donate its H1.
+            candidates=None;from_title=False
+            for size in range(len(owner),-1,-1):
+                if owner[:size] in parsed.topic_titles:
+                    candidates={}
+                    for label,index in parsed.topic_titles[owner[:size]]:candidates.setdefault(label,set()).add(index)
+                    break
+            sole_article=(parsed.article_roots==1 and len(parsed.article_owner_paths)==1
+                and owner==parsed.article_owner_paths[0])
+            # One unambiguous article can use its fetched document title for
+            # nomination. Never donate it to a sibling or an unlabelled child
+            # section/group, or use it to supply a price year/condition.
+            if candidates is None and (parsed.next_owner_id==0 or sole_article) and not parsed.title_overflow:
+                title=' '.join(''.join(parsed.title_parts).split())
+                if title:candidates={title:set()};from_title=True
+            if candidates is None:return None
+            if len(candidates)!=1:return False
+            value,donors=next(iter(candidates.items()))
+            if not value or not screened(value):return False
+            refusal=parsed.annotation_rejection((*components,value),component_indices|donors,document_title=from_title)
+            if refusal is not None:
+                if decision is not None:decision['document_annotation_rejection']=refusal
+                reject('unrepresented_document_context');return False
+            if re.search(r'[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]|\[\s*(?:\d{1,3}|[a-zA-Z])\s*\]',value):return False
+            return None if re.search(r'\d',value) else value
+        headings=[];inherited=();group=None;contexts=[];units=[];seen_units=set()
+        disclosure_units,disclosure_components=parsed.disclosure_units() if public_layout else ({},{})
+        for index,(block,kind) in enumerate(zip(parsed.blocks,parsed.block_kinds)):
+            decision=None
+            if index in disclosure_components:
+                if kind in ('p','li','tr','block'):
+                    parsed.unit_decisions.append(dict(block_index=index,kind=kind,owner=list(parsed.block_owners[index]),
+                        emitted=False,disclosure_component_of=disclosure_components[index]))
+                continue
+            aggregate=disclosure_units.get(index)
+            if aggregate is not None:block=aggregate['text'];kind='p'
             if kind.startswith('scope_enter:'):
                 contexts.append((list(headings),inherited,group))
-                inherited=(*inherited,*headings,*(((-1,group),) if group else ()))
+                inherited=(*inherited,*headings,*(((-1,*group),) if group else ()))
                 headings=[];group=None;continue
             if kind.startswith('scope_exit:'):
                 if not contexts:raise ResearchError('research_source_invalid')
                 headings,inherited,group=contexts.pop();continue
             if kind.startswith('barrier:'):
+                reject('context_barriers')
                 lost=kind.split(':',1)[1]
                 if lost in ('h1','h2','h3','h4','h5','h6'):
                     level=int(lost[1]);headings=[h for h in headings if h[0]<level]
-                    headings.append((level,None))
+                    headings.append((level,None,index))
                 else:
                     # A lost non-heading condition has unknown extent. Keep a
                     # barrier throughout this scope, including under headings.
-                    headings.append((0,None))
+                    headings.append((0,None,index))
                 group=None;continue
             if not block:continue
             if kind in ('summary','legend'):
                 # Native group labels qualify this whole scope, including
                 # under child headings. They cannot be silently discarded.
-                headings.append((0,block if screened(block) else None));continue
+                headings.append((0,block if screened(block) else None,index));continue
             if kind in ('h1','h2','h3','h4','h5','h6'):
                 level=int(kind[1]);headings=[h for h in headings if h[0]<level]
-                headings.append((level,block if screened(block) else None))
-                group=None;continue
-            if kind not in ('p','li','tr'):continue
+                headings.append((level,block if screened(block) else None,index))
+                group=None
+
+                if (
+                    public_layout
+                    and statement_heading_screen is not None
+                    and statement_heading_screen(block)
+                ):
+                    kind='p'
+                else:
+                    continue
+            if kind not in (('p','li','tr','block') if public_layout else ('p','li','tr')):continue
+            decision=dict(block_index=index,kind=kind,owner=list(parsed.block_owners[index]),emitted=False)
+            parsed.unit_decisions.append(decision)
+            if diagnostics is not None:diagnostics['candidate_units']+=1
+            if public_layout and not re.search(r'\w|[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]',block):
+                reject('empty_units');continue
+            if kind=='block':
+                # Unknown layout text is useful for general guidance, but may
+                # not create a new automatic price/table interpretation.
+                if re.search(r'\d[\d .,]*\s*(?:kr\b|kroner\b|,-)|\b(?:kr\.?|NOK)\s*\d|\bgratis\b',block,re.I):
+                    reject('unsupported_block_price');headings.append((0,None,index));continue
+                if len(block.split())<3:
+                    group=(block,index) if screened(block) else None
+                    if group is None:headings.append((0,None,index))
+                    reject('short_unit_rejections');continue
             if block.endswith(':'):
-                group=block if screened(block) else None
-                if group is None:headings.append((0,None))
+                group=(block,index) if screened(block) else None
+                if group is None:headings.append((0,None,index))
                 continue
-            labels=[label for _,label in (*inherited,*headings)]
-            if any(label is None for label in labels):continue
-            unit=' | '.join(dict.fromkeys(x for x in (*labels,group,block) if x))
+            labels=[label for _,label,_ in (*inherited,*headings)]
+            if any(label is None for label in labels):reject('context_barriers');continue
+            passed('heading_context')
+            components=tuple(dict.fromkeys(x for x in (*labels,group[0] if group else None,block) if x))
+            unit=' | '.join(components)
+            component_indices={index,*(i for _,label,i in (*inherited,*headings) if label)}
+            if group:component_indices.add(group[1])
+            validation_components=components
+            if aggregate is not None:
+                component_indices.update(aggregate['indices'])
+                validation_components=(*components,*(parsed.blocks[i] for i in aggregate['indices']))
+                decision.update(disclosure_source_node=aggregate['source_node'],complete_panel=True)
+            annotation_refusal=parsed.annotation_rejection(validation_components,component_indices) if public_layout else None
+            tainted_owners=[list(owner) for owner in sorted(parsed.form_control_owners)
+                if parsed.block_owners[index][:len(owner)]==owner or aggregate is not None
+                    and owner[:len(aggregate['owner'])]==aggregate['owner']] if public_layout else []
+            unit_safe=screened(unit)
+            decision.update(component_blocks=sorted(component_indices),annotation_rejection=annotation_refusal,
+                form_control_owners=tainted_owners,public_screen=unit_safe,word_count=len(unit.split()),
+                note_marker=bool(re.search(r'[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]|\[\s*(?:\d{1,3}|[a-zA-Z])\s*\]',unit)))
+            if annotation_refusal is not None:
+                reject('unrepresented_annotations');continue
+            passed('annotations')
+            if (
+                tainted_owners
+                and allow_independent_sections
+                and unit_safe
+                and annotation_refusal is None
+                and not re.search(
+                    r'\d|[*\u2020\u2021]|\b(?:pris|gebyr|gratis|rettighet|frist)\w*\b',
+                    unit,re.I
+                )
+            ):
+                from .discovery import independent_static_section
+
+                if independent_static_section(
+                    parsed,index,component_indices
+                ):
+                    decision['independent_static_section']=True
+                    tainted_owners=[]
+
+            if tainted_owners:
+                # Omitted interactive text may qualify any fact, including an
+                # application procedure without a price, date or rule keyword.
+                # Its extent is unknown: refuse this owner and descendants,
+                # while independent sibling scopes keep their own context.
+                reject('form_control_conditions');continue
+            passed('form_control')
             # Footnote conditions cannot be inferred or dropped from a unit.
-            if re.search(r'[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]|\[\s*(?:\d{1,3}|[a-zA-Z])\s*\]',unit):continue
-            if screened(unit) and len(unit.split())>=5:units.append(unit)
+            if re.search(r'[*†‡¹²³⁴⁵⁶⁷⁸⁹⁰]|\[\s*(?:\d{1,3}|[a-zA-Z])\s*\]',unit):reject('note_rejections');continue
+            passed('notes')
+            if len(unit)>900:reject('overlong_units')
+            if not unit_safe:reject('public_screen_rejections')
+            elif len(unit.split())<5:reject('too_short_units')
+            if unit_safe and len(unit.split())>=5:
+                passed('public_screen')
+                context=document_context(parsed.block_owners[index],components,component_indices) if public_layout else None
+                decision['context_state']='rejected' if context is False else 'present' if context else 'none'
+                if public_layout and (unit,context) in seen_units:reject('duplicate_units');continue
+                seen_units.add((unit,context))
+                units.append(unit)
+                parsed.unit_contexts.append(context)
+                parsed.unit_scope_text.append(aggregate['text'] if aggregate is not None else None)
+                decision.update(emitted=True,context_state='rejected' if context is False else 'present' if context else 'none')
+                if diagnostics is not None:diagnostics['emitted_units']+=1
         return tuple(units)
 
     def _fetch_reviewed_html(self,approval,session,*,max_bytes):
@@ -1204,7 +2137,18 @@ class LiveResearchService(ResearchService):
         if self.reviewed_only:
             # Exact-source probes never broaden a missing/expired approval to
             # navigation, typed admission or another URL/domain.
-            raise ResearchError('research_no_official_sources' if municipal else 'research_no_sources')
+            error=ResearchError('research_no_official_sources' if municipal else 'research_no_sources')
+            error.source_status=dict(discovery='not_attempted',admitted_sources=0,
+                catalog_entries=len(self.approvals),reason='no_matching_reviewed_source')
+            profile=self.discovery_profile
+            if profile is not None and entry is not None:
+                from .discovery import discover_candidates
+                session=LiveSession(self,owner,uuid.uuid4().hex,datetime.now(timezone.utc),authorized,[entry.official_host])
+                discover_candidates(session,question,entry,profile,
+                    authorized=lambda:authorized() and self.discovery_profile is profile)
+                error.source_diagnostics=tuple(session.trace+session.diagnostics)
+                error.source_status.update(discovery='candidates_only',reason='candidate_content_requires_review')
+            raise error
         entry=self.municipalities.resolve(question,municipality_context) if municipal else None
         if municipal and entry is None:raise ResearchError('research_municipality_required')
         topic=service_topic(question)
@@ -1298,7 +2242,7 @@ class LiveResearchService(ResearchService):
 
     @staticmethod
     def _directory_notice(value,binding,*,append_text=False):
-        if (any(getattr(a,'directory_kind',None) for a in binding.approvals)
+        if (school_overview(binding.question or '') or any(getattr(a,'directory_kind',None) for a in binding.approvals)
                 or re.search(r'\b(?:alle|list\w*|oversikt\w*|hvilk\w*)\b',binding.question or '',re.I)):
             # One server-owned overlay for chat AND municipal search/answer.
             notice='Dette er dokumenterte oppføringer fra kilden. Kildekontrollen bekrefter ikke at listen er komplett.'
