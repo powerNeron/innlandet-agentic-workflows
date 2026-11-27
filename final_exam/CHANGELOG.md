@@ -1048,3 +1048,20 @@ PowerShell command at a time for the ordinary PyCharm terminal.
 - Deterministic UI regression: 39/39 passed.
 - Documented live retrieval limitations in README.
 - No changes to COM 2 in this release step.
+
+
+## 2026-11-27 - Final technical verification
+
+- Application baseline: 0562661.
+- Full offline regression: 899 passed, zero failures/errors.
+- Final evaluation: 56 primary cases, 20 fresh recovery runs.
+- Both required perturbation classes: 28/28 passed.
+- Clean remote clone reproduced normal synthetic workflow and evaluation.
+- Historical LS-01/LS-02 repair evidence registered.
+- Five actual municipal questions assessed; limitations retained.
+- Consolidated evidence and SHA-256 manifest in
+  output/rapport_resultater_0562661/.
+- Owner elected to freeze application functionality.
+- Requirements and report planning updated.
+- Final paper, authentic appendices and submission remain pending.
+- No application code changed during this documentation handoff.

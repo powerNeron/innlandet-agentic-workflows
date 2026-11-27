@@ -1,3 +1,59 @@
+# Final technical handoff - 27 November 2026
+
+Application baseline: 0562661, branch exam/final.
+Application functionality is frozen by the project owner.
+
+## Verified evidence
+
+- 899/899 offline regression tests.
+- 56/56 deterministic evaluation cases.
+- 8/8 input perturbation cases.
+- 20/20 dependency failure cases.
+- 20/20 fresh recovery runs.
+- 100% reserved-budget compliance within the tested scope.
+- Matching remote clone: normal synthetic workflow and evaluation reproduced.
+- Historical LS-01 and LS-02 repairs retain passing targeted regressions.
+- Five live municipal questions reviewed, with limitations retained.
+
+Evidence: output/rapport_resultater_0562661/manifest.json
+
+## Scientific interpretation
+
+One-call refusal completed 2/20 eligible tasks.
+Bounded correction completed 6/20.
+Both policies passed 28/28 safety checks.
+Overall task completion was 8/40 (20%), including injected faults.
+
+These are scripted experiments, not live model accuracy measurements.
+Exact grounding is not semantic truth.
+Reserved output tokens are not measured billing.
+Caller abandonment is not remote inference cancellation.
+
+## Remaining examination deliverables
+
+- Human-edited English white paper, 7-8 main pages.
+- Quantitative and qualitative interpretation.
+- Architecture differences from Compulsory 2.
+- All five safe-operation measures and their limitations.
+- Two stress classes, causal analysis and genuine repair evidence.
+- Representative authentic prompt excerpts.
+- One complete raw evaluation log.
+- At least eight authentic meeting reports.
+- Actual demonstration feedback and observed failures.
+- Public repository link and final authorized exam tag.
+- Final WISEflow submission.
+
+No grade or full academic compliance is asserted.
+The evidence folder is local; required evidence must be included
+in the submission after privacy and secret review.
+
+---
+
+## Historical readiness record
+
+The following earlier snapshot is preserved for provenance.
+Its dated readiness statements are not the current technical status.
+
 # Final submission readiness — 24 November 2026
 
 **Not ready for publication or submission.** This is the current evidence map,
