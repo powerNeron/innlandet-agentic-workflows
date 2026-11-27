@@ -1,0 +1,3 @@
+dataset,provider,n,method,result,evidence
+Live model comparison,Ollama,0,Not authorized/executed,NOT_RUN; mock adapter results are not model comparisons,metrics.json limits
+Live model comparison,OpenAI,0,Not authorized/executed,NOT_RUN; mock adapter results are not model comparisons,metrics.json limits

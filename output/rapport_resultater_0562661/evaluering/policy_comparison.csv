@@ -1,0 +1,3 @@
+dataset,policy,n,answerable_n,completed_n,safe_n,task_completion_pct,safe_pct,model_dispatches,reserved_output_tokens_total,mean_ms,median_ms,p95_ms_nearest_rank,max_ms,evidence
+34dc27c11547926e9116747fdbc24c7f4ee3e60a85d8bee4db053eedacb373ff,one_call_refusal,28,20,2,28,10.0,100.0,20,12120,4.847560714551946,0.6171499990159646,50.96239999693353,63.48650000290945,raw.jsonl
+34dc27c11547926e9116747fdbc24c7f4ee3e60a85d8bee4db053eedacb373ff,bounded_correction,28,20,6,28,30.0,100.0,26,15756,4.81094285610847,0.6934000048204325,57.2620999882929,60.16799999633804,raw.jsonl

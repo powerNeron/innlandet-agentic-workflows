@@ -1,0 +1,39 @@
+{
+  "application_commit": "0562661408a2472a7650aa78332438f9fce6fbae",
+  "branch": "exam/final",
+  "dataset_sha256": "34dc27c11547926e9116747fdbc24c7f4ee3e60a85d8bee4db053eedacb373ff",
+  "offline_tests": 899,
+  "primary_evaluation_cases": 56,
+  "recovery_cases": 20,
+  "clean_clone_commit_verified": true,
+  "clean_clone_metrics_verified": true,
+  "evaluation_scope": "Deterministic synthetic evaluation",
+  "human_ratings_completed": false,
+  "files": {
+    "brukertest.md": "4a240d8e43328ae0af3c7c10d40a88c1927398e4227cb302a6e007dcf2e5fcdb",
+    "evaluering/artifact_manifest.json": "36cb74c6b4e1b64aad2fa9c1f028917b5f28e6847967528c4ab9e566dff07673",
+    "evaluering/dataset.json": "68ec26716a2f31fb5170befabf5542924f2c8c77a5d86e171f3001e6952407ea",
+    "evaluering/metrics.json": "fb0c2dd9b589abd71b734b72edf28d378ba6dacbaa5bbed75029a97fc8afe9dc",
+    "evaluering/policy_comparison.csv": "dca9b78840d8f29e0b626bc241fd9ac1bcfdad6abb2359c8a9ad0d9973c561e2",
+    "evaluering/qualitative_review.csv": "9851cfc398053c31ed21dc553663df5839fc26c1bfabc923d524efdba761835c",
+    "evaluering/raw.jsonl": "0977f53bbd14235629259a2863bc814977296d021015386aca1733c9e4623f1e",
+    "evaluering/T1_coverage.csv": "bec907d471d425bdf282669f844a9d068c9b4e936c99f5657b0a52ff98efe136",
+    "evaluering/T2_queries.csv": "647fca90710679c1419620b567946203a4c43bfb72a62352eede1272f1a7c68e",
+    "evaluering/T3_sources.csv": "a921a943bcc259d7a73d77f3e97532f188f5c9e457111be635d42a48ce0f3c06",
+    "evaluering/T4_providers.csv": "c184e5b6626d73e642da3054f4896068f32dc669153a2618213134c6615e4b45",
+    "evaluering/T5_controls.csv": "8ccfe2ae17489bd50c0d0375a78e866afc053b91e3a906dc1485b5646b69318e",
+    "evaluering/T6_stress.csv": "af1d492db99c544dd36617d0ccd8e0ed054120d04b37853bce5924b7eb6f1950",
+    "evaluering/T7_recovery.csv": "34593d621852e903b6ba33be90d8fcbacd86c2c356142aca80226e8a06882759",
+    "evaluering/T8_limitations.csv": "f134de40908682352646c1d6982a454134d18465356202d8636bb799f29976c3",
+    "regresjon/exam-offline-20261127-145557.log": "a7645399fd76ef8336ed2cd920d878736f013983e5a91858bfc0a27594975012",
+    "reparasjoner/review-corrections.log": "df2cfcc91f27fc226eda836237f250f530ab75b818387eaabcc48b8e2987c467",
+    "reparasjoner/review-counterexamples.json": "4050461736910813f1ee60202681752b276e1a72ba0dfc3b4333f31bc7f2f985",
+    "reproduserbarhet/metrics.json": "1a2fec70cd76faf04127db44a7d9a3076606a283be4f850e9c0ebddf97d5f83e"
+  },
+  "publication_normalization": {
+    "file": "evaluering/artifact_manifest.json",
+    "original_sha256": "01583ed603412ea9c439c14fcf02ac29aebaf2c991554c9844ca590182130ac5",
+    "published_sha256": "36cb74c6b4e1b64aad2fa9c1f028917b5f28e6847967528c4ab9e566dff07673",
+    "operation": "Absolute paths converted to relative paths"
+  }
+}

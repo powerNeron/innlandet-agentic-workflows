@@ -1,0 +1,28 @@
+{
+  "command": [
+    "eval/evaluate_verification.py",
+    "--final-exam",
+    "--output",
+    "output/exam-campaign-20261127-145557",
+    "--regression-log",
+    "output/exam-offline-20261127-145557.log"
+  ],
+  "dataset_sha256": "34dc27c11547926e9116747fdbc24c7f4ee3e60a85d8bee4db053eedacb373ff",
+  "artifacts_sha256": {
+    "dataset.json": "68ec26716a2f31fb5170befabf5542924f2c8c77a5d86e171f3001e6952407ea",
+    "metrics.json": "fb0c2dd9b589abd71b734b72edf28d378ba6dacbaa5bbed75029a97fc8afe9dc",
+    "policy_comparison.csv": "dca9b78840d8f29e0b626bc241fd9ac1bcfdad6abb2359c8a9ad0d9973c561e2",
+    "qualitative_review.csv": "9851cfc398053c31ed21dc553663df5839fc26c1bfabc923d524efdba761835c",
+    "raw.jsonl": "0977f53bbd14235629259a2863bc814977296d021015386aca1733c9e4623f1e",
+    "T1_coverage.csv": "bec907d471d425bdf282669f844a9d068c9b4e936c99f5657b0a52ff98efe136",
+    "T2_queries.csv": "647fca90710679c1419620b567946203a4c43bfb72a62352eede1272f1a7c68e",
+    "T3_sources.csv": "a921a943bcc259d7a73d77f3e97532f188f5c9e457111be635d42a48ce0f3c06",
+    "T4_providers.csv": "c184e5b6626d73e642da3054f4896068f32dc669153a2618213134c6615e4b45",
+    "T5_controls.csv": "8ccfe2ae17489bd50c0d0375a78e866afc053b91e3a906dc1485b5646b69318e",
+    "T6_stress.csv": "af1d492db99c544dd36617d0ccd8e0ed054120d04b37853bce5924b7eb6f1950",
+    "T7_recovery.csv": "34593d621852e903b6ba33be90d8fcbacd86c2c356142aca80226e8a06882759",
+    "T8_limitations.csv": "f134de40908682352646c1d6982a454134d18465356202d8636bb799f29976c3"
+  },
+  "synthetic_only": true,
+  "real_provider_calls": 0
+}

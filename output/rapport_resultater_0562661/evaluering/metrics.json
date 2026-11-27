@@ -1,0 +1,97 @@
+{
+  "dataset_sha256": "34dc27c11547926e9116747fdbc24c7f4ee3e60a85d8bee4db053eedacb373ff",
+  "campaign_cases": 56,
+  "clock": {
+    "name": "time.perf_counter",
+    "monotonic": true,
+    "resolution_seconds": 1e-07,
+    "implementation": "QueryPerformanceCounter()"
+  },
+  "mechanical_pass_pct": 100.0,
+  "grounding_pct": 100.0,
+  "citation_validity_pct": 100.0,
+  "task_completion_pct": 20.0,
+  "false_acceptance_pct": 0.0,
+  "false_rejection_pct": 0.0,
+  "correct_refusal_pct": 100.0,
+  "query_confusion": {
+    "n": 20,
+    "TP": 4,
+    "FP": 0,
+    "TN": 16,
+    "FN": 0
+  },
+  "budget_compliance_pct": 100.0,
+  "provider_error_pct": 17.391304347826086,
+  "malformed_response_pct": 8.695652173913043,
+  "recovery_pct": 100.0,
+  "stress_pass_pct": 100.0,
+  "latency_synthetic_only": {
+    "n": 56,
+    "mean_ms": 4.829251785330208,
+    "median_ms": 0.639599995338358,
+    "p95_ms_nearest_rank": 57.2620999882929,
+    "max_ms": 63.48650000290945
+  },
+  "latency_recovery_synthetic_only": {
+    "n": 20,
+    "mean_ms": 0.8683200001541991,
+    "median_ms": 0.7801500032655895,
+    "p95_ms_nearest_rank": 1.2694000033661723,
+    "max_ms": 1.3065999955870211
+  },
+  "actual_token_usage": null,
+  "billed_cost": null,
+  "formulas": {
+    "mechanical_pass_pct": "100 * cases matching declared outcome AND grounding/safety/budget/recovery checks / all executed campaign cases",
+    "grounding_pct": "100 * published answers passing exact-one/full-paragraph/citation checker / all published answers",
+    "citation_validity_pct": "100 * structurally valid, unexpired fixture citations / all returned citations; not live link reachability",
+    "task_completion_pct": "100 * published grounded answers / eligible supported-query cases, INCLUDING injected dependency failures",
+    "false_acceptance_pct": "100 * FP/(FP+TN), unperturbed functional-query subset only",
+    "false_rejection_pct": "100 * FN/(FN+TP), unperturbed functional-query subset only",
+    "budget_compliance_pct": "100 * runs within all RESERVED output/prompt-byte/call bounds / all PRIMARY and fresh RECOVERY requests; not actual usage or billed cost",
+    "provider_error_pct": "100 * injected outage/rate-limit errors / actual scripted model dispatches in PRIMARY case runs; excludes separate fresh recovery runs",
+    "malformed_response_pct": "100 * injected malformed responses / actual scripted model dispatches in PRIMARY case runs",
+    "recovery_pct": "100 * fresh HTTP200, published, grounded, budget-compliant recoveries with exactly1dispatch / recovery attempts after dependency cases",
+    "latency": "Observed app.dispatch wall time in ms; mean=sum(x)/n, median=middle, P95=sorted x[ceil(.95*n)] (1-based), max=max(x)",
+    "stress_pass_pct": "100 * declared perturbation checks passed / executed cases in the two selected official classes",
+    "correct_refusal_pct": "100 * TN/(TN+FP), unperturbed functional-query subset; unnecessary refusals are FN/(TP+FN)",
+    "undefined": "All rates with denominator0 are null; never substitute0% or100%"
+  },
+  "denominators": {
+    "primary_case_runs": 56,
+    "fresh_recovery_runs": 20,
+    "total_workflow_requests": 76,
+    "published_primary_answers": 8,
+    "eligible_supported_primary_queries": 40,
+    "unperturbed_functional_queries": 20,
+    "primary_citations": 10,
+    "official_class_stress_cases": 28,
+    "model_dispatches_primary": 46,
+    "model_dispatches_recovery": 20
+  },
+  "stress_by_class": [
+    {
+      "class": "input_perturbation",
+      "n": 8,
+      "passed": 8,
+      "failed": 0,
+      "pass_pct": 100.0
+    },
+    {
+      "class": "dependency_failure",
+      "n": 20,
+      "passed": 20,
+      "failed": 0,
+      "pass_pct": 100.0
+    }
+  ],
+  "limits": [
+    "Fixed deterministic scripted responses, not independent model samples or municipal coverage",
+    "No real Ollama/OpenAI inference or paid call; no live provider quality/speed comparison",
+    "Grounding is exact provenance matching, not semantic truth or usefulness",
+    "Refusing everything can maximize safety; task completion is reported separately",
+    "Provider abandonment is bounded waiting, not inference cancellation or a universal bound on blocked synchronous loaders/verifiers",
+    "Human qualitative review, eight authentic meetings and final student paper remain outstanding"
+  ]
+}

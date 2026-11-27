@@ -1,5 +1,77 @@
 # Aisha Agent - Innlandet Agentic Workflows
 
+## Final examination - Start here
+
+Aisha Agent is an independent student prototype for Hamar,
+Elverum and Gjovik.
+
+Application baseline: `0562661`.
+Submission branch: `exam/final`.
+
+### Examination documents
+
+- [Official assignment](final_exam/project_KIUA_2003.pdf)
+- [Requirements register](final_exam/requirements.csv)
+- [Technical readiness](final_exam/READINESS.md)
+- [Development history](final_exam/CHANGELOG.md)
+- [White paper outline](final_exam/report_outline.csv)
+
+### Complete report evidence
+
+- [All report results](output/rapport_resultater_0562661/)
+- [Evaluation metrics](output/rapport_resultater_0562661/evaluering/metrics.json)
+- [Raw evaluation](output/rapport_resultater_0562661/evaluering/raw.jsonl)
+- [Dataset and tables T1-T8](output/rapport_resultater_0562661/evaluering/)
+- [Policy comparison](output/rapport_resultater_0562661/evaluering/policy_comparison.csv)
+- [Regression logs](output/rapport_resultater_0562661/regresjon/)
+- [Repair evidence](output/rapport_resultater_0562661/reparasjoner/)
+- [Reproducibility evidence](output/rapport_resultater_0562661/reproduserbarhet/)
+- [Qualitative observations](output/rapport_resultater_0562661/brukertest.md)
+- [Evidence integrity manifest](output/rapport_resultater_0562661/manifest.json)
+
+### Final evaluation
+
+| Measurement | Result |
+|---|---:|
+| Python regression | 899/899 |
+| Previous Node VM/DOM regression | 39/39 |
+| Mechanical evaluation | 56/56 |
+| Input perturbation | 8/8 |
+| Dependency failure | 20/20 |
+| Recovery | 20/20 |
+| Exact fixture grounding | 8/8 |
+| Structural citation validity | 10/10 |
+| Reserved-budget compliance | 100% |
+| Task completion | 8/40 (20%) |
+| One-call refusal | 2/20 (10%) |
+| Bounded correction | 6/20 (30%) |
+
+Synthetic experiments do not establish live model accuracy,
+semantic truth or complete municipal coverage.
+
+### Run Aisha
+
+With dependencies installed and Ollama running:
+
+    python -B -X utf8 -m hamar_agent.web --enable-live-research --model llama3.2:3b --port 8765
+
+Open http://127.0.0.1:8765/.
+
+Live research requires valid permissions and configuration.
+Do not submit personal data.
+
+### Reproduce the evaluation
+
+    python -B -X utf8 -m hamar_agent --fixture fixtures/water-synthetic.json
+    python -B -X utf8 -m eval.evaluate_verification --final-exam --output output/NEW-campaign
+
+Choose a new output directory for each evaluation.
+
+Earlier development records below are retained for provenance.
+
+---
+
+
 <!-- FINAL_EXAM_CURRENT_START -->
 
 ## Final Exam - KIUA-2003

@@ -1,0 +1,19 @@
+{
+  "before_sha256": "53c043a22b783bcbcec7576d372747cf231a30e30fafd612b2febea9b18e38f6",
+  "observations": [
+    {
+      "finding": "LS-01",
+      "escaped_exception_type": "RuntimeError",
+      "synthetic_marker_escaped": true,
+      "summary_written": false
+    },
+    {
+      "finding": "LS-02",
+      "exit_code": 1,
+      "reported_provider_calls": 1,
+      "actual_transport_calls": 0
+    }
+  ],
+  "private_data_used": false,
+  "repair_tests": "review-corrections.log"
+}

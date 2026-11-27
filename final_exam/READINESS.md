@@ -44,8 +44,8 @@ Caller abandonment is not remote inference cancellation.
 - Final WISEflow submission.
 
 No grade or full academic compliance is asserted.
-The evidence folder is local; required evidence must be included
-in the submission after privacy and secret review.
+The consolidated evidence is prepared for repository publication at
+output/rapport_resultater_0562661/.
 
 ---
 

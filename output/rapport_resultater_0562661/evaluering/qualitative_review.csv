@@ -1,0 +1,57 @@
+case_id,provider,policy,mechanical_interpretation,human_relevance,human_usefulness,human_citation_clarity,evidence
+supported,ollama (mocked),one_call_refusal,An eligible exact paragraph is published,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+unsupported,ollama (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+empty_boundary,ollama (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+synthetic_contact_rejected,ollama (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+expired_source,ollama (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+multiple_claims,ollama (mocked),one_call_refusal,reviewed claim cardinality -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_repaired,ollama (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_persistent,ollama (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_outage,ollama (mocked),one_call_refusal,provider transport -> sanitized provider_unavailable -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_rate_limit,ollama (mocked),one_call_refusal,provider transport -> sanitized provider_rate_limit -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_malformed,ollama (mocked),one_call_refusal,provider JSON parsing -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_silent_degradation,ollama (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_blocked,ollama (mocked),one_call_refusal,provider wait deadline -> sanitized run_deadline_exceeded -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+shared_budget,ollama (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+supported,ollama (mocked),bounded_correction,An eligible exact paragraph is published,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+unsupported,ollama (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+empty_boundary,ollama (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+synthetic_contact_rejected,ollama (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+expired_source,ollama (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+multiple_claims,ollama (mocked),bounded_correction,reviewed claim cardinality -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_repaired,ollama (mocked),bounded_correction,Initial candidate fails verification; 2 scripted dispatch(es); mandatory re-verification leads to one fully rechecked source paragraph,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_persistent,ollama (mocked),bounded_correction,Initial candidate fails verification; 2 scripted dispatch(es); mandatory re-verification leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_outage,ollama (mocked),bounded_correction,provider transport -> sanitized provider_unavailable -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_rate_limit,ollama (mocked),bounded_correction,provider transport -> sanitized provider_rate_limit -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_malformed,ollama (mocked),bounded_correction,provider JSON parsing -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_silent_degradation,ollama (mocked),bounded_correction,Initial candidate fails verification; 2 scripted dispatch(es); mandatory re-verification leads to one fully rechecked source paragraph,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_blocked,ollama (mocked),bounded_correction,provider wait deadline -> sanitized run_deadline_exceeded -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+shared_budget,ollama (mocked),bounded_correction,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+supported,openai (mocked),one_call_refusal,An eligible exact paragraph is published,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+unsupported,openai (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+empty_boundary,openai (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+synthetic_contact_rejected,openai (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+expired_source,openai (mocked),one_call_refusal,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+multiple_claims,openai (mocked),one_call_refusal,reviewed claim cardinality -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_repaired,openai (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_persistent,openai (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_outage,openai (mocked),one_call_refusal,provider transport -> sanitized provider_unavailable -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_rate_limit,openai (mocked),one_call_refusal,provider transport -> sanitized provider_rate_limit -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_malformed,openai (mocked),one_call_refusal,provider JSON parsing -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_silent_degradation,openai (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_blocked,openai (mocked),one_call_refusal,provider wait deadline -> sanitized run_deadline_exceeded -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+shared_budget,openai (mocked),one_call_refusal,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+supported,openai (mocked),bounded_correction,An eligible exact paragraph is published,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+unsupported,openai (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+empty_boundary,openai (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+synthetic_contact_rejected,openai (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+expired_source,openai (mocked),bounded_correction,No eligible answer requested/available; no model dispatch,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+multiple_claims,openai (mocked),bounded_correction,reviewed claim cardinality -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_repaired,openai (mocked),bounded_correction,Initial candidate fails verification; 2 scripted dispatch(es); mandatory re-verification leads to one fully rechecked source paragraph,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+source_injection_persistent,openai (mocked),bounded_correction,Initial candidate fails verification; 2 scripted dispatch(es); mandatory re-verification leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_outage,openai (mocked),bounded_correction,provider transport -> sanitized provider_unavailable -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_rate_limit,openai (mocked),bounded_correction,provider transport -> sanitized provider_rate_limit -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_malformed,openai (mocked),bounded_correction,provider JSON parsing -> sanitized provider_response_invalid -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_silent_degradation,openai (mocked),bounded_correction,Initial candidate fails verification; 2 scripted dispatch(es); mandatory re-verification leads to one fully rechecked source paragraph,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+dependency_blocked,openai (mocked),bounded_correction,provider wait deadline -> sanitized run_deadline_exceeded -> no answer publication; fresh recovery is reported separately,not_reviewed,not_reviewed,not_reviewed,raw.jsonl
+shared_budget,openai (mocked),bounded_correction,Initial candidate fails verification; 1 scripted dispatch(es); shared run reservation leads to no answer publication,not_reviewed,not_reviewed,not_reviewed,raw.jsonl

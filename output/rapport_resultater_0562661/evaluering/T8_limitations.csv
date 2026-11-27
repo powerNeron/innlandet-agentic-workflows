@@ -1,0 +1,7 @@
+dataset,n,method,result,evidence
+Campaign validity,56,Scope disclosure,"Fixed deterministic scripted responses, not independent model samples or municipal coverage",metrics.json; raw.jsonl
+Campaign validity,56,Scope disclosure,No real Ollama/OpenAI inference or paid call; no live provider quality/speed comparison,metrics.json; raw.jsonl
+Campaign validity,56,Scope disclosure,"Grounding is exact provenance matching, not semantic truth or usefulness",metrics.json; raw.jsonl
+Campaign validity,56,Scope disclosure,Refusing everything can maximize safety; task completion is reported separately,metrics.json; raw.jsonl
+Campaign validity,56,Scope disclosure,"Provider abandonment is bounded waiting, not inference cancellation or a universal bound on blocked synchronous loaders/verifiers",metrics.json; raw.jsonl
+Campaign validity,56,Scope disclosure,"Human qualitative review, eight authentic meetings and final student paper remain outstanding",metrics.json; raw.jsonl
